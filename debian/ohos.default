@@ -1,0 +1,13 @@
+# Defaults for ohos initscript
+# sourced by /etc/init.d/ohos
+# installed at /etc/default/ohos by the maintainer scripts
+
+#
+# This is a POSIX shell fragment
+#
+
+MDNS_ACTIVE="yes"
+MDNS_ARGS="-d" # -d for dynamic, -m <arg> for manual
+
+AUTOUPDATE_ACTIVE="yes"
+AUTOUPDATE_ARGS=""

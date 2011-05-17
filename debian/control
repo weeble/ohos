@@ -1,0 +1,15 @@
+Source: ohos
+Section: admin
+Priority: extra
+Maintainer: root <webmaster@openhome.org>
+Build-Depends: debhelper (>= 7.0.50~)
+Standards-Version: 3.8.4
+Homepage: <insert the upstream URL, if relevant>
+#Vcs-Git: git://git.debian.org/collab-maint/ohos.git
+#Vcs-Browser: http://git.debian.org/?p=collab-maint/ohos.git;a=summary
+
+Package: ohos
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Operating system customisations for openhome use
+

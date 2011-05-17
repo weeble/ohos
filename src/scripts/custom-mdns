@@ -1,0 +1,38 @@
+#!/bin/sh
+
+get_mac_and_ip() {
+
+        mac=$(ifconfig eth0) && mac=${mac#*HWaddr } && mac=${mac%% *}
+        ip=$(ifconfig eth0) && ip=${ip#*inet addr:} && ip=${ip%% *}
+
+        thirdoctet=$(echo $mac | cut -d ':' -f 5)
+        lastoctet=$(echo $mac | cut -d ':' -f 6)
+
+}
+
+set_hostname() {
+
+        echo $hostname > /etc/hostname
+        echo $ip $hostname > /etc/hosts
+        echo 127.0.0.1 $hostname >> /etc/hosts
+        hostname $hostname
+        /etc/init.d/avahi-daemon restart
+}
+
+case "$1" in
+  -d)
+        get_mac_and_ip
+        hostname=openhome-${thirdoctet}-${lastoctet}
+        set_hostname
+        ;;
+  -m)
+        get_mac_and_ip
+        hostname=$2
+        set_hostname
+        ;;
+  *)
+        echo "Usage: {-d|-m <hostname>}"
+        exit 1
+
+esac
+

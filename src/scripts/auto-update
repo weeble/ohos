@@ -1,0 +1,3 @@
+#!/bin/sh
+
+apt-get -qy update && apt-get -qy install ohwidget --force-yes && apt-get -qy --force-yes install ohos  >> /var/log/ohos-update.log

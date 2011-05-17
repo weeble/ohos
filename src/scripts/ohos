@@ -1,0 +1,15 @@
+#!/bin/bash
+
+NAME=ohos
+
+[ -r /etc/default/$NAME ] && . /etc/default/$NAME
+
+if [[ "$MDNS_ACTIVE" == 'yes' ]]
+then
+        /usr/bin/custom-mdns $MDNS_ARGS;
+fi
+
+if [[ "$AUTOUPDATE_ACTIVE" == 'yes' ]]
+then
+	/usr/bin/auto-update $AUTOUPDATE_ARGS;
+fi
