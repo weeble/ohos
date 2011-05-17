@@ -117,7 +117,7 @@ class builder():
                         print "publish failed, aborting"
                         sys.exit(1)
 
-		cmd = "sudo /bin/sh -c 'cd /var/www/openhome/apt-repo && reprepro -Vb . include %s incoming/%s/ohwidget_%s_%s.changes'" %(self.repo, self.repo, self.version, self.arch_vars["arch"])
+		cmd = "sudo /bin/sh -c 'cd /var/www/openhome/apt-repo && reprepro -Vb . include %s incoming/%s/ohos_%s_%s.changes'" %(self.repo, self.repo, self.version, self.arch_vars["arch"])
 		print cmd
 
 		time.sleep(60 * random.random())
