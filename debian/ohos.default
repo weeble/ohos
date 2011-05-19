@@ -6,8 +6,11 @@
 # This is a POSIX shell fragment
 #
 
-MDNS_ACTIVE="yes"
+MDNS_ACTIVE="no"
 MDNS_ARGS="-d" # -d for dynamic, -m <arg> for manual
 
-AUTOUPDATE_ACTIVE="yes"
+AUTOUPDATE_ACTIVE="no"
 AUTOUPDATE_ARGS=""
+
+ISCSI_CLIENT="no"
+ISCSI_ARGS=""

@@ -13,3 +13,8 @@ if [[ "$AUTOUPDATE_ACTIVE" == 'yes' ]]
 then
 	/usr/bin/auto-update $AUTOUPDATE_ARGS;
 fi
+
+if [[ "$ISCSI_CLIENT" == 'yes' ]]
+then
+	/usr/bin/iscsi-setup $ISCSI_ARGS;
+fi

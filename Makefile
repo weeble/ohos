@@ -15,4 +15,5 @@ install:
 	mkdir -p $(DESTDIR)$(libdir)
 	install src/scripts/auto-update  $(DESTDIR)$(bindir)/auto-update
 	install src/scripts/custom-mdns $(DESTDIR)$(bindir)/custom-mdns
+	install src/scripts/iscsi-setup $(DESTDIR)$(bindir)/iscsi-setup
 	install src/scripts/ohos	$(DESTDIR)$(bindir)/ohos
