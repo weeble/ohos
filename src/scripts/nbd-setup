@@ -1,4 +1,4 @@
 #!/bin/sh
 
 /sbin/nbd-client $@
-/bin/mount /dev/nbd0 /mnt
+/bin/mount /dev/nbd0 /root
