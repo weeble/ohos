@@ -14,7 +14,7 @@ then
 	/usr/bin/auto-update $AUTOUPDATE_ARGS;
 fi
 
-if [[ "$ISCSI_CLIENT" == 'yes' ]]
+if [[ "$NBD_CLIENT" == 'yes' ]]
 then
-	/usr/bin/iscsi-setup $ISCSI_ARGS;
+	/usr/bin/nbd-setup $NBD_ARGS;
 fi

@@ -1,0 +1,12 @@
+#!/bin/sh
+
+set_lun() {
+	/sbin/nbd-client $1
+}
+
+mount_lun() {
+	mount /dev/nbd0/ /root
+}
+
+set_lun
+mount_lun
