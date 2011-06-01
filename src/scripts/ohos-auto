@@ -1,5 +1,10 @@
 #!/bin/bash
 
+NAME=ohos
+
+[ -r /etc/default/$NAME ] && . /etc/default/$NAME
+
+
 if [[ "$AUTOUPDATE_ACTIVE" == 'yes' ]]
 then
 	/usr/bin/auto-update $AUTOUPDATE_ARGS;
