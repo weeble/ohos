@@ -17,3 +17,4 @@ install:
 	install src/scripts/custom-mdns $(DESTDIR)$(bindir)/custom-mdns
 	install src/scripts/nbd-setup $(DESTDIR)$(bindir)/nbd-setup
 	install src/scripts/ohos	$(DESTDIR)$(bindir)/ohos
+	install src/scripts/ohos-auto	$(DESTDIR)$(bindir)/ohos-auto

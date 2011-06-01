@@ -1,0 +1,6 @@
+#!/bin/bash
+
+if [[ "$AUTOUPDATE_ACTIVE" == 'yes' ]]
+then
+	/usr/bin/auto-update $AUTOUPDATE_ARGS;
+fi

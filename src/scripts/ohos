@@ -9,11 +9,6 @@ then
         /usr/bin/custom-mdns $MDNS_ARGS;
 fi
 
-if [[ "$AUTOUPDATE_ACTIVE" == 'yes' ]]
-then
-	/usr/bin/auto-update $AUTOUPDATE_ARGS;
-fi
-
 if [[ "$NBD_CLIENT" == 'yes' ]]
 then
 	/usr/bin/nbd-setup $NBD_ARGS;
