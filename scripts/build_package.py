@@ -16,6 +16,8 @@ class builder():
                 self.output = ""
                 self.ret = ''
 		self.host = "10.2.8.237"
+		self.oh_rsync_user = "hudson-rsync"
+		self.oh_rsync_host = "openhome.org"
 		self.username = "repo-incoming"
                 self.target = os.environ.get("TARGET_ARCH")
                 self.version = os.environ.get("PACKAGE_VERSION")
@@ -118,11 +120,11 @@ class builder():
                         sys.exit(1)
 
 		cmd = "sudo /bin/sh -c 'cd /var/www/openhome/apt-repo && reprepro -Vb . include %s incoming/%s/ohos_%s_%s.changes'" %(self.repo, self.repo, self.version, self.arch_vars["arch"])
-		print cmd
+		publish_openhome = "sudo /bin/sh -c 'rsync -avz /var/www/openhome/apt-repo/ %s@%s:~/build/nightly/apt-repo'" %(self.oh_rsync_user, self.oh_rsync_host)
 
 		time.sleep(60 * random.random())
 		self.run_remote_build(cmd)
-
+		self.run_remote_build(publish_openhome)
 
 if __name__ == "__main__":
         build = builder()
