@@ -1,0 +1,51 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisIgnoreBuiltInRuleSets>true</CodeAnalysisIgnoreBuiltInRuleSets>
+    <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
+    <CodeAnalysisFailOnMissingRules>false</CodeAnalysisFailOnMissingRules>
+    <LinnConfiguration>debug</LinnConfiguration>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+    <DefineConstants>
+    </DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
+    <LinnConfiguration>trace</LinnConfiguration>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(OS)' == 'Windows_NT' ">
+    <LibPrefix></LibPrefix>
+    <LibSuffix>.dll</LibSuffix>
+    <Architecture>Windows-x86</Architecture>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(OS)' != 'Windows_NT' ">
+    <LibPrefix>lib</LibPrefix>
+    <LibSuffix>.so</LibSuffix>
+    <Architecture>Linux-x86</Architecture>
+  </PropertyGroup>
+  <PropertyGroup>
+    <IntermediateOutputPath>..\..\build\intermediate</IntermediateOutputPath>
+    <OutputPath>..\..\build</OutputPath>
+  </PropertyGroup>
+  <Target Name="WafBuild">
+    <Message Text="Starting waf build..." />
+    <Exec Command="waf.bat" WorkingDirectory="..\.." />
+    <Message Text="Finished waf build." />
+  </Target>
+  <Target Name="Clean">
+    <Message Text="Starting waf clean..." />
+    <Exec Command="waf.bat clean" WorkingDirectory="..\.." />
+    <Message Text="Finished waf clean." />
+  </Target>
+  <Target Name="Rebuild">
+    <CallTarget Targets="Clean" />
+    <CallTarget Targets="WafBuild" />
+  </Target>
+</Project>
