@@ -38,7 +38,7 @@ ohnetdir = ohnet.add_directory(
     unique_id = 'ohnet-dir',
     as_option = '--ohnet-dir',
     option_help = 'Location of OhNet DLLs.',
-    in_dependencies = '${PLATFORM}/[Zz]app*/lib')
+    in_dependencies = '${PLATFORM}/oh[Nn]et*/lib')
 ohnett4dir = ohnetdir.add_directory(
     unique_id = 'ohnet-t4-dir',
     relative_path = 't4',
@@ -55,10 +55,10 @@ ohnetuidir = ohnetdir.add_directory(
     as_option = '--ohnet-ui-dir',
     option_help = 'Location containing OhNet\'s Javascript files')
 ohnetdir.add_assemblies(
-    'Zapp.net.dll',
+    'ohnet.net.dll',
     reference=True, copy=True)
 ohnetdir.add_libraries(
-    'ZappUpnp',
+    'ohnet',
     copy=True)
 
 ndeskoptions = csharp_dependencies.add_package('ndeskoptions')
@@ -99,7 +99,8 @@ monoaddinsdir.add_assemblies(
     reference=True, copy=True)
 monoaddinsdir.add_assemblies(
     #'Mono.Addins.CecilReflector.dll', # Omit Cecil, because it obnoxiously attempts to define system types.
-    'ICSharpCode.SharpZipLib.dll')
+    'ICSharpCode.SharpZipLib.dll',
+    reference=False, copy=True)
 
 # Mono.Addins.Setup provides tools for manipulating Mono.Addins plugins at run-time.
 monoaddinssetup = csharp_dependencies.add_package('mono-addins-setup')
@@ -111,6 +112,17 @@ monoaddinssetupdir = monoaddins.add_directory(
 monoaddinssetupdir.add_assemblies(
     'Mono.Addins.Setup.dll',
     reference=True, copy=True)
+
+# SharpZipLib (un)zips zip files
+sharpziplib = csharp_dependencies.add_package('sharpziplib')
+sharpziplibdir = sharpziplib.add_directory(
+    unique_id = 'sharpziplib-dir',
+    as_option = '--mono-addins-dir',
+    option_help = 'Location containing the SharpZipLib library (we use the version supplied by Mono.Addins)',
+    in_dependencies = '${PLATFORM}/Mono.Addins*')
+sharpziplibdir.add_assemblies(
+    'ICSharpCode.SharpZipLib.dll',
+    reference=True, copy=False)
 
 # == Command-line options ==
 
@@ -142,7 +154,7 @@ def configure(conf):
     defaults = {}
     if conf.options.ohnet_source_dir is not None:
         ohnet_platform_name = 'Windows' if plat.startswith('Windows') else 'Posix'
-        defaults['--ohnet-dir'] = path.join(conf.options.ohnet_source_dir, 'Upnp', 'Build', 'Obj', ohnet_platform_name)
+        defaults['--ohnet-dir'] = path.join(conf.options.ohnet_source_dir, 'Upnp', 'Build', 'Obj', ohnet_platform_name, 'Debug')
         defaults['--ohnet-t4-dir'] = path.join(conf.options.ohnet_source_dir, 'Upnp', 'Build', ohnet_platform_name, 'Tools')
         defaults['--ohnet-template-dir'] = path.join(conf.options.ohnet_source_dir, 'Upnp','T4', 'Templates')
         defaults['--ohnet-ui-dir'] = path.join(conf.options.ohnet_source_dir, 'Upnp', 'Public', 'Js', 'WebUIsdk')
@@ -233,7 +245,7 @@ def create_csharp_tasks(bld, projects, csharp_dependencies):
             features='cs',
             source=bld.path.ant_glob('src/'+project.dir+'/**/*.cs'),
             type=project.type,
-            #platform="x86",    # TODO: Only set this where appropriate.
+            platform="x86",    # TODO: Only set this where appropriate.
             gen=outputname,
             use=project.references + pkg_assemblies,
             csflags=csharp_dependencies.get_csflags_for_packages(bld, project.packages),
@@ -241,7 +253,7 @@ def create_csharp_tasks(bld, projects, csharp_dependencies):
 
 
 def get_active_dependencies(env):
-    active_dependency_names = set(['ohnet', 'yui-compressor','mono-addins','mono-addins-setup'])
+    active_dependency_names = set(['ohnet', 'yui-compressor','mono-addins','mono-addins-setup', 'sharpziplib'])
     if env.BUILDTESTS:
         active_dependency_names |= set(['nunit', 'ndeskoptions'])
     return csharp_dependencies.get_subset(active_dependency_names)
@@ -276,6 +288,7 @@ def build(bld):
             find_resource_or_fail(bld, bld.root, path.join(ohnett4dir.absolute_path, 'UpnpServiceTemplate.xsd'))])
 
     upnp_services = [
+            GeneratedFile('src/ServiceXml/App1.xml', 'openhome.org', 'App', '1', 'OpenhomeOrgApp1'),
             ]
 
     #early_csharp_projects = [
@@ -304,12 +317,24 @@ def build(bld):
     # Build all our assemblies.
     csharp_projects = [
         # Core node libraries:
-        CSharpProject("OhOs.AppManager", "AppManager", "library", ['zapp'], [])
+        CSharpProject("ohOs.AppManager", "AppManager", "library", ['ohnet', 'mono-addins', 'sharpziplib'], [
+        'DvOpenhomeOrgApp1'])
+       ,CSharpProject("ohOs.Tests", "Tests", "exe", ['ohnet'], [
+        'ohOs.AppManager'
+        ])
+       ,CSharpProject("ohOs.TestApp1", "TestApp1", "library", ['ohnet', 'mono-addins'], [
+        'ohOs.AppManager'
+        ])
         ]
 
     # Build our tests and miscellaneous testing tools:
     if bld.env.BUILDTESTS:
-        print 'Nothing to do here yet'
+        print 'BUILDTESTS: nothing to do here yet'
+
+    bld(
+        rule=copy_task,
+        source='src/InstallManager/App.addins',
+        target='Apps/App.addins')
 
     create_csharp_tasks(bld, csharp_projects, csharp_dependencies)
 
@@ -318,7 +343,7 @@ def build(bld):
             bld(
                 features='cs',
                 source=prefix + service.target + '.cs',
-                use=csharp_dependencies.get_assembly_names_for_packages(bld, ['zapp']),
+                use=csharp_dependencies.get_assembly_names_for_packages(bld, ['ohnet']),
                 gen=prefix + service.target + '.dll',
                 type='library',
                 name=prefix + service.target)
@@ -332,8 +357,8 @@ def do_install(bld):
     bld.install_files(
         '${PREFIX}/lib/ohos/',
         [
-            bld.env.cshlib_PATTERN % ('ZappUpnp',),
-            'Zapp.net.dll',
+            ohnet.dll,
+            'ohnet.net.dll'
         ])
 
 
