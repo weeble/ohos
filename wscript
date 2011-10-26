@@ -154,10 +154,10 @@ def configure(conf):
     defaults = {}
     if conf.options.ohnet_source_dir is not None:
         ohnet_platform_name = 'Windows' if plat.startswith('Windows') else 'Posix'
-        defaults['--ohnet-dir'] = path.join(conf.options.ohnet_source_dir, 'Upnp', 'Build', 'Obj', ohnet_platform_name, 'Debug')
-        defaults['--ohnet-t4-dir'] = path.join(conf.options.ohnet_source_dir, 'Upnp', 'Build', ohnet_platform_name, 'Tools')
-        defaults['--ohnet-template-dir'] = path.join(conf.options.ohnet_source_dir, 'Upnp','T4', 'Templates')
-        defaults['--ohnet-ui-dir'] = path.join(conf.options.ohnet_source_dir, 'Upnp', 'Public', 'Js', 'WebUIsdk')
+        defaults['--ohnet-dir'] = path.join(conf.options.ohnet_source_dir, 'Build', 'Obj', ohnet_platform_name, 'Debug')
+        defaults['--ohnet-t4-dir'] = path.join(conf.options.ohnet_source_dir, 'Build', ohnet_platform_name, 'Tools')
+        defaults['--ohnet-template-dir'] = path.join(conf.options.ohnet_source_dir, 'Openhome', 'Net', 'T4', 'Templates')
+        defaults['--ohnet-ui-dir'] = path.join(conf.options.ohnet_source_dir, 'OpenHome', 'Net', 'Bindings', 'Js', 'ControlPoint')
 
     active_dependencies = get_active_dependencies(conf.env)
     active_dependencies.configure(conf, defaults)
@@ -333,7 +333,7 @@ def build(bld):
 
     bld(
         rule=copy_task,
-        source='src/InstallManager/App.addins',
+        source='src/AppManager/App.addins',
         target='Apps/App.addins')
 
     create_csharp_tasks(bld, csharp_projects, csharp_dependencies)
