@@ -5,7 +5,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{E37B0819-E13F-4C5D-BD3B-F0A64FE65A81}</ProjectGuid>
+    <ProjectGuid>{AB03D699-04CE-48D6-B75C-A13E3AD75C1B}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>OpenHome.Os.AppManager</RootNamespace>
