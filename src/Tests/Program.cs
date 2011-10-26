@@ -12,10 +12,10 @@ namespace OpenHome.Os
             initParams.UseLoopbackNetworkAdapter = true;
             using (Library library = Library.Create(initParams))
             {
-                IntPtr subnetList = library.SubnetListCreate();
-                IntPtr nif = library.SubnetAt(subnetList, 0);
-                uint subnet = library.NetworkAdapterSubnet(nif);
-                library.SubnetListDestroy(subnetList);
+                SubnetList subnetList = new SubnetList();
+                NetworkAdapter nif = subnetList.SubnetAt(0);
+                uint subnet = nif.Subnet();
+                subnetList.Destroy();
                 var combinedStack = library.StartCombined(subnet);
 
                 string exePath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
