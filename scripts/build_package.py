@@ -15,7 +15,7 @@ class builder():
                 self.arch_vars = ''
                 self.output = ""
                 self.ret = ''
-		self.host = "10.2.8.237"
+		self.host = "image-builder.linn.co.uk"
 		self.oh_rsync_user = "hudson-rsync"
 		self.oh_rsync_host = "openhome.org"
 		self.username = "repo-incoming"
