@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using Mono.Addins;
 using OpenHome.Net.Device;
 using ICSharpCode.SharpZipLib.Zip;
@@ -121,6 +122,27 @@ namespace OpenHome.Os.AppManager
         }
         public void Dispose()
         {
+            AddinManager.RemoveExtensionNodeHandler("/ohOs/App", AppListChanged);
+            lock (iApps)
+            {
+                List<Exception> exceptions = new List<Exception>();
+                foreach (var app in iApps.Values)
+                {
+                    try
+                    {
+                        app.Dispose();
+                    }
+                    catch (Exception e)
+                    {
+                        exceptions.Add(e);
+                    }
+                }
+                if (exceptions.Count > 0)
+                {
+                    throw new Exception(String.Format("{0} exceptions during Dispose().", exceptions.Count), exceptions[0]);
+                }
+                iApps.Clear();
+            }
             // !!!! write history to disk (here or earlier)
         }
         private void AppListChanged(object aSender, ExtensionNodeEventArgs aArgs)

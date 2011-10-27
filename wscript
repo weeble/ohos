@@ -334,7 +334,7 @@ def build(bld):
     bld(
         rule=copy_task,
         source='src/AppManager/App.addins',
-        target='Apps/App.addins')
+        target='App.addins')
 
     create_csharp_tasks(bld, csharp_projects, csharp_dependencies)
 
