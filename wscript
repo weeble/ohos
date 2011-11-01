@@ -267,14 +267,15 @@ def create_csharp_tasks(bld, projects, csharp_dependencies):
             name=project.name)
 
 def ziprule(task):
-    with zipfile.ZipFile(task.outputs[0].abspath(),'w') as zf:
-        for inputnode in task.inputs:
-            print task.generator.sourceroot.abspath()
-            print task.generator.ziproot
-            fragmentFromSourceRootToInput = os.path.relpath(inputnode.abspath(), task.generator.sourceroot.abspath())
-            arcname = os.path.join(task.generator.ziproot, fragmentFromSourceRootToInput)
-            print "arcname:", arcname
-            zf.write(inputnode.abspath(), arcname)
+    zf = zipfile.ZipFile(task.outputs[0].abspath(),'w')
+    for inputnode in task.inputs:
+        print task.generator.sourceroot.abspath()
+        print task.generator.ziproot
+        fragmentFromSourceRootToInput = os.path.relpath(inputnode.abspath(), task.generator.sourceroot.abspath())
+        arcname = os.path.join(task.generator.ziproot, fragmentFromSourceRootToInput)
+        print "arcname:", arcname
+        zf.write(inputnode.abspath(), arcname)
+    zf.close()
 
 def create_zip_task(bld, zipfile, sourceroot, ziproot, sourcefiles):
     if not isinstance(sourceroot, Node):
