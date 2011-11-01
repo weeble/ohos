@@ -56,10 +56,10 @@ ohnetuidir = ohnetdir.add_directory(
     as_option = '--ohnet-ui-dir',
     option_help = 'Location containing OhNet\'s Javascript files')
 ohnetdir.add_assemblies(
-    'ohnet.net.dll',
+    'ohNet.net.dll',
     reference=True, copy=True)
 ohnetdir.add_libraries(
-    'ohnet',
+    'ohNet',
     copy=True)
 
 ndeskoptions = csharp_dependencies.add_package('ndeskoptions')
@@ -434,8 +434,8 @@ def do_install(bld):
     bld.install_files(
         '${PREFIX}/lib/ohos/',
         [
-            ohnet.dll,
-            'ohnet.net.dll'
+            'ohNet.dll',
+            'ohNet.net.dll'
         ])
 
 
