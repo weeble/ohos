@@ -5,6 +5,7 @@ import platform
 import subprocess
 import os
 import glob
+import zipfile
 
 from wafmodules.configuration import (
     CSharpDependencyCollection,
@@ -177,6 +178,9 @@ def configure(conf):
         invokeintegrationtest = set_env(conf, 'INVOKEINTEGRATIONTEST',
                 ['python'] if plat.startswith('Windows') else
                 ['env', 'LD_LIBRARY_PATH=' + conf.path.get_bld().abspath(), 'python'])
+        invokeclr = set_env(conf, 'INVOKECLR',
+                [] if plat.startswith('Windows') else
+                ['env','LD_LIBRARY_PATH=' + conf.path.get_bld().abspath(),'mono','--debug'])
 
     conf.env.append_value('CSFLAGS', '/warnaserror+')
 
@@ -215,10 +219,11 @@ def create_copy_task(build_context, files, target_dir='.', cwd=None, keep_relati
 
 
 class CSharpProject(object):
-    def __init__(self, name, dir, type, packages, references):
+    def __init__(self, name, dir, type, categories, packages, references):
         self.name = name
         self.dir = dir
         self.type = type
+        self.categories = categories
         self.packages = packages
         self.references = references
 
@@ -229,6 +234,16 @@ class GeneratedFile(object):
         self.type = type
         self.version = version
         self.target = target
+
+class CopyFile(object):
+    def __init__(self, source, target):
+        self.source = source
+        self.target = target
+
+class OhOsApp(object):
+    def __init__(self, name, files):
+        self.name = name
+        self.files = files
 
 def find_resource_or_fail(bld, root, path):
     node = root.find_resource(path)
@@ -251,6 +266,27 @@ def create_csharp_tasks(bld, projects, csharp_dependencies):
             csflags=csharp_dependencies.get_csflags_for_packages(bld, project.packages),
             name=project.name)
 
+def ziprule(task):
+    with zipfile.ZipFile(task.outputs[0].abspath(),'w') as zf:
+        for inputnode in task.inputs:
+            print task.generator.sourceroot.abspath()
+            print task.generator.ziproot
+            fragmentFromSourceRootToInput = os.path.relpath(inputnode.abspath(), task.generator.sourceroot.abspath())
+            arcname = os.path.join(task.generator.ziproot, fragmentFromSourceRootToInput)
+            print "arcname:", arcname
+            zf.write(inputnode.abspath(), arcname)
+
+def create_zip_task(bld, zipfile, sourceroot, ziproot, sourcefiles):
+    if not isinstance(sourceroot, Node):
+        sourceroot = bld.path.find_or_declare(sourceroot)
+    task = bld(
+            rule=ziprule,
+            source=sourcefiles,
+            sourceroot=sourceroot,
+            target=zipfile,
+            ziproot=ziproot)
+    task.deps_man = [ziproot, sourceroot]
+
 
 def get_active_dependencies(env):
     active_dependency_names = set(['ohnet', 'yui-compressor','mono-addins','mono-addins-setup', 'sharpziplib'])
@@ -260,6 +296,55 @@ def get_active_dependencies(env):
 
 
 # == Build rules ==
+
+upnp_services = [
+        GeneratedFile('src/ServiceXml/App1.xml', 'openhome.org', 'App', '1', 'OpenhomeOrgApp1'),
+    ]
+
+csharp_projects = [
+        # Core node libraries:
+        CSharpProject(
+            name="ohOs.AppManager", dir="AppManager", type="library",
+            categories=["core"],
+            packages=['ohnet', 'mono-addins', 'sharpziplib'],
+            references=[
+                'DvOpenhomeOrgApp1',
+            ]),
+        CSharpProject(
+            name="ohOs.Tests", dir="Tests", type="exe",
+            categories=["core"],
+            packages=['ohnet'],
+            references=[
+                'ohOs.AppManager',
+            ]),
+        CSharpProject(
+            name="ohOs.TestApp1", dir="TestApp1", type="library",
+            categories=["core"],
+            packages=['ohnet', 'mono-addins'],
+            references=[
+                'ohOs.AppManager',
+            ]),
+    ]
+
+files_to_copy = [
+        CopyFile(
+            source='src/AppManager/App.addins',
+            target='App.addins'),
+    ]
+
+ohos_apps = [
+        OhOsApp(
+            name="ohOs.TestApp1",
+            files=[
+                'ohOs.TestApp1.dll'
+            ]),
+    ]
+
+integration_tests = [
+        '${INVOKECLR} ohOs.Tests.exe'
+    ]
+
+
 
 def build(bld):
     active_dependencies = get_active_dependencies(bld.env)
@@ -287,9 +372,6 @@ def build(bld):
             find_resource_or_fail(bld, bld.root, path.join(ohnett4dir.absolute_path, 'UpnpServiceXml.dll')),
             find_resource_or_fail(bld, bld.root, path.join(ohnett4dir.absolute_path, 'UpnpServiceTemplate.xsd'))])
 
-    upnp_services = [
-            GeneratedFile('src/ServiceXml/App1.xml', 'openhome.org', 'App', '1', 'OpenhomeOrgApp1'),
-            ]
 
     #early_csharp_projects = [
     #    CSharpProject("WebCompressor", "WebCompressor", "exe", ['yui-compressor'], [])]
@@ -314,29 +396,23 @@ def build(bld):
                 target=bld.path.find_or_declare(prefix + service.target + ext))
     bld.add_group()
 
-    # Build all our assemblies.
-    csharp_projects = [
-        # Core node libraries:
-        CSharpProject("ohOs.AppManager", "AppManager", "library", ['ohnet', 'mono-addins', 'sharpziplib'], [
-        'DvOpenhomeOrgApp1'])
-       ,CSharpProject("ohOs.Tests", "Tests", "exe", ['ohnet'], [
-        'ohOs.AppManager'
-        ])
-       ,CSharpProject("ohOs.TestApp1", "TestApp1", "library", ['ohnet', 'mono-addins'], [
-        'ohOs.AppManager'
-        ])
-        ]
-
     # Build our tests and miscellaneous testing tools:
     if bld.env.BUILDTESTS:
         print 'BUILDTESTS: nothing to do here yet'
 
-    bld(
-        rule=copy_task,
-        source='src/AppManager/App.addins',
-        target='App.addins')
+    for copyfile in files_to_copy:
+        bld(rule=copy_task, source=copyfile.source, target=copyfile.target)
 
-    create_csharp_tasks(bld, csharp_projects, csharp_dependencies)
+    # Build all our assemblies.
+    create_csharp_tasks(bld, [prj for prj in csharp_projects if 'core' in prj.categories], csharp_dependencies)
+
+    for ohos_app in ohos_apps:
+        create_zip_task(
+            bld,
+            ohos_app.name + ".zip",
+            ".",
+            ".",
+            ohos_app.files)
 
     for service in upnp_services:
         for prefix in ['Dv', 'Cp']:
@@ -347,6 +423,7 @@ def build(bld):
                 gen=prefix + service.target + '.dll',
                 type='library',
                 name=prefix + service.target)
+
 
 def do_install(bld):
     bld.install_files(
@@ -371,7 +448,12 @@ def test(tst):
 # == Command for invoking integration tests ==
 
 def integrationtest(tst):
-    print 'No integration tests to run yet'
+    for test_rule in integration_tests:
+        target = tst(
+                rule=test_rule,
+                always=True)
+        target.env.env = dict(os.environ)
+        target.env.env['NO_ERROR_DIALOGS'] = '1'
 
 
 # == Contexts to make 'waf test' and 'waf integrationtest' work ==
@@ -385,3 +467,5 @@ class TestContext(BuildContext):
 class IntegrationTestContext(BuildContext):
     cmd = 'integrationtest'
     fun = 'integrationtest'
+
+# vim: set filetype=python softtabstop=4 expandtab shiftwidth=4 tabstop=4:
