@@ -124,7 +124,7 @@ build_behaviours = {
             env = dict(
                 PLATFORM='Windows-x86',
                 OHNET_ARTIFACTS='\\\\ohnet.linn.co.uk\\artifacts',
-                WAFLOCK='.lock-wafbuildwindows',
+                WAFLOCK='.lock-wafbuildhudson',
                 ZAPP_NO_ERROR_DIALOGS='1')),
 
         "Windows-x64" : BuildBehaviour(
@@ -134,7 +134,7 @@ build_behaviours = {
             env = dict(
                 PLATFORM='Windows-x64',
                 OHNET_ARTIFACTS='\\\\ohnet.linn.co.uk\\artifacts',
-                WAFLOCK='.lock-wafbuildwindows64',
+                WAFLOCK='.lock-wafbuildhudson',
                 ZAPP_NO_ERROR_DIALOGS='1')),
 
         "Linux-x86" : BuildBehaviour(
@@ -144,7 +144,7 @@ build_behaviours = {
             env = dict(
                 PLATFORM='Linux-x86',
                 OHNET_ARTIFACTS='/opt/artifacts',
-                WAFLOCK='.lock-wafbuildlinux')),
+                WAFLOCK='.lock-wafbuildhudson')),
 
         "Linux-x64" : BuildBehaviour(
             dependencies_to_copy = ["ohnet", "nunit", "ndesk-options", "yui-compressor", "mono-addins"],
@@ -153,7 +153,7 @@ build_behaviours = {
             env = dict(
                 PLATFORM='Linux-x64',
                 OHNET_ARTIFACTS='/opt/artifacts',
-                WAFLOCK='.lock-wafbuildlinux64')),
+                WAFLOCK='.lock-wafbuildhudson')),
 
         "Linux-ARM" : BuildBehaviour(
             dependencies_to_copy = ["ohnet", "nunit", "ndesk-options", "yui-compressor", "mono-addins"],
@@ -163,7 +163,7 @@ build_behaviours = {
             env = dict(
                 PLATFORM='Linux-ARM',
                 OHNET_ARTIFACTS='/opt/artifacts',
-                WAFLOCK='.lock-wafbuildarm')),
+                WAFLOCK='.lock-wafbuildhudson')),
         }
 
 class Build(object):
