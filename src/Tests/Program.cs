@@ -16,7 +16,7 @@ namespace OpenHome.Os
                 NetworkAdapter nif = subnetList.SubnetAt(0);
                 uint subnet = nif.Subnet();
                 subnetList.Destroy();
-                var combinedStack = library.StartCombined(subnet);
+                /*var combinedStack = */ library.StartCombined(subnet);
 
                 string exePath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
                 using (var installer = new Manager(exePath))
