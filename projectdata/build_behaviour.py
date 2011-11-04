@@ -114,7 +114,7 @@ def setup_windows(context):
 def setup_linux(context):
     env = context.env
     env.update(
-        OHNET_ARTIFACTS=context.artifacts or '/opt/artifacts',
+        OHNET_ARTIFACTS=context.options.artifacts or '/opt/artifacts',
         BUILDDIR='buildhudson',
         WAFLOCK='.lock-wafbuildhudson')
     context.configure_args = (
