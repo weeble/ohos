@@ -18,4 +18,4 @@ if [ -z "$PYTHONPATH" ]; then
 else
   export PYTHONPATH=$OHDEVTOOLS_ROOT:$PYTHONPATH
 fi
-python -m go $@
+python -u -m go $@

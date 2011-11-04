@@ -27,7 +27,7 @@ if defined PYTHONPATH (
 )
 
 :run
-python -m go %*
+python -u -m go %*
 goto :eof
 
 :fallback_devtools
