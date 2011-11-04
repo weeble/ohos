@@ -1,11 +1,8 @@
 #!/bin/sh
 SCRIPT=`readlink -f $0`
-PROJECT_ROOT=`dirname $SCRIPT`
+OHWIDGET_ROOT=`dirname $SCRIPT`
 if [ -z "$OHDEVTOOLS_ROOT" ]; then
-  export OHDEVTOOLS_ROOT=`readlink -f $PROJECT_ROOT/ohdevtools`
-fi
-if [ ! -e "$OHDEVTOOLS_ROOT" ]; then
-  export OHDEVTOOLS_ROOT=`readlink -f $PROJECT_ROOT/../ohdevtools`
+  export OHDEVTOOLS_ROOT=`readlink -f $OHWIDGET_ROOT/../ohdevtools`
 fi
 if [ ! -e "$OHDEVTOOLS_ROOT" ]; then
   echo OHDEVTOOLS_ROOT not set.
