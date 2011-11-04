@@ -2,6 +2,9 @@
 SCRIPT=`readlink -f $0`
 OHWIDGET_ROOT=`dirname $SCRIPT`
 if [ -z "$OHDEVTOOLS_ROOT" ]; then
+  export OHDEVTOOLS_ROOT=`readlink -f $OHWIDGET_ROOT/ohdevtools`
+fi
+if [ ! -e "$OHDEVTOOLS_ROOT" ]; then
   export OHDEVTOOLS_ROOT=`readlink -f $OHWIDGET_ROOT/../ohdevtools`
 fi
 if [ ! -e "$OHDEVTOOLS_ROOT" ]; then
