@@ -167,7 +167,7 @@ def run_tests_remotely(env):
         "--include='/waf'",
         "--include='/.lock-wafbuildhudson'",
         "--exclude='/*'",
-        "*",
+        ".",
         target)
     #rsync(
     #    "-avz",
