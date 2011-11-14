@@ -10,6 +10,10 @@ setlocal
 set PROJECT_ROOT=%~dp0
 cd %PROJECT_ROOT%
 
+rem Force Python processes to be unbuffered. Prevents jumbled
+rem output during CI builds due to buffering on stdout.
+set PYTHONUNBUFFERED=x
+
 call :fallback_devtools "%PROJECT_ROOT%\ohdevtools"
 call :fallback_devtools "%PROJECT_ROOT%\..\ohdevtools"
 

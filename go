@@ -1,6 +1,9 @@
 #!/bin/sh
 SCRIPT=`readlink -f $0`
 OHWIDGET_ROOT=`dirname $SCRIPT`
+# Force Python processes to be unbuffered. Avoids jumbled output
+# during CI builds caused by buffering of stdout.
+export PYTHONUNBUFFERED=x
 if [ -z "$OHDEVTOOLS_ROOT" ]; then
   export OHDEVTOOLS_ROOT=`readlink -f $OHWIDGET_ROOT/ohdevtools`
 fi
