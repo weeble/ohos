@@ -55,17 +55,22 @@
 #     Connect via ssh and issue commands. Command arguments similar to python().
 #  
 
+import os
+import shutil
+
+require_version(4)
 
 
 # Command-line options. See documentation for Python's optparse module.
 add_option("-t", "--target", help="Target platform. One of Windows-x86, Windows-x64, Linux-x86, Linux-x64, Linux-ARM.")
-add_bool_option("-p", "--publish-revno", help="Publish the current revision number to a network share.")
+add_option("-p", "--publish-version", help="Specify a version to publish.")
 add_option("-a", "--artifacts", help="Build artifacts directory. Used to fetch dependencies.")
 add_bool_option("-f", "--fetch-only", help="Fetch dependencies, skip building.")
 add_bool_option("-F", "--no-fetch", help="Skip fetch dependencies.")
 add_bool_option("--tests-only", help="Just run tests.")
 add_bool_option("--no-tests", help="Don't run any tests.")
 add_bool_option("--stresstest-only", help="Run stress tests.")
+add_option("--steps", default="default", help="Steps to run, comma separated. (all,default,fetch,configure,build,tests,publish)")
 
 ALL_DEPENDENCIES = [
     "ohnet",
@@ -73,6 +78,12 @@ ALL_DEPENDENCIES = [
     "ndesk-options",
     "yui-compressor",
     "mono-addins"]
+
+@build_step()
+def choose_optional_steps(context):
+    specify_optional_steps(context.options.steps)
+    if context.options.publish_version or context.env["PUBLISH_RELEASE"].lower()=="true":
+        modify_optional_steps("+publish")
 
 # Unconditional build step. Choose a platform and set the
 # appropriate environment variable.
@@ -148,6 +159,19 @@ def tests_normal(context):
 @build_condition(PLATFORM="Linux-ARM")
 def tests_arm(context):
     run_tests_remotely(context.env)
+
+@build_step("publish", optional=True, default=False)
+def publish(context):
+    platform = context.env["PLATFORM"]
+    version = context.options.publish_version or context.env.get("RELEASE_VERSION", "UNKNOWN")
+    artifacts = context.env["OHNET_ARTIFACTS"]
+    builddir = context.env["BUILDDIR"]
+
+    filename = "ohos-{platform}-{version}.tar.gz".format(platform=platform, version=version)
+    sourcepath = os.path.join(builddir, "ohos.tar.gz")
+    targetpath = os.path.join(artifacts, "Releases", filename)
+    shutil.copyfile(sourcepath, targetpath)
+
 
 def run_tests_remotely(env):
     username = "root"
