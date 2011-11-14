@@ -6,6 +6,7 @@ import subprocess
 import os
 import glob
 import zipfile
+import tarfile
 
 from wafmodules.configuration import (
     CSharpDependencyCollection,
@@ -123,7 +124,7 @@ sharpziplibdir = sharpziplib.add_directory(
     in_dependencies = '${PLATFORM}/Mono.Addins*')
 sharpziplibdir.add_assemblies(
     'ICSharpCode.SharpZipLib.dll',
-    reference=True, copy=False)
+    reference=True, copy=False) # Duplicated in Mono.Addins, so don't copy it twice.
 
 # == Command-line options ==
 
@@ -271,8 +272,10 @@ def ziprule(task):
     for inputnode in task.inputs:
         print task.generator.sourceroot.abspath()
         print task.generator.ziproot
-        fragmentFromSourceRootToInput = os.path.relpath(inputnode.abspath(), task.generator.sourceroot.abspath())
-        arcname = os.path.join(task.generator.ziproot, fragmentFromSourceRootToInput)
+        arcname = get_path_inside_archive(
+                inputnode.abspath(),
+                task.generator.sourceroot.abspath(),
+                task.generator.ziproot)
         print "arcname:", arcname
         zf.write(inputnode.abspath(), arcname)
     zf.close()
@@ -294,6 +297,32 @@ def get_active_dependencies(env):
     if env.BUILDTESTS:
         active_dependency_names |= set(['nunit', 'ndeskoptions'])
     return csharp_dependencies.get_subset(active_dependency_names)
+
+def get_path_inside_archive(input_path, source_root, target_root):
+    fragmentFromSourceRootToInput = os.path.relpath(input_path, source_root)
+    return os.path.join(target_root, fragmentFromSourceRootToInput)
+
+def tgzrule(task):
+    tarf = tarfile.open(task.outputs[0].abspath(), 'w:gz')
+    for inputnode in task.inputs:
+        arcname = get_path_inside_archive(
+                inputnode.abspath(),
+                task.generator.sourceroot.abspath(),
+                task.generator.tgzroot)
+        print "arcname:", arcname
+        tarf.add(inputnode.abspath(), arcname)
+    tarf.close()
+
+def create_tgz_task(bld, tgzfile, sourceroot, tgzroot, sourcefiles):
+    if not isinstance(sourceroot, Node):
+        sourceroot = bld.path.find_or_declare(sourceroot)
+        task = bld(
+                rule=tgzrule,
+                source=sourcefiles,
+                sourceroot=sourceroot,
+                target=tgzfile,
+                tgzroot=tgzroot)
+        task.deps_man = [tgzroot, sourceroot]
 
 
 # == Build rules ==
@@ -425,6 +454,22 @@ def build(bld):
                 type='library',
                 name=prefix + service.target)
 
+    # We can probably do a nicer job of assembling the list of all output files here:
+    def get_dependency_files(d):
+        return [os.path.split(f)[1] for f in d.get_paths_of_files_to_copy_to_output(bld)]
+    create_tgz_task(
+            bld,
+            "ohos.tar.gz",
+            ".",
+            "ohos",
+            [
+                "ohOs.AppManager.dll",
+                "App.addins",
+            ] +
+            get_dependency_files(ohnet) +
+            get_dependency_files(sharpziplib) +
+            get_dependency_files(monoaddins)
+            )
 
 def do_install(bld):
     bld.install_files(
