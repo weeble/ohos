@@ -77,13 +77,16 @@ ALL_DEPENDENCIES = [
     "nunit",
     "ndesk-options",
     "yui-compressor",
-    "mono-addins"]
+    "mono-addins",
+    "log4net"]
 
 @build_step()
 def choose_optional_steps(context):
     specify_optional_steps(context.options.steps)
-    if context.options.publish_version or context.env["PUBLISH_RELEASE"].lower()=="true":
+    if context.options.publish_version or context.env.get("PUBLISH_RELEASE","false").lower()=="true":
         modify_optional_steps("+publish")
+    if context.options.fetch_only:
+        specify_optional_steps("fetch")
 
 # Unconditional build step. Choose a platform and set the
 # appropriate environment variable.

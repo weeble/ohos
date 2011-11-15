@@ -20,3 +20,4 @@
 "ndesk-options" "${OHNET_ARTIFACTS}/${PLATFORM}/ndesk-options-0.2.1.bin.tar.gz" "dependencies/${PLATFORM}/" "--ndesk-options-dir dependencies/${PLATFORM}/ndesk-options-0.2.1.bin/"
 "yui-compressor" "${OHNET_ARTIFACTS}/${PLATFORM}/yui-compressor.tar.gz" "dependencies/${PLATFORM}/" "--yui-compressor-dir dependencies/${PLATFORM}/yui-compressor/"
 "mono-addins" "${OHNET_ARTIFACTS}/${PLATFORM}/Mono.Addins-0.6.tar.gz" "dependencies/${PLATFORM}/" "--mono-addins-dir dependencies/${PLATFORM}/Mono.Addins-0.6/ --mono-addins-setup-dir dependencies/${PLATFORM}/Mono.Addins-0.6/"
+"log4net" "${OHNET_ARTIFACTS}/${PLATFORM}/log4net-1.2.10.tar.gz" "dependencies/${PLATFORM}/" "--log4net-dir dependencies/${PLATFORM}/log4net-1.2.10/bin/net/2.0/release/"

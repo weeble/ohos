@@ -126,6 +126,17 @@ sharpziplibdir.add_assemblies(
     'ICSharpCode.SharpZipLib.dll',
     reference=True, copy=False) # Duplicated in Mono.Addins, so don't copy it twice.
 
+# Log4Net is a logging library
+log4net = csharp_dependencies.add_package('log4net')
+log4netdir = log4net.add_directory(
+        unique_id = 'log4net-dir',
+        as_option = '--log4net-dir',
+        option_help = 'Location of log4net DLL',
+        in_dependencies = '${PLATFORM}/log4net-*/bin/net/2.0/release')
+log4netdir.add_assemblies(
+        'log4net.dll',
+        reference=True, copy=True)
+
 # == Command-line options ==
 
 def options(opt):
@@ -293,7 +304,7 @@ def create_zip_task(bld, zipfile, sourceroot, ziproot, sourcefiles):
 
 
 def get_active_dependencies(env):
-    active_dependency_names = set(['ohnet', 'yui-compressor','mono-addins','mono-addins-setup', 'sharpziplib'])
+    active_dependency_names = set(['ohnet', 'yui-compressor','mono-addins','mono-addins-setup', 'sharpziplib', 'log4net'])
     if env.BUILDTESTS:
         active_dependency_names |= set(['nunit', 'ndeskoptions'])
     return csharp_dependencies.get_subset(active_dependency_names)
@@ -354,6 +365,12 @@ csharp_projects = [
             references=[
                 'ohOs.AppManager',
             ]),
+        CSharpProject(
+            name="ohOs.Platform", dir="Platform", type="library",
+            categories=["core"],
+            packages=['ohnet', 'mono-addins', 'log4net'],
+            references=[]
+            ),
     ]
 
 files_to_copy = [
