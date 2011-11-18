@@ -386,6 +386,9 @@ files_to_copy = [
         CopyFile(
             source='src/AppManager/App.addins',
             target='App.addins'),
+        CopyFile(
+            source='src/AppManager/ohos.config.xml',
+            target='ohos.config.xml'),
     ]
 
 ohos_apps = [

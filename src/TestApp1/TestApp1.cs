@@ -2,6 +2,7 @@ using System;
 using Mono.Addins;
 using OpenHome.Os.AppManager;
 using OpenHome.Net.Device;
+using OpenHome.Os.Platform;
 
 namespace OpenHome.Os.TestApps
 {
@@ -29,9 +30,10 @@ namespace OpenHome.Os.TestApps
         {
             iVersion = new AppVersion(0, 1, 0);
         }
-        public void Start(DvDevice aDevice, IAppServices aAppServices)
+        public void Start(DvDevice aDevice, IAppServices aAppServices, IConfigFileCollection aConfig)
         {
             Console.WriteLine("Started app.");
+            Console.WriteLine(aConfig.GetElementValue("test")??"No value for test.");
         }
         public void Stop()
         {

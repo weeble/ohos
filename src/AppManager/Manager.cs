@@ -1,9 +1,11 @@
 using System;
 using System.IO;
+using System.Xml.Linq;
 using Mono.Addins;
 using OpenHome.Net.Device;
 using ICSharpCode.SharpZipLib.Zip;
 using System.Collections.Generic;
+using OpenHome.Os.Platform;
 
 // !!!! need IOsContext definition
 // !!!! which may include interface to proxy for InstallManager service
@@ -66,14 +68,18 @@ namespace OpenHome.Os.AppManager
         private readonly Dictionary<string, PublishedApp> iApps;
         private readonly List<HistoryItem> iHistory;
         private readonly bool iInitialising;
+        readonly IAppServices iFullPrivilegeAppServices;
+        private readonly IConfigFileCollection iConfiguration;
 
         public List<HistoryItem> History
         {
             get { lock (iHistory) { return iHistory; } }
         }
 
-        public Manager(string aInstallBase, IAppServices aAppServices)
+        public Manager(string aInstallBase, IAppServices aFullPrivilegeAppServices, IConfigFileCollection aConfiguration)
         {
+            iFullPrivilegeAppServices = aFullPrivilegeAppServices;
+            iConfiguration = aConfiguration;
             iInstallBase = System.IO.Path.Combine(aInstallBase, kAppsDirectory);
             iApps = new Dictionary<string, PublishedApp>();
             iHistory = new List<HistoryItem>();
@@ -161,6 +167,12 @@ namespace OpenHome.Os.AppManager
             device.SetAttribute("Upnp.FriendlyName", app.Name);
             device.SetAttribute("Upnp.Manufacturer", "N/A");
             device.SetAttribute("Upnp.ModelName", "ohOs Application");
+
+            // Take care here! We don't want an app peeking at other apps'
+            // settings by injecting crazy XPath nonsense into its name.
+            string sanitizedName = app.Name.Replace("'", "").Replace("\"", "");
+            IConfigFileCollection appConfig = iConfiguration.GetSubcollection(String.Format("app-settings[@name='{0}']", sanitizedName));
+
             var provider = new ProviderApp(device, app);
             var change = HistoryItem.ItemType.EInstall;
             lock (iApps)
@@ -171,7 +183,7 @@ namespace OpenHome.Os.AppManager
                 }
                 iApps.Add(app.Udn, new PublishedApp(app, device, provider));
             }
-            app.Start(device, null);
+            app.Start(device, iFullPrivilegeAppServices, appConfig);
             device.SetEnabled();
             iHistory.Add(new HistoryItem(app.Name, change, app.Udn));
         }

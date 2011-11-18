@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.IO;
-using System.Xml.Linq;
-using System.Xml.XPath;
 using Mono.Addins;
 using ohWidget.Utils;
 using OpenHome.Os.AppManager;
@@ -44,106 +40,6 @@ namespace Node
             if (typeof(T).IsAssignableFrom(typeof(ILogController))) { return LogController; }
             throw new ArgumentException(String.Format("No service registered for type {0}.", typeof(T)));
         }
-    }
-
-    public class ConfigFileCollection
-    {
-        static readonly string[] TrueStrings = { "On", "ON", "on", "Yes", "YES", "yes", "True", "TRUE", "true", "1" };
-        private class ConfigFile
-        {
-            public string Name;
-            public XElement XElement;
-            public object GetNode(string aXPath)
-            {
-                return ((System.Collections.IEnumerable)XElement.XPathEvaluate(aXPath)).Cast<object>().FirstOrDefault();
-            }
-            public string GetAttributeValue(string aXPath)
-            {
-                XAttribute xAttr = GetNode(aXPath) as XAttribute;
-                if (xAttr == null)
-                {
-                    return null;
-                }
-                return xAttr.Value;
-            }
-            public string GetElementValue(string aXPath)
-            {
-                XElement xEl = GetNode(aXPath) as XElement;
-                if (xEl == null)
-                {
-                    return null;
-                }
-                return xEl.Value;
-            }
-            public string ResolveRelativePath(string aFilepath)
-            {
-                if (Path.IsPathRooted(aFilepath)) { return aFilepath; }
-                string baseDir = Path.GetDirectoryName(Path.GetFullPath(Name));
-                if (baseDir == null) { return aFilepath; }
-                string result = Path.GetFullPath(Path.Combine(baseDir, aFilepath));
-                Console.WriteLine("ResolveRelativePath({0})[Name={1}]->{2}", aFilepath, Name, result);
-                return result;
-            }
-        }
-        readonly List<ConfigFile> iConfigFiles = new List<ConfigFile>();
-        readonly List<Exception> iConfigExceptions = new List<Exception>();
-        public ConfigFileCollection(IEnumerable<string> aConfigFilenames)
-        {
-            foreach (string filename in aConfigFilenames)
-            {
-                try
-                {
-                    iConfigFiles.Add(new ConfigFile { Name = filename, XElement = XElement.Load(filename) });
-                }
-                catch (Exception e)
-                {
-                    iConfigExceptions.Add(e);
-                }
-            }
-        }
-        public void LogErrors(ILog aLog)
-        {
-            foreach (Exception e in iConfigExceptions)
-            {
-                aLog.WarnFormat("Failed to load a configuration file: {0}", e);
-            }
-        }
-        T2 SeekNotNull<T1,T2>(Func<ConfigFile, T1> aFunc, Func<ConfigFile, T1, T2> aOutputFunc, T2 aDefault) where T1:class
-        {
-            foreach (var cf in iConfigFiles)
-            {
-                var attribute = aFunc(cf);
-                if (attribute != null)
-                {
-                    return aOutputFunc(cf, attribute);
-                }
-            }
-            return aDefault;
-        }
-        public string GetAttribute(string aXPath, string aDefault)
-        {
-            return SeekNotNull(cf=>cf.GetAttributeValue(aXPath), (cf,v)=>v, aDefault);
-        }
-        public string GetFilepathAttribute(string aXPath, string aDefault)
-        {
-            return SeekNotNull(cf=>cf.GetAttributeValue(aXPath), (cf,v)=>cf.ResolveRelativePath(v), aDefault);
-        }
-        public string GetElement(string aXPath, string aDefault)
-        {
-            return SeekNotNull(cf=>cf.GetElementValue(aXPath), (cf,v)=>v, aDefault);
-        }
-        public string GetFilepathElement(string aXPath, string aDefault)
-        {
-            return SeekNotNull(cf=>cf.GetElementValue(aXPath), (cf,v)=>cf.ResolveRelativePath(v), aDefault);
-        }
-        public bool GetBooleanAttribute(string aXPath, bool aDefault)
-        {
-            return SeekNotNull(
-                cf => cf.GetElementValue(aXPath),
-                (cf, v) => TrueStrings.Contains(v),
-                aDefault);
-        }
-
     }
 
     public class Program
@@ -196,8 +92,11 @@ namespace Node
 
             string configFilename = optionConfigFile.Value ?? Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + Path.DirectorySeparatorChar + "ohOs" + Path.DirectorySeparatorChar + "ohos.config.xml";
             ConfigFileCollection config = new ConfigFileCollection(new[] { configFilename });
+            IConfigFileCollection sysConfig = config.GetSubcollection("/system-settings");
 
-            string storeDirectory = config.GetFilepathElement("system-settings/store", Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + Path.DirectorySeparatorChar + "ohOs");
+            string storeDirectory =
+                sysConfig.GetElementValueAsFilepath("store") ??
+                (Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + Path.DirectorySeparatorChar + "ohOs");
             //DirectoryInfo storeDirectory = Directory.CreateDirectory(path);
 
             string exeDirectory = Path.GetDirectoryName(
@@ -216,7 +115,7 @@ namespace Node
             config.LogErrors(Logger);
 
             string noErrorDialogs = Environment.GetEnvironmentVariable("OPENHOME_NO_ERROR_DIALOGS");
-            if (config.GetBooleanAttribute("system-settings/errors/native/@dialog", false) ||
+            if (sysConfig.GetAttributeAsBoolean("errors/native/@dialog") ?? 
                 (noErrorDialogs != null && noErrorDialogs != "0"))
             {
                 if (Environment.OSVersion.Platform == PlatformID.Win32NT)
@@ -225,9 +124,9 @@ namespace Node
                 }
             }
             InitParams initParams = new InitParams();
-            if (!config.GetBooleanAttribute("system-settings/network/@loopback", true))
+            if (!sysConfig.GetAttributeAsBoolean("network/@loopback") ?? true)
             {
-                if (config.GetBooleanAttribute("system-settings/mdns/@enable", true))
+                if (sysConfig.GetAttributeAsBoolean("mdns/@enable") ?? true)
                 {
                     Console.WriteLine("ERROR: cannot usefully enable mdns with loopback");
                     throw new Exception();
@@ -235,11 +134,11 @@ namespace Node
                 initParams.UseLoopbackNetworkAdapter = true;
             }
             initParams.DvNumWebSocketThreads = 10; // max 10 web based control points
-            initParams.DvWebSocketPort = uint.Parse(config.GetAttribute("system-settings/websockets/@port", "54321"));
+            initParams.DvWebSocketPort = uint.Parse(sysConfig.GetAttributeValue("websockets/@port") ?? "54321");
             initParams.NumActionInvokerThreads = 8;
             initParams.DvNumServerThreads = 8;
             initParams.TcpConnectTimeoutMs = 1000; // NOTE: Defaults to 500ms. At that value, we miss a lot of nodes during soak and stress tests.
-            if (config.GetBooleanAttribute("system-settings/mdns/@enable", true))
+            if (config.GetAttributeAsBoolean("mdns/@enable") ?? true)
             {
                 initParams.DvEnableBonjour = true;
             }
@@ -260,7 +159,7 @@ namespace Node
                     var combinedStack = library.StartCombined(subnet);
                     var deviceListFactory = new CpUpnpDeviceListFactory(combinedStack.ControlPointStack);
                     var deviceFactory = new DvDeviceFactory(combinedStack.DeviceStack);
-                    string nodeGuid = config.GetElement("system-settings/uuid", "").Trim();
+                    string nodeGuid = (sysConfig.GetElementValue("uuid") ?? "").Trim();
                     if (nodeGuid.Length == 0)
                     {
                         nodeGuid = Guid.NewGuid().ToString();
@@ -299,7 +198,7 @@ namespace Node
                         {
                             if (aCommand != "") { Console.WriteLine("Unknown command. Type exit to quit."); }
                         };
-                    consoleInterface.Prompt = config.GetBooleanAttribute("system-settings/console/@prompt", true) ? "OpenHome>" : "";
+                    consoleInterface.Prompt = (sysConfig.GetAttributeAsBoolean("console/@prompt") ?? true) ? "OpenHome>" : "";
 
                     AppServices services = new AppServices()
                     {
@@ -314,20 +213,20 @@ namespace Node
                     };
 
                     Console.WriteLine(storeDirectory);
-                    using (var appManager = new Manager(storeDirectory, services))
+                    using (var appManager = new Manager(storeDirectory, services, config))
                     {
                         string exePath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
                         appManager.Install(System.IO.Path.Combine(exePath, "ohOs.TestApp1.zip"));
-                        if (!config.GetBooleanAttribute("system-settings/console/@enable", true))
+                        if (!(sysConfig.GetAttributeAsBoolean("console/@enable") ?? true))
                         {
                             WaitForever();
                         }
                         else
                         {
-                            RunConsole(consoleInterface, config.GetBooleanAttribute("system-settings/console/@prompt", true));
+                            RunConsole(consoleInterface, sysConfig.GetAttributeAsBoolean("console/@prompt") ?? true);
                         }
                         Logger.Info("Shutting down node...");
-                        if (config.GetBooleanAttribute("system-settings/console/@enable", true))
+                        if (sysConfig.GetAttributeAsBoolean("console/@enable") ?? true)
                         {
                             Console.WriteLine("Shutting down node...");
                         }

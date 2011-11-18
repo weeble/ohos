@@ -49,7 +49,7 @@ namespace OpenHome.Os.AppManager
         string IconUri { get; }
         string DescriptionUri { get; }
         string AssemblyPath { get; } // !!!! should remove this in favour of Manager determining which path each of its app assemblies in running from
-        void Start(DvDevice aDevice, IAppServices aAppServices);
+        void Start(DvDevice aDevice, IAppServices aAppServices, IConfigFileCollection aConfig);
         void Stop();
     }
 }

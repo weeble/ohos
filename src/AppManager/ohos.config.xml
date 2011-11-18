@@ -29,4 +29,8 @@
         <simple-upnp enable="yes"/>
         <web-ui enable="yes"/>
     </app-settings>
+
+    <app-settings name="TestApp1">
+        <test>foobar</test>
+    </app-settings>
 </ohos>
