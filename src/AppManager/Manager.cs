@@ -5,8 +5,6 @@ using OpenHome.Net.Device;
 using ICSharpCode.SharpZipLib.Zip;
 using System.Collections.Generic;
 
-[assembly: AddinRoot("ohOs", "1.1")]
-
 // !!!! need IOsContext definition
 // !!!! which may include interface to proxy for InstallManager service
 
@@ -74,7 +72,7 @@ namespace OpenHome.Os.AppManager
             get { lock (iHistory) { return iHistory; } }
         }
 
-        public Manager(string aInstallBase)
+        public Manager(string aInstallBase, IAppServices aAppServices)
         {
             iInstallBase = System.IO.Path.Combine(aInstallBase, kAppsDirectory);
             iApps = new Dictionary<string, PublishedApp>();
@@ -173,7 +171,7 @@ namespace OpenHome.Os.AppManager
                 }
                 iApps.Add(app.Udn, new PublishedApp(app, device, provider));
             }
-            app.Start(device);
+            app.Start(device, null);
             device.SetEnabled();
             iHistory.Add(new HistoryItem(app.Name, change, app.Udn));
         }

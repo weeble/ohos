@@ -2,7 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Collections.Generic;
-using OpenHome.Widget.Nodes.Collections;
+using OpenHome.Os.Platform.Collections;
 
 namespace OpenHome.Widget.Nodes
 {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using log4net;
-using OpenHome.Widget.Nodes.Collections;
+using OpenHome.Os.Platform.Collections;
 using OpenHome.Widget.Nodes.Threading;
 using OpenHome.Net.ControlPoint;
 

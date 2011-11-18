@@ -29,11 +29,13 @@ namespace OpenHome.Os.TestApps
         {
             iVersion = new AppVersion(0, 1, 0);
         }
-        public void Start(DvDevice aDevice)
+        public void Start(DvDevice aDevice, IAppServices aAppServices)
         {
+            Console.WriteLine("Started app.");
         }
         public void Stop()
         {
+            Console.WriteLine("Stopped app.");
         }
         public void Dispose()
         {

@@ -19,6 +19,7 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Mono.Addins, Version=0.6.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL" />
     <Reference Include="ohNet.net, Version=0.0.0.0, Culture=neutral, processorArchitecture=x86" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -32,6 +33,7 @@
     <Compile Include="Collections\IdDictionary.cs" />
     <Compile Include="Collections\IDisposableContainer.cs" />
     <Compile Include="Collections\ListUtils.cs" />
+    <Compile Include="ConsoleInterface.cs" />
     <Compile Include="DataStores\Comparison.cs" />
     <Compile Include="DataStores\ItcClock.cs" />
     <Compile Include="DataStores\ItcEvent.cs" />
@@ -42,6 +44,9 @@
     <Compile Include="DataStores\VcClock.cs" />
     <Compile Include="DataStores\VcStamp.cs" />
     <Compile Include="DataStores\VcStringConversion.cs" />
+    <Compile Include="ErrorHandling.cs" />
+    <Compile Include="IApp.cs" />
+    <Compile Include="ICommandRegistry.cs" />
     <Compile Include="INodeRebooter.cs" />
     <Compile Include="IO\XmlDiskStore.cs" />
     <Compile Include="IUpdateService.cs" />
@@ -56,6 +61,7 @@
     <Compile Include="Logging\TextWriterLogger.cs" />
     <Compile Include="Logging\WrappedLog4NetLogger.cs" />
     <Compile Include="OneNodePresetRepository.cs" />
+    <Compile Include="OptionParser.cs" />
     <Compile Include="PresetDiskStore.cs" />
     <Compile Include="Proxies\ProxyList.cs" />
     <Compile Include="ScheduleRegistry.cs" />

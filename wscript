@@ -350,6 +350,7 @@ csharp_projects = [
             packages=['ohnet', 'mono-addins', 'sharpziplib'],
             references=[
                 'DvOpenhomeOrgApp1',
+                'ohOs.Platform',
             ]),
         CSharpProject(
             name="ohOs.Tests", dir="Tests", type="exe",
@@ -357,6 +358,7 @@ csharp_projects = [
             packages=['ohnet'],
             references=[
                 'ohOs.AppManager',
+                'ohOs.Platform',
             ]),
         CSharpProject(
             name="ohOs.TestApp1", dir="TestApp1", type="library",
@@ -364,12 +366,19 @@ csharp_projects = [
             packages=['ohnet', 'mono-addins'],
             references=[
                 'ohOs.AppManager',
+                'ohOs.Platform',
             ]),
         CSharpProject(
             name="ohOs.Platform", dir="Platform", type="library",
             categories=["core"],
             packages=['ohnet', 'mono-addins', 'log4net'],
             references=[]
+            ),
+        CSharpProject(
+            name="ohOs.Host", dir="Host", type="exe",
+            categories=["core"],
+            packages=['ohnet', 'mono-addins', 'log4net'],
+            references=['ohOs.Platform', 'ohOs.AppManager']
             ),
     ]
 
@@ -481,6 +490,7 @@ def build(bld):
             "ohos",
             [
                 "ohOs.AppManager.dll",
+                "ohOs.Platform.dll",
                 "App.addins",
             ] +
             get_dependency_files(ohnet) +

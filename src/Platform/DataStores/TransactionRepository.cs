@@ -4,7 +4,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Xml;
 using System.Xml.Linq;
-using OpenHome.Widget.Nodes.Collections;
+using OpenHome.Os.Platform.Collections;
 
 namespace OpenHome.Widget.Nodes.DataStores
 {

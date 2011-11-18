@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<ohos>
+    <system-settings>
+        <!-- Directory for the store, relative to this file. -->
+        <store>.</store>
+        <!-- UUID for this node. Chosen randomly if empty. -->
+        <uuid></uuid>
+        <!-- Network settings. -->
+        <network loopback="yes"/>
+        <!-- Control how errors are handled -->
+        <errors>
+            <native dialog="yes"/> <!-- Windows-only. Set to 'no' to prevent dialogs popping up for access violations. -->
+        </errors>
+        <!-- Update process settings. -->
+        <update enable="no" reboot="no">
+            <location></location>
+        </update>
+        <!-- Control usage of console. Set everything to 'no' if running as a daemon. -->
+        <console input="yes" output="yes" prompt="yes"/>
+        <!-- MDNS settings. -->
+        <mdns enable="yes"/>
+        <!-- Websockets settings. -->
+        <websockets port="54321"/>
+    </system-settings>
+
+    <app-settings name="ohwidget">
+        <zwave enable="no" serial=""/> <!-- Example serial values: COM3, COM4, /dev/ttyUSB0 -->
+        <zigbee enable="no" serial=""/>
+        <simple-upnp enable="yes"/>
+        <web-ui enable="yes"/>
+    </app-settings>
+</ohos>

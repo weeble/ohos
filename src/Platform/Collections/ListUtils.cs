@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
-namespace OpenHome.Widget.Nodes.Collections
+namespace OpenHome.Os.Platform.Collections
 {
     public static class ListUtils
     {

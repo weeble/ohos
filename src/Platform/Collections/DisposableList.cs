@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using OpenHome.Widget.Nodes.Proxies;
-using System.Linq;
 
-namespace OpenHome.Widget.Nodes.Collections
+namespace OpenHome.Os.Platform.Collections
 {
     /// <summary>
     /// A list that disposes of its contents when it is itself disposed.

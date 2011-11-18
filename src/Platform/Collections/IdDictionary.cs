@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace OpenHome.Widget.Nodes.Collections
+namespace OpenHome.Os.Platform.Collections
 {
 
     public interface IIdDispenser<TKey, TId, TValue>

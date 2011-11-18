@@ -1,0 +1,35 @@
+14:28:47,526 [1] INFO  OpenHome.Widget.Nodes.Logging.PersistentLogController (null) - No saved settings for log levels. Using defaults.
+14:28:47,546 [1] INFO  Node.Program (null) - Node started.
+14:28:47,882 [1] FATAL Node.Program (null) - System.InvalidOperationException: Extension node not found in path: /ohOs/App
+   at Mono.Addins.ExtensionContext.AddExtensionNodeHandler(String path, ExtensionNodeEventHandler handler)
+   at Mono.Addins.AddinManager.AddExtensionNodeHandler(String path, ExtensionNodeEventHandler handler)
+   at OpenHome.Os.AppManager.Manager..ctor(String aInstallBase, IAppServices aAppServices) in w:\git\ohos\src\AppManager\Manager.cs:line 84
+   at Node.Program.Main(String[] aArgs) in w:\git\ohos\src\Host\Program.cs:line 311
+14:31:29,159 [1] INFO  OpenHome.Widget.Nodes.Logging.PersistentLogController (null) - No saved settings for log levels. Using defaults.
+14:31:29,179 [1] INFO  Node.Program (null) - Node started.
+14:31:29,273 [1] FATAL Node.Program (null) - System.InvalidOperationException: Extension node not found in path: /ohOs/App
+   at Mono.Addins.ExtensionContext.AddExtensionNodeHandler(String path, ExtensionNodeEventHandler handler)
+   at Mono.Addins.AddinManager.AddExtensionNodeHandler(String path, ExtensionNodeEventHandler handler)
+   at OpenHome.Os.AppManager.Manager..ctor(String aInstallBase, IAppServices aAppServices) in w:\git\ohos\src\AppManager\Manager.cs:line 84
+   at Node.Program.Main(String[] aArgs) in w:\git\ohos\src\Host\Program.cs:line 312
+14:33:16,089 [1] INFO  OpenHome.Widget.Nodes.Logging.PersistentLogController (null) - No saved settings for log levels. Using defaults.
+14:33:16,109 [1] INFO  Node.Program (null) - Node started.
+14:33:16,204 [1] FATAL Node.Program (null) - System.InvalidOperationException: Extension node not found in path: /ohOs/App
+   at Mono.Addins.ExtensionContext.AddExtensionNodeHandler(String path, ExtensionNodeEventHandler handler)
+   at Mono.Addins.AddinManager.AddExtensionNodeHandler(String path, ExtensionNodeEventHandler handler)
+   at OpenHome.Os.AppManager.Manager..ctor(String aInstallBase, IAppServices aAppServices) in w:\git\ohos\src\AppManager\Manager.cs:line 84
+   at Node.Program.Main(String[] aArgs)
+14:33:21,219 [1] INFO  OpenHome.Widget.Nodes.Logging.PersistentLogController (null) - No saved settings for log levels. Using defaults.
+14:33:21,238 [1] INFO  Node.Program (null) - Node started.
+14:33:21,331 [1] FATAL Node.Program (null) - System.InvalidOperationException: Extension node not found in path: /ohOs/App
+   at Mono.Addins.ExtensionContext.AddExtensionNodeHandler(String path, ExtensionNodeEventHandler handler)
+   at Mono.Addins.AddinManager.AddExtensionNodeHandler(String path, ExtensionNodeEventHandler handler)
+   at OpenHome.Os.AppManager.Manager..ctor(String aInstallBase, IAppServices aAppServices) in w:\git\ohos\src\AppManager\Manager.cs:line 84
+   at Node.Program.Main(String[] aArgs) in w:\git\ohos\src\Host\Program.cs:line 314
+14:34:03,462 [1] INFO  OpenHome.Widget.Nodes.Logging.PersistentLogController (null) - No saved settings for log levels. Using defaults.
+14:34:03,482 [1] INFO  Node.Program (null) - Node started.
+14:34:03,574 [1] FATAL Node.Program (null) - System.InvalidOperationException: Extension node not found in path: /ohOs/App
+   at Mono.Addins.ExtensionContext.AddExtensionNodeHandler(String path, ExtensionNodeEventHandler handler)
+   at Mono.Addins.AddinManager.AddExtensionNodeHandler(String path, ExtensionNodeEventHandler handler)
+   at OpenHome.Os.AppManager.Manager..ctor(String aInstallBase, IAppServices aAppServices) in w:\git\ohos\src\AppManager\Manager.cs:line 84
+   at Node.Program.Main(String[] aArgs) in w:\git\ohos\src\Host\Program.cs:line 314

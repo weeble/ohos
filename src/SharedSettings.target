@@ -36,7 +36,8 @@
   </PropertyGroup>
   <Target Name="WafBuild">
     <Message Text="Starting waf build..." />
-    <Exec Command="waf.bat" WorkingDirectory="..\.." />
+    <Message Text="waf.bat build --targets=&quot;$(AssemblyName)&quot;" Importance="high" />
+    <Exec Command="waf.bat build --targets=&quot;$(AssemblyName)&quot;" WorkingDirectory="..\.." />
     <Message Text="Finished waf build." />
   </Target>
   <Target Name="Clean">
