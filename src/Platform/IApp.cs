@@ -39,6 +39,30 @@ namespace OpenHome.Os.AppManager
         object ResolveService<T>();
     }
 
+    public interface IAppContext
+    {
+        /// <summary>
+        /// Node services exposed to the app.
+        /// </summary>
+        IAppServices Services { get; }
+        /// <summary>
+        /// Path where the app's static data files are stored.
+        /// </summary>
+        string StaticPath { get; }
+        /// <summary>
+        /// Path where the app's mutable data files can be stored.
+        /// </summary>
+        string StorePath { get; }
+        /// <summary>
+        /// Access the app's section of the configuration file.
+        /// </summary>
+        IConfigFileCollection Configuration { get; }
+        /// <summary>
+        /// The device that represents the app for communication purposes.
+        /// </summary>
+        DvDevice Device { get; }
+    }
+
     [TypeExtensionPoint("/ohOs/App")]
     public interface IApp : IDisposable
     {
@@ -49,7 +73,7 @@ namespace OpenHome.Os.AppManager
         string IconUri { get; }
         string DescriptionUri { get; }
         string AssemblyPath { get; } // !!!! should remove this in favour of Manager determining which path each of its app assemblies in running from
-        void Start(DvDevice aDevice, IAppServices aAppServices, IConfigFileCollection aConfig);
+        void Start(IAppContext aAppServices);
         void Stop();
     }
 }

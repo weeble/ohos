@@ -38,6 +38,15 @@ namespace OpenHome.Os.AppManager
             iUdn = aUdn;
         }
     }
+
+    public class AppContext : IAppContext
+    {
+        public IAppServices Services { get; set; }
+        public string StaticPath { get; set; }
+        public string StorePath { get; set; }
+        public IConfigFileCollection Configuration { get; set; }
+        public DvDevice Device { get; set; }
+    }
     
     public class Manager : IDisposable
     {
@@ -183,7 +192,15 @@ namespace OpenHome.Os.AppManager
                 }
                 iApps.Add(app.Udn, new PublishedApp(app, device, provider));
             }
-            app.Start(device, iFullPrivilegeAppServices, appConfig);
+            AppContext appContext = new AppContext
+            {
+                Configuration = appConfig,
+                Device = device,
+                Services = iFullPrivilegeAppServices,
+                StaticPath = "",
+                StorePath = Path.Combine(iConfiguration.GetElementValueAsFilepath("system-settings/store"), "apps", sanitizedName)
+            };
+            app.Start(appContext);
             device.SetEnabled();
             iHistory.Add(new HistoryItem(app.Name, change, app.Udn));
         }

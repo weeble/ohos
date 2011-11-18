@@ -30,10 +30,10 @@ namespace OpenHome.Os.TestApps
         {
             iVersion = new AppVersion(0, 1, 0);
         }
-        public void Start(DvDevice aDevice, IAppServices aAppServices, IConfigFileCollection aConfig)
+        public void Start(IAppContext aAppContext)
         {
             Console.WriteLine("Started app.");
-            Console.WriteLine(aConfig.GetElementValue("test")??"No value for test.");
+            Console.WriteLine(aAppContext.Configuration.GetElementValue("test")??"No value for test.");
         }
         public void Stop()
         {

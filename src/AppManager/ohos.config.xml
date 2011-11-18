@@ -26,7 +26,9 @@
     <app-settings name="ohwidget">
         <zwave enable="no" serial=""/> <!-- Example serial values: COM3, COM4, /dev/ttyUSB0 -->
         <zigbee enable="no" serial=""/>
-        <simple-upnp enable="yes"/>
+        <simple-upnp enable="yes">
+            <drivers>BinaryLight, DimmableLight, Thermometer, TestDataTypes, Curtains, BinarySwitch</drivers>
+        </simple-upnp>
         <web-ui enable="yes"/>
     </app-settings>
 
