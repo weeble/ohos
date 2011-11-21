@@ -1,6 +1,8 @@
 using System;
 using System.IO;
+using System.Threading;
 using System.Xml.Linq;
+using log4net;
 using Mono.Addins;
 using OpenHome.Net.Device;
 using ICSharpCode.SharpZipLib.Zip;
@@ -50,6 +52,7 @@ namespace OpenHome.Os.AppManager
     
     public class Manager : IDisposable
     {
+        static readonly ILog Logger = LogManager.GetLogger(typeof(Manager));
         private class PublishedApp : IDisposable
         {
             public IApp App { get { return iApp; } }
@@ -65,6 +68,10 @@ namespace OpenHome.Os.AppManager
             }
             public void Dispose()
             {
+                Semaphore disposeSemaphore = new Semaphore(0,1);
+                iDevice.SetDisabled(() => disposeSemaphore.Release());
+                disposeSemaphore.WaitOne();
+                disposeSemaphore.Dispose();
                 iApp.Stop(); // ???
                 iApp.Dispose();
                 iDevice.Dispose();
@@ -197,10 +204,20 @@ namespace OpenHome.Os.AppManager
                 Configuration = appConfig,
                 Device = device,
                 Services = iFullPrivilegeAppServices,
-                StaticPath = "",
+                StaticPath = iInstallBase,
                 StorePath = Path.Combine(iConfiguration.GetElementValueAsFilepath("system-settings/store"), "apps", sanitizedName)
             };
-            app.Start(appContext);
+            try
+            {
+                Logger.InfoFormat("Starting app: {0}", sanitizedName);
+                app.Start(appContext);
+                Logger.InfoFormat("App started: {0}", sanitizedName);
+            }
+            catch (Exception e)
+            {
+                Logger.ErrorFormat("Exception during app startup: {0}\n{1}", sanitizedName, e);
+                throw;
+            }
             device.SetEnabled();
             iHistory.Add(new HistoryItem(app.Name, change, app.Udn));
         }

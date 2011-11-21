@@ -47,6 +47,7 @@
     <Compile Include="ErrorHandling.cs" />
     <Compile Include="IApp.cs" />
     <Compile Include="ICommandRegistry.cs" />
+    <Compile Include="IConfigFileCollection.cs" />
     <Compile Include="INodeRebooter.cs" />
     <Compile Include="IO\XmlDiskStore.cs" />
     <Compile Include="IUpdateService.cs" />

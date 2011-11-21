@@ -7,7 +7,7 @@ using OpenHome.Os.Platform;
 using OpenHome.Widget.Nodes;
 using OpenHome.Widget.Nodes.Logging;
 
-[assembly: AddinRoot("ohOs", "1.1")]
+[assembly: AddinRoot("ohOs", "1.2")]
 
 namespace OpenHome.Os.AppManager
 {

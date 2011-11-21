@@ -1,7 +1,7 @@
 using Mono.Addins;
 
 [assembly:Addin]
-[assembly:AddinDependency("ohOs", "1.1")]
+[assembly:AddinDependency("ohOs", "1.2")]
 
 namespace OpenHome.Os.TestApps
 {

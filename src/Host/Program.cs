@@ -50,6 +50,8 @@ namespace Node
             OptionParser parser = new OptionParser(aArgs);
             OptionParser.OptionString optionConfigFile = new OptionParser.OptionString("-c", "--config", null, "Configuration file location.", "CONFIG");
             parser.AddOption(optionConfigFile);
+            OptionParser.OptionString optionInstallFile = new OptionParser.OptionString("-i", "--install", null, "App to install.", "APPFILE");
+            parser.AddOption(optionInstallFile);
             /*OptionParser.OptionBool optionNoLoopback = new OptionParser.OptionBool("-p", "--publish", "Advertise this node on the network (default is to use loopback only)");
             parser.AddOption(optionNoLoopback);
             OptionParser.OptionString optionUuid = new OptionParser.OptionString("-u", "--uuid", "", "Set a uuid for the Node (default is to use an auto-generated guid)", "");
@@ -124,7 +126,7 @@ namespace Node
                 }
             }
             InitParams initParams = new InitParams();
-            if (!sysConfig.GetAttributeAsBoolean("network/@loopback") ?? true)
+            if (sysConfig.GetAttributeAsBoolean("network/@loopback") ?? true)
             {
                 if (sysConfig.GetAttributeAsBoolean("mdns/@enable") ?? true)
                 {
@@ -215,6 +217,10 @@ namespace Node
                     Console.WriteLine(storeDirectory);
                     using (var appManager = new Manager(storeDirectory, services, config))
                     {
+                        if (optionInstallFile.Value != null)
+                        {
+                            appManager.Install(optionInstallFile.Value);
+                        }
                         string exePath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
                         appManager.Install(System.IO.Path.Combine(exePath, "ohOs.TestApp1.zip"));
                         if (!(sysConfig.GetAttributeAsBoolean("console/@enable") ?? true))
