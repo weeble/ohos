@@ -25,9 +25,19 @@ namespace OpenHome.Os.AppManager
         }
     }
 
+    public interface INodeInformation
+    {
+        /// <summary>
+        /// Port that is listening for ohNet websocket connections.
+        /// Null if websockets are disabled.
+        /// </summary>
+        uint? WebSocketPort { get; }
+    }
+
     public interface IAppServices
     {
         //string StorePath { get; } // Should eventually virtualize file system.
+        INodeInformation NodeInformation { get; }
         IDvDeviceFactory DeviceFactory { get; }
         ICpUpnpDeviceListFactory CpDeviceListFactory { get; }
         INodeRebooter NodeRebooter { get; }

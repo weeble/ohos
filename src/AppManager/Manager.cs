@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Reflection;
 using System.Threading;
 using System.Xml.Linq;
 using log4net;
@@ -86,6 +87,7 @@ namespace OpenHome.Os.AppManager
         private readonly bool iInitialising;
         readonly IAppServices iFullPrivilegeAppServices;
         private readonly IConfigFileCollection iConfiguration;
+        string iStorePath;
 
         public List<HistoryItem> History
         {
@@ -96,6 +98,11 @@ namespace OpenHome.Os.AppManager
         {
             iFullPrivilegeAppServices = aFullPrivilegeAppServices;
             iConfiguration = aConfiguration;
+            iStorePath = iConfiguration.GetElementValueAsFilepath("system-settings/store");
+            if (iStorePath == null)
+            {
+                iStorePath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "store");
+            }
             iInstallBase = System.IO.Path.Combine(aInstallBase, kAppsDirectory);
             iApps = new Dictionary<string, PublishedApp>();
             iHistory = new List<HistoryItem>();
@@ -205,7 +212,7 @@ namespace OpenHome.Os.AppManager
                 Device = device,
                 Services = iFullPrivilegeAppServices,
                 StaticPath = iInstallBase,
-                StorePath = Path.Combine(iConfiguration.GetElementValueAsFilepath("system-settings/store"), "apps", sanitizedName)
+                StorePath = Path.Combine(iStorePath, "apps", sanitizedName)
             };
             try
             {

@@ -22,6 +22,7 @@ namespace Node
     public class AppServices : IAppServices
     {
         //public string StorePath { get; set; }
+        public INodeInformation NodeInformation { get; set; }
         public IDvDeviceFactory DeviceFactory { get; set; }
         public ICpUpnpDeviceListFactory CpDeviceListFactory { get; set; }
         public INodeRebooter NodeRebooter { get; set; }
@@ -31,6 +32,7 @@ namespace Node
         public ILogController LogController { get; set; }
         public object ResolveService<T>()
         {
+            if (typeof(T).IsAssignableFrom(typeof(INodeInformation))) { return NodeInformation; }
             if (typeof(T).IsAssignableFrom(typeof(IDvDeviceFactory))) { return DeviceFactory; }
             if (typeof(T).IsAssignableFrom(typeof(ICpUpnpDeviceListFactory))) { return CpDeviceListFactory; }
             if (typeof(T).IsAssignableFrom(typeof(INodeRebooter))) { return NodeRebooter; }
@@ -40,6 +42,11 @@ namespace Node
             if (typeof(T).IsAssignableFrom(typeof(ILogController))) { return LogController; }
             throw new ArgumentException(String.Format("No service registered for type {0}.", typeof(T)));
         }
+    }
+
+    class NodeInformation : INodeInformation
+    {
+        public uint? WebSocketPort { get; set; }
     }
 
     public class Program
@@ -135,8 +142,10 @@ namespace Node
                 }
                 initParams.UseLoopbackNetworkAdapter = true;
             }
+            bool wsEnabled = sysConfig.GetAttributeAsBoolean("websockets/@enable") ?? true;
+            uint wsPort = uint.Parse(sysConfig.GetAttributeValue("websockets/@port") ?? "54321");
             initParams.DvNumWebSocketThreads = 10; // max 10 web based control points
-            initParams.DvWebSocketPort = uint.Parse(sysConfig.GetAttributeValue("websockets/@port") ?? "54321");
+            initParams.DvWebSocketPort = wsEnabled ? wsPort : 0;
             initParams.NumActionInvokerThreads = 8;
             initParams.DvNumServerThreads = 8;
             initParams.TcpConnectTimeoutMs = 1000; // NOTE: Defaults to 500ms. At that value, we miss a lot of nodes during soak and stress tests.
@@ -205,6 +214,7 @@ namespace Node
                     AppServices services = new AppServices()
                     {
                         //StorePath = storeDirectory,
+                        NodeInformation = new NodeInformation{ WebSocketPort = wsEnabled ? wsPort : (uint?)null },
                         CommandRegistry = commandDispatcher,
                         CpDeviceListFactory = deviceListFactory,
                         DeviceFactory = deviceFactory,
@@ -277,4 +287,5 @@ namespace Node
             sem.WaitOne();
         }
     }
+
 }
