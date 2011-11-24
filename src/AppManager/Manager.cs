@@ -72,7 +72,7 @@ namespace OpenHome.Os.AppManager
                 Semaphore disposeSemaphore = new Semaphore(0,1);
                 iDevice.SetDisabled(() => disposeSemaphore.Release());
                 disposeSemaphore.WaitOne();
-                disposeSemaphore.Dispose();
+                ((IDisposable)disposeSemaphore).Dispose();
                 iApp.Stop(); // ???
                 iApp.Dispose();
                 iDevice.Dispose();
@@ -191,7 +191,7 @@ namespace OpenHome.Os.AppManager
                 Device = null,
                 Services = iFullPrivilegeAppServices,
                 StaticPath = iInstallBase,
-                StorePath = Path.Combine(iStorePath, "apps", sanitizedName)
+                StorePath = Path.Combine(iStorePath, Path.Combine("apps", sanitizedName))
             };
 
             // Initialize the app to allow it to read its config files before we

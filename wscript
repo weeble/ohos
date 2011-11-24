@@ -380,7 +380,7 @@ csharp_projects = [
         CSharpProject(
             name="ohOs.Host", dir="Host", type="exe",
             categories=["core"],
-            packages=['ohnet', 'mono-addins', 'log4net'],
+            packages=['ohnet', 'mono-addins', 'log4net', 'systemxmllinq'],
             references=['ohOs.Platform', 'ohOs.AppManager']
             ),
     ]
