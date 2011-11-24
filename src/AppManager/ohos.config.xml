@@ -21,6 +21,8 @@
         <mdns enable="no"/>
         <!-- Websockets settings. -->
         <websockets port="54321"/>
+        <!-- Enable or disable multinode. -->
+        <multinode enable="no"/>
     </system-settings>
 
     <app-settings name="ohwidget">

@@ -7,7 +7,7 @@ using OpenHome.Os.Platform;
 using OpenHome.Widget.Nodes;
 using OpenHome.Widget.Nodes.Logging;
 
-[assembly: AddinRoot("ohOs", "1.3")]
+[assembly: AddinRoot("ohOs", "1.4")]
 
 namespace OpenHome.Os.AppManager
 {
@@ -32,6 +32,12 @@ namespace OpenHome.Os.AppManager
         /// Null if websockets are disabled.
         /// </summary>
         uint? WebSocketPort { get; }
+
+        /// <summary>
+        /// Indicates that the node should seek out and federate with
+        /// other nodes on the network.
+        /// </summary>
+        bool MultiNodeEnabled { get; }
     }
 
     public interface IAppServices

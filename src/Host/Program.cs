@@ -47,6 +47,8 @@ namespace Node
     class NodeInformation : INodeInformation
     {
         public uint? WebSocketPort { get; set; }
+
+        public bool MultiNodeEnabled { get; set; }
     }
 
     public class Program
@@ -214,7 +216,10 @@ namespace Node
                     AppServices services = new AppServices()
                     {
                         //StorePath = storeDirectory,
-                        NodeInformation = new NodeInformation{ WebSocketPort = wsEnabled ? wsPort : (uint?)null },
+                        NodeInformation = new NodeInformation{
+                            WebSocketPort = wsEnabled ? wsPort : (uint?)null,
+                            MultiNodeEnabled = sysConfig.GetAttributeAsBoolean("multinode/@enable") ?? false
+                        },
                         CommandRegistry = commandDispatcher,
                         CpDeviceListFactory = deviceListFactory,
                         DeviceFactory = deviceFactory,
