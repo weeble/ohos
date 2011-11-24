@@ -170,7 +170,7 @@ def publish(context):
     artifacts = context.env["OHNET_ARTIFACTS"]
     builddir = context.env["BUILDDIR"]
 
-    filename = "ohos-{platform}-{version}.tar.gz".format(platform=platform, version=version)
+    filename = "ohos-{version}-{platform}.tar.gz".format(platform=platform, version=version)
     sourcepath = os.path.join(builddir, "ohos.tar.gz")
     targetpath = os.path.join(artifacts, "Releases", filename)
     shutil.copyfile(sourcepath, targetpath)
