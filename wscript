@@ -350,7 +350,7 @@ csharp_projects = [
         CSharpProject(
             name="ohOs.AppManager", dir="AppManager", type="library",
             categories=["core"],
-            packages=['ohnet', 'mono-addins', 'sharpziplib', 'log4net'],
+            packages=['ohnet', 'mono-addins', 'sharpziplib', 'log4net', 'systemxmllinq'],
             references=[
                 'DvOpenhomeOrgApp1',
                 'ohOs.Platform',
