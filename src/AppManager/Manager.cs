@@ -179,6 +179,27 @@ namespace OpenHome.Os.AppManager
                 return;
             }
             var app = (IApp)aArgs.ExtensionObject;
+
+            // Take care here! We don't want an app peeking at other apps'
+            // settings by injecting crazy XPath nonsense into its name.
+            string sanitizedName = app.Name.Replace("'", "").Replace("\"", "").Replace("\\","-").Replace("/","-");
+            IConfigFileCollection appConfig = iConfiguration.GetSubcollection(String.Format("app-settings[@name='{0}']", sanitizedName));
+
+            AppContext appContext = new AppContext
+            {
+                Configuration = appConfig,
+                Device = null,
+                Services = iFullPrivilegeAppServices,
+                StaticPath = iInstallBase,
+                StorePath = Path.Combine(iStorePath, "apps", sanitizedName)
+            };
+
+            // Initialize the app to allow it to read its config files before we
+            // query its Udn.
+            app.Init(appContext);
+
+            Console.WriteLine("UDN:{0}", app.Udn);
+
             DvDevice device = (app.ResourceManager == null
                                     ? new DvDeviceStandard(app.Udn)
                                     : new DvDeviceStandard(app.Udn, app.ResourceManager));
@@ -191,10 +212,7 @@ namespace OpenHome.Os.AppManager
             device.SetAttribute("Upnp.Manufacturer", "N/A");
             device.SetAttribute("Upnp.ModelName", "ohOs Application");
 
-            // Take care here! We don't want an app peeking at other apps'
-            // settings by injecting crazy XPath nonsense into its name.
-            string sanitizedName = app.Name.Replace("'", "").Replace("\"", "");
-            IConfigFileCollection appConfig = iConfiguration.GetSubcollection(String.Format("app-settings[@name='{0}']", sanitizedName));
+            appContext.Device = device;
 
             var provider = new ProviderApp(device, app);
             var change = HistoryItem.ItemType.EInstall;
@@ -206,14 +224,6 @@ namespace OpenHome.Os.AppManager
                 }
                 iApps.Add(app.Udn, new PublishedApp(app, device, provider));
             }
-            AppContext appContext = new AppContext
-            {
-                Configuration = appConfig,
-                Device = device,
-                Services = iFullPrivilegeAppServices,
-                StaticPath = iInstallBase,
-                StorePath = Path.Combine(iStorePath, "apps", sanitizedName)
-            };
             try
             {
                 Logger.InfoFormat("Starting app: {0}", sanitizedName);

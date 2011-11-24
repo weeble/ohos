@@ -30,6 +30,11 @@ namespace OpenHome.Os.TestApps
         {
             iVersion = new AppVersion(0, 1, 0);
         }
+
+        public void Init(IAppContext aAppServices)
+        {
+        }
+
         public void Start(IAppContext aAppContext)
         {
             Console.WriteLine("Started app.");
