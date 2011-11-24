@@ -6,6 +6,7 @@ using log4net;
 using OpenHome.Os.Platform.Collections;
 using OpenHome.Widget.Nodes.Threading;
 using OpenHome.Net.ControlPoint;
+using OpenHome.Net.Device;
 
 namespace OpenHome.Widget.Nodes.Proxies
 {
@@ -91,6 +92,8 @@ namespace OpenHome.Widget.Nodes.Proxies
         private readonly string iDomain;
         private readonly string iType;
         private readonly uint iVersion;
+        private readonly CpDeviceDv iLocalDevice;
+        private readonly bool iMultiNode;
         private readonly SafeCallbackTracker iCallbackTracker = new SafeCallbackTracker();
 
         private bool iStarted;
@@ -98,16 +101,27 @@ namespace OpenHome.Widget.Nodes.Proxies
         public ProxyList(
             ICpUpnpDeviceListFactory aCpDeviceListFactory,
             Func<CpDevice, T> aProxyConstructor,
+            DvDevice aLocalDevice,
             string aDomain,
             string aType,
-            uint aVersion)
+            uint aVersion,
+            bool aMultiNodeEnable)
         {
+            if (iMultiNode && aLocalDevice == null)
+            {
+                throw new ArgumentException("Non-multinode list must have a non-null local device");
+            }
             iProxyConstructor = aProxyConstructor;
             iDomain = aDomain;
             iType = aType;
             iVersion = aVersion;
             iCpDeviceListFactory = aCpDeviceListFactory;
             iProxiesByUdn = new Dictionary<string, ProxyRecord>();
+            if (aLocalDevice != null)
+            {
+                iLocalDevice = new CpDeviceDv(aLocalDevice);
+            }
+            iMultiNode = aMultiNodeEnable;
         }
 
         public void Start()
@@ -116,14 +130,21 @@ namespace OpenHome.Widget.Nodes.Proxies
             {
                 throw new InvalidOperationException();
             }
-            Action<CpDeviceList, CpDevice> safeDeviceAdded = iCallbackTracker.Create<CpDeviceList,CpDevice>(DeviceAdded);
-            Action<CpDeviceList, CpDevice> safeDeviceRemoved = iCallbackTracker.Create<CpDeviceList,CpDevice>(DeviceRemoved);
-            iDeviceList = iCpDeviceListFactory.CreateListServiceType(
-                iDomain,
-                iType,
-                iVersion,
-                (aDeviceList, aDevice) => safeDeviceAdded(aDeviceList,aDevice),
-                (aDeviceList, aDevice) => safeDeviceRemoved(aDeviceList,aDevice));
+            if (iLocalDevice != null)
+            {
+                DeviceAdded(iLocalDevice);
+            }
+            if (iMultiNode)
+            {
+                Action<CpDeviceList, CpDevice> safeDeviceAdded = iCallbackTracker.Create<CpDeviceList, CpDevice>(DeviceAdded);
+                Action<CpDeviceList, CpDevice> safeDeviceRemoved = iCallbackTracker.Create<CpDeviceList, CpDevice>(DeviceRemoved);
+                iDeviceList = iCpDeviceListFactory.CreateListServiceType(
+                    iDomain,
+                    iType,
+                    iVersion,
+                    (aDeviceList, aDevice) => safeDeviceAdded(aDeviceList, aDevice),
+                    (aDeviceList, aDevice) => safeDeviceRemoved(aDeviceList, aDevice));
+            }
             iStarted = true;
         }
 
@@ -213,6 +234,10 @@ namespace OpenHome.Widget.Nodes.Proxies
                 iStarted = false;
                 Logger.Debug("Finished cleanup");
             }
+            if (iLocalDevice != null)
+            {
+                iLocalDevice.RemoveRef();
+            }
         }
 
         public void Dispose()
@@ -220,54 +245,22 @@ namespace OpenHome.Widget.Nodes.Proxies
             if (iStarted)
             {
                 Stop();
-                iDeviceList.Dispose();
+                if (iDeviceList != null)
+                {
+                    iDeviceList.Dispose();
+                }
             }
         }
 
         private void DeviceAdded(CpDeviceList aDeviceList, CpDevice aDevice)
         {
-            string udn = aDevice.Udn();
-            Logger.DebugFormat("DeviceAdded: UDN={0}", udn);
-            CountedReference<T> newProxyRef =
-                    new CountedReference<T>(
-                        iProxyConstructor(aDevice));
-            aDevice.AddRef();
-            ProxyRecord newProxyRecord = new ProxyRecord(aDevice, newProxyRef);
-            // We need two references - one that goes in the iIdDictionary, and
-            // one that we keep to use when invoking DeviceDetected. The
-            // latter needs to be disposed even in the event of an exception.
-            using (var callbackProxyRef = newProxyRef.Copy())
+            // ignore UPnP discovery of a device we have access to via a CpDeviceDv
+            if (iLocalDevice != null && iLocalDevice.Udn() == aDevice.Udn())
             {
-                ProxyRecord oldProxyRecord = null;
-                EventHandler<ProxyEventArgs> handler;
-                lock (iProxiesByUdn)
-                {
-                    if (iProxiesByUdn.ContainsKey(udn))
-                    {
-                        // Discard the old one.
-                        // TODO: Attempt to sensibly handle cases where add and remove
-                        // messages overtake each other, or verify that the Zapp library
-                        // prevents this.
-                        // trac#84
-                        oldProxyRecord = iProxiesByUdn[udn];
-                    }
-                    iProxiesByUdn[aDevice.Udn()] = newProxyRecord;
-                    handler = iDeviceDetectedHandler;
-                    Monitor.PulseAll(iProxiesByUdn);
-                }
-                if (oldProxyRecord != null)
-                {
-                    oldProxyRecord.InvokeDisappeared();
-                    oldProxyRecord.Ref.Dispose();
-                    oldProxyRecord.Device.RemoveRef();
-                }
-                if (handler != null)
-                {
-                    handler(this, new ProxyEventArgs(aDevice, callbackProxyRef, newProxyRecord));
-                }
+                return;
             }
+            DeviceAdded(aDevice);
         }
-
 
         private void DeviceRemoved(CpDeviceList aDeviceList, CpDevice aDevice)
         {
@@ -278,11 +271,6 @@ namespace OpenHome.Widget.Nodes.Proxies
             {
                 if (iProxiesByUdn.ContainsKey(udn))
                 {
-                    // Discard the old one.
-                    // TODO: Attempt to sensibly handle cases where add and remove
-                    // messages overtake each other, or verify that the Zapp library
-                    // prevents this.
-                    // trac#84
                     oldProxyRecord = iProxiesByUdn[udn];
                     iProxiesByUdn.Remove(udn);
                 }
@@ -292,6 +280,37 @@ namespace OpenHome.Widget.Nodes.Proxies
                 oldProxyRecord.InvokeDisappeared();
                 oldProxyRecord.Ref.Dispose();
                 oldProxyRecord.Device.RemoveRef();
+            }
+        }
+
+        private void DeviceAdded(CpDevice aDevice)
+        {
+            string udn = aDevice.Udn();
+            Logger.DebugFormat("DeviceAdded: UDN={0}", udn);
+            CountedReference<T> newProxyRef = new CountedReference<T>(iProxyConstructor(aDevice));
+            aDevice.AddRef();
+            ProxyRecord newProxyRecord = new ProxyRecord(aDevice, newProxyRef);
+            ProxyRecord oldProxyRecord = null;
+            EventHandler<ProxyEventArgs> handler;
+            lock (iProxiesByUdn)
+            {
+                if (iProxiesByUdn.ContainsKey(udn))
+                {
+                    oldProxyRecord = iProxiesByUdn[udn];
+                }
+                iProxiesByUdn[aDevice.Udn()] = newProxyRecord;
+                handler = iDeviceDetectedHandler;
+                Monitor.PulseAll(iProxiesByUdn);
+            }
+            if (oldProxyRecord != null)
+            {
+                oldProxyRecord.InvokeDisappeared();
+                oldProxyRecord.Ref.Dispose();
+                oldProxyRecord.Device.RemoveRef();
+            }
+            if (handler != null)
+            {
+                handler(this, new ProxyEventArgs(aDevice, newProxyRef, newProxyRecord));
             }
         }
 
