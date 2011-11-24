@@ -35,6 +35,9 @@ nunitframeworkdir.add_assemblies(
     'nunit.framework.dll',
     reference=True, copy=True)
 
+systemxmllinq = csharp_dependencies.add_package('systemxmllinq')
+systemxmllinq.add_system_assembly('System.Xml.Linq.dll')
+
 ohnet = csharp_dependencies.add_package('ohnet')
 ohnetdir = ohnet.add_directory(
     unique_id = 'ohnet-dir',
@@ -304,7 +307,7 @@ def create_zip_task(bld, zipfile, sourceroot, ziproot, sourcefiles):
 
 
 def get_active_dependencies(env):
-    active_dependency_names = set(['ohnet', 'yui-compressor','mono-addins','mono-addins-setup', 'sharpziplib', 'log4net'])
+    active_dependency_names = set(['ohnet', 'yui-compressor','mono-addins','mono-addins-setup', 'sharpziplib', 'log4net', 'systemxmllinq'])
     if env.BUILDTESTS:
         active_dependency_names |= set(['nunit', 'ndeskoptions'])
     return csharp_dependencies.get_subset(active_dependency_names)
@@ -371,7 +374,7 @@ csharp_projects = [
         CSharpProject(
             name="ohOs.Platform", dir="Platform", type="library",
             categories=["core"],
-            packages=['ohnet', 'mono-addins', 'log4net'],
+            packages=['ohnet', 'mono-addins', 'log4net', 'systemxmllinq'],
             references=[]
             ),
         CSharpProject(
