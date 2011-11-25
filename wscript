@@ -501,7 +501,8 @@ def build(bld):
             ] +
             get_dependency_files(ohnet) +
             get_dependency_files(sharpziplib) +
-            get_dependency_files(monoaddins)
+            get_dependency_files(monoaddins) +
+            get_dependency_files(log4net)
             )
 
 def do_install(bld):
