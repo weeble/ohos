@@ -58,7 +58,7 @@
 import os
 import shutil
 
-require_version(4)
+require_version(5)
 
 
 # Command-line options. See documentation for Python's optparse module.
@@ -105,36 +105,36 @@ def choose_platform(context):
     else:
         context.env["PLATFORM"] = default_platform()
 
-# Windows build configuration.
+# Universal build configuration.
+@build_step()
+def setup_universal(context):
+    env = context.env
+    env.update(
+        OHNET_ARTIFACTS=context.options.artifacts or 'http://www.openhome.org/releases/artifacts',
+        OHOS_PUBLISH="releases@www.openhome.org:/home/releases/www/artifacts/ohOs",
+        BUILDDIR='buildhudson',
+        WAFLOCK='.lock-wafbuildhudson')
+    context.configure_args = get_dependency_args(ALL_DEPENDENCIES)
+
+# Extra Windows build configuration.
 @build_step()
 @build_condition(PLATFORM="Windows-x86")
 @build_condition(PLATFORM="Windows-x64")
 def setup_windows(context):
     env = context.env
     env.update(
-        OHNET_ARTIFACTS=context.options.artifacts or "\\\\ohnet.linn.co.uk\\artifacts",
-        BUILDDIR="buildhudson",
-        WAFLOCK=".lock-wafbuildhudson",
         OPENHOME_NO_ERROR_DIALOGS="1",
         OHNET_NO_ERROR_DIALOGS="1")
     env.update(get_vsvars_environment())
-    context.configure_args = get_dependency_args(ALL_DEPENDENCIES)
 
-# Linux build configuration.
+# Extra Linux build configuration.
 @build_step()
 @build_condition(PLATFORM="Linux-x86")
 @build_condition(PLATFORM="Linux-x64")
 @build_condition(PLATFORM="Linux-ARM")
 def setup_linux(context):
-    env = context.env
-    env.update(
-        OHNET_ARTIFACTS=context.options.artifacts or '/opt/artifacts',
-        BUILDDIR='buildhudson',
-        WAFLOCK='.lock-wafbuildhudson')
-    context.configure_args = (
-            get_dependency_args(ALL_DEPENDENCIES) +
-            ["--with-csc-binary", "/usr/bin/gmcs"] +
-            ["--platform", env["PLATFORM"]])
+    env.configure_args += ["--with-csc-binary", "/usr/bin/gmcs"]
+    env.configure_args += ["--platform", env["PLATFORM"]]
 
 # Principal build steps.
 @build_step("fetch", optional=True)
@@ -167,14 +167,13 @@ def tests_arm(context):
 def publish(context):
     platform = context.env["PLATFORM"]
     version = context.options.publish_version or context.env.get("RELEASE_VERSION", "UNKNOWN")
-    artifacts = context.env["OHNET_ARTIFACTS"]
+    publishdir = context.env["OHOS_PUBLISH"]
     builddir = context.env["BUILDDIR"]
 
     filename = "ohos-{version}-{platform}.tar.gz".format(platform=platform, version=version)
     sourcepath = os.path.join(builddir, "ohos.tar.gz")
-    targetpath = os.path.join(artifacts, "Releases", filename)
-    shutil.copyfile(sourcepath, targetpath)
-
+    targetpath = publishdir + '/' + filename
+    scp(sourcepath, targetpath)
 
 def run_tests_remotely(env):
     username = "root"
