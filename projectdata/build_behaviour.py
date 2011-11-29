@@ -133,9 +133,8 @@ def setup_windows(context):
 @build_condition(PLATFORM="Linux-x64")
 @build_condition(PLATFORM="Linux-ARM")
 def setup_linux(context):
-    env = context.env
-    env.configure_args += ["--with-csc-binary", "/usr/bin/gmcs"]
-    env.configure_args += ["--platform", env["PLATFORM"]]
+    context.configure_args += ["--with-csc-binary", "/usr/bin/gmcs"]
+    context.configure_args += ["--platform", env["PLATFORM"]]
 
 # Principal build steps.
 @build_step("fetch", optional=True)
