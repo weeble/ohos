@@ -172,7 +172,7 @@ def configure(conf):
         ohnet_platform_name = 'Windows' if plat.startswith('Windows') else 'Posix'
         defaults['--ohnet-dir'] = path.join(conf.options.ohnet_source_dir, 'Build', 'Obj', ohnet_platform_name, 'Debug')
         defaults['--ohnet-t4-dir'] = path.join(conf.options.ohnet_source_dir, 'Build', ohnet_platform_name, 'Tools')
-        defaults['--ohnet-template-dir'] = path.join(conf.options.ohnet_source_dir, 'Openhome', 'Net', 'T4', 'Templates')
+        defaults['--ohnet-template-dir'] = path.join(conf.options.ohnet_source_dir, 'OpenHome', 'Net', 'T4', 'Templates')
         defaults['--ohnet-ui-dir'] = path.join(conf.options.ohnet_source_dir, 'OpenHome', 'Net', 'Bindings', 'Js', 'ControlPoint')
 
     active_dependencies = get_active_dependencies(conf.env)
