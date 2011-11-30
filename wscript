@@ -29,8 +29,8 @@ nunitdir = nunit.add_directory(
 nunitframeworkdir = nunitdir.add_directory(
     unique_id='nunit-framework-dir',
     as_option = '--nunit-framework-dir',
-    option_help = 'Location of NUnit framework DLL, defaults to "bin/net-2.0/framework" relative to NUNIT_DIR.',
-    relative_path = 'bin/net-2.0/framework')
+    option_help = 'Location of NUnit framework DLL, defaults to "bin/net-4.0/framework" relative to NUNIT_DIR.',
+    relative_path = 'bin/net-4.0/framework')
 nunitframeworkdir.add_assemblies(
     'nunit.framework.dll',
     reference=True, copy=True)
@@ -182,7 +182,7 @@ def configure(conf):
     mono = set_env(conf, 'MONO', [] if plat.startswith('Windows') else ["mono", "--debug"])
 
     if conf.env.BUILDTESTS:
-        nunitexedir = path.join(nunitdir.absolute_path, 'bin/net-2.0')
+        nunitexedir = path.join(nunitdir.absolute_path, 'bin/net-4.0')
         nunitexe = set_env(conf, 'NUNITEXE', path.join(nunitexedir, 'nunit-console-x86.exe' if plat.endswith('x86') else 'nunit-console.exe'))
         # NUnit uses $TMP to shadow copy assemblies. If it's not set it can end up writing
         # to /tmp/nunit20, causing all sorts of problems on a multi-user system. On non-Windows

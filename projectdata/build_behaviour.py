@@ -134,7 +134,7 @@ def setup_windows(context):
 @build_condition(PLATFORM="Linux-ARM")
 def setup_linux(context):
     env = context.env
-    context.configure_args += ["--with-csc-binary", "/usr/bin/gmcs"]
+    context.configure_args += ["--with-csc-binary", "/usr/bin/dmcs"]
     context.configure_args += ["--platform", env["PLATFORM"]]
 
 # Principal build steps.
@@ -210,6 +210,6 @@ def run_tests_remotely(env):
         ssh(
             ("shopt -s huponexit & LD_LIBRARY_PATH={path}buildhudson "+
             "'mono --debug "+
-            "{path}dependencies/Linux-ARM/NUnit-2.5.9.10305-net4.0/bin/net-2.0/nunit-console.exe "+
+            "{path}dependencies/Linux-ARM/NUnit-2.5.10.11092/bin/net-4.0/nunit-console.exe "+
             "--labels --noshadow {path}buildhudson/*.Tests.dll'")
             .format(path=path))
