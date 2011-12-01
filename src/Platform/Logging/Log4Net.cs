@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using log4net;
 using log4net.Appender;
+using log4net.Layout;
 using log4net.Repository.Hierarchy;
 
 namespace OpenHome.Widget.Nodes.Logging
@@ -33,6 +34,8 @@ namespace OpenHome.Widget.Nodes.Logging
 
     public static class Log4Net
     {
+        static readonly PatternLayout DefaultPatternLayout = new PatternLayout("%date{HH:mm:ss,fff} [%thread] %-5level %logger - %message%newline");
+
         private class LogReader : ILogReader
         {
             readonly string iLogFileName;
@@ -88,7 +91,7 @@ namespace OpenHome.Widget.Nodes.Logging
 
         static ILogReader SetupLoggingToFile(string aLogFile)
         {
-            var patternLayout = new log4net.Layout.PatternLayout("%date{HH:mm:ss,fff} [%thread] %-5level %logger %ndc - %message%newline");
+            var patternLayout = DefaultPatternLayout;
             patternLayout.ActivateOptions();
             FileAppender fa = new FileAppender()
                                   {
@@ -106,7 +109,7 @@ namespace OpenHome.Widget.Nodes.Logging
         {
             if (!File.Exists(aXmlConfigFile))
             {
-                log4net.Config.BasicConfigurator.Configure();
+                log4net.Config.BasicConfigurator.Configure(new ConsoleAppender { Layout = DefaultPatternLayout });
             }
             else
             {
