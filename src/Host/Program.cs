@@ -134,6 +134,7 @@ namespace Node
                     ErrorHandling.SuppressWindowsErrorDialogs();
                 }
             }
+
             InitParams initParams = new InitParams();
             if (sysConfig.GetAttributeAsBoolean("network/@loopback") ?? true)
             {
@@ -236,20 +237,23 @@ namespace Node
                         {
                             appManager.Install(optionInstallFile.Value);
                         }
-                        string exePath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-                        appManager.Install(System.IO.Path.Combine(exePath, "ohOs.TestApp1.zip"));
-                        if (!(sysConfig.GetAttributeAsBoolean("console/@enable") ?? true))
+                        using (var appController = new AppController(nodeGuid))
                         {
-                            WaitForever();
-                        }
-                        else
-                        {
-                            RunConsole(consoleInterface, sysConfig.GetAttributeAsBoolean("console/@prompt") ?? true);
-                        }
-                        Logger.Info("Shutting down node...");
-                        if (sysConfig.GetAttributeAsBoolean("console/@enable") ?? true)
-                        {
-                            Console.WriteLine("Shutting down node...");
+                            //string exePath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+                            //appManager.Install(System.IO.Path.Combine(exePath, "ohOs.TestApp1.zip"));
+                            if (!(sysConfig.GetAttributeAsBoolean("console/@enable") ?? true))
+                            {
+                                WaitForever();
+                            }
+                            else
+                            {
+                                RunConsole(consoleInterface, sysConfig.GetAttributeAsBoolean("console/@prompt") ?? true);
+                            }
+                            Logger.Info("Shutting down node...");
+                            if (sysConfig.GetAttributeAsBoolean("console/@enable") ?? true)
+                            {
+                                Console.WriteLine("Shutting down node...");
+                            }
                         }
                     }
                 }

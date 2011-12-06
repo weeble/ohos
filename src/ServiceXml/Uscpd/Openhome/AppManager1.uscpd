@@ -1,0 +1,54 @@
+# Information about all installed apps.
+# <appList>
+#     <app>
+#         <id>ohwidget</id>
+#         <name>OpenHome Widget Control</name>
+#         <version>1.2.3</version>
+#         <description>This is an example app for controlling widgets in the home.</description>
+#         <status><running /></status>
+#         <updateStatus><downloading progress="2%" /></updateStatus>
+#         <needsPermission>no</needsPermission>
+#         <needsUpdate>no</needsUpdate>
+#     </app>
+# </appList>
+#
+# status can be:
+#     <running/>   : Currently running.
+#     <stopped/>   : Not running.
+# updateStatus can be:
+#     <noUpdate/>  : No update is known to be available.
+#     <available/> : An update is available for download.
+#     <downloading progress="77%" />  : An update is downloading.
+#     <needsPermission/> : An update has downloaded, but cannot run without new permissions.
+#     <installing/> : An update was applied and the app will soon be running.
+#
+# AppListXml will event changes at most once per second.
+var AppListXml : string;
+
+# The URL to download an app from.
+type $AppURL : uri;
+
+# A unique identifier for an app.
+type $AppId : string;
+
+# The permissions required by and granted to an app.
+# <appPermissions id="ohwidget">
+#     <required>
+#         <permission>root</permission>
+#     </required>
+#     <granted>
+#     </granted>
+# </appPermissions>
+type $AppPermissionsXml : string;
+
+# Download an app from the supplied URL, then install it.
+action InstallAppFromUrl(AppURL : in $AppURL);
+
+# Query the permissions required by and granted to an app.
+action GetAppPermissions(AppId : in $AppId) = AppPermissionsXml : $AppPermissionsXml;
+
+# Modify the permissions granted to an app.
+action SetAppGrantedPermissions(AppId : in $AppId, AppPermissionsXml : in $AppPermissionsXml);
+
+# Uninstall the specified app.
+action RemoveApp(AppId : in $AppId);

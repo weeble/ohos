@@ -342,7 +342,8 @@ def create_tgz_task(bld, tgzfile, sourceroot, tgzroot, sourcefiles):
 # == Build rules ==
 
 upnp_services = [
-        GeneratedFile('src/ServiceXml/App1.xml', 'openhome.org', 'App', '1', 'OpenhomeOrgApp1'),
+        GeneratedFile('src/ServiceXml/Uscpd/Openhome/App1.uscpd', 'openhome.org', 'App', '1', 'OpenhomeOrgApp1'),
+        GeneratedFile('src/ServiceXml/Uscpd/Openhome/AppManager1.uscpd', 'openhome.org', 'AppManager', '1', 'OpenhomeOrgAppManager1'),
     ]
 
 csharp_projects = [
@@ -353,6 +354,7 @@ csharp_projects = [
             packages=['ohnet', 'mono-addins', 'sharpziplib', 'log4net', 'systemxmllinq'],
             references=[
                 'DvOpenhomeOrgApp1',
+                'DvOpenhomeOrgAppManager1',
                 'ohOs.Platform',
             ]),
         CSharpProject(
@@ -440,21 +442,25 @@ def build(bld):
     #create_csharp_tasks(bld, early_csharp_projects, csharp_dependencies)
     #bld.add_group()
 
-    t4dir=ohnett4dir.absolute_path
     ttdir=ohnettemplatedir.absolute_path
     text_transform_exe_node = bld.path.find_or_declare('TextTransform.exe')
-    text_templating_dll_node = bld.path.find_or_declare('Mono.TextTemplating.dll')
-    web_compressor_exe_node = bld.path.find_or_declare('WebCompressor.exe')
+    #web_compressor_exe_node = bld.path.find_or_declare('WebCompressor.exe')
+
+    uscpd2xml_node = find_resource_or_fail(bld, bld.path, path.join('src','Uscpd','uscpd2xml.py'))
 
     for service in upnp_services:
+        bld(
+            rule="python %s -i ${SRC} -o ${TGT}" % (uscpd2xml_node.abspath()),
+            source=service.xml,
+            target=service.target + '.xml')
         for prefix, t4Template, ext in [
                 ('Dv', 'DvUpnpCs.tt', '.cs'),
                 ('Cp', 'CpUpnpCs.tt', '.cs'),
                 ('Cp', 'CpUpnpJs.tt', '.js')
                 ]:
             bld(
-                rule="${SRC[0].abspath()} -o ${TGT} ${SRC[1].abspath()} -a xml:../" + service.xml + " -a domain:" + service.domain + " -a type:" + service.type + " -a version:" + service.version,
-                source=[text_transform_exe_node, find_resource_or_fail(bld,bld.root,path.join(ttdir, t4Template)), service.xml],
+                rule="${SRC[0].abspath()} -o ${TGT} ${SRC[1].abspath()} -a xml:${SRC[2]} -a domain:" + service.domain + " -a type:" + service.type + " -a version:" + service.version,
+                source=[text_transform_exe_node, find_resource_or_fail(bld,bld.root,path.join(ttdir, t4Template)), service.target + '.xml'],
                 target=bld.path.find_or_declare(prefix + service.target + ext))
     bld.add_group()
 
@@ -498,6 +504,12 @@ def build(bld):
                 "ohOs.AppManager.dll",
                 "ohOs.Platform.dll",
                 "App.addins",
+                "DvOpenhomeOrgAppManager1.dll",
+                "DvOpenhomeOrgApp1.dll",
+                "CpOpenhomeOrgAppManager1.dll",
+                "CpOpenhomeOrgApp1.dll",
+                "CpOpenhomeOrgAppManager1.js",
+                "CpOpenhomeOrgApp1.js",
             ] +
             get_dependency_files(ohnet) +
             get_dependency_files(sharpziplib) +
