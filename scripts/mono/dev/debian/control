@@ -1,0 +1,16 @@
+Source: ohmono-dev
+Section: cli-mono
+Priority: extra
+Maintainer: Openhome <admin@openhome.org>
+Build-Depends: debhelper (>= 7.0.50~), scratchbox2
+Standards-Version: 3.8.4
+Homepage: http://www.openhome.org
+#Vcs-Git: git://git.debian.org/collab-maint/ohmono-dev.git
+#Vcs-Browser: http://git.debian.org/?p=collab-maint/ohmono-dev.git;a=summary
+
+Package: ohmono-dev
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Conflicts: mono-runtime, mono-gac
+Description: Mono development software package for the Openhome project
+ Mono development software package for the Openhome project
