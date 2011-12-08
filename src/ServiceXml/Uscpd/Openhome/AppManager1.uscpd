@@ -1,35 +1,41 @@
 # Information about all installed apps.
 # <appList>
 #     <app>
+#         <handle>3</handle>
 #         <id>ohwidget</id>
 #         <name>OpenHome Widget Control</name>
 #         <version>1.2.3</version>
 #         <description>This is an example app for controlling widgets in the home.</description>
 #         <status><running /></status>
 #         <updateStatus><downloading progress="2%" /></updateStatus>
-#         <needsPermission>no</needsPermission>
-#         <needsUpdate>no</needsUpdate>
 #     </app>
 # </appList>
 #
 # status can be:
-#     <running/>   : Currently running.
-#     <stopped/>   : Not running.
+#     <running/>      : Currently running.
+#     <stopped/>      : Not running.
+#     <notInstalled/> : Indicates app is a dummy entry for a downloading app.
 # updateStatus can be:
 #     <noUpdate/>  : No update is known to be available.
 #     <available/> : An update is available for download.
-#     <downloading progress="77%" />  : An update is downloading.
+#     <downloading progressPercent="77%" progressBytes="18000" />  : An update is downloading.
+#         Both progressPercent and progressBytes may be absent if not known.
 #     <needsPermission/> : An update has downloaded, but cannot run without new permissions.
 #     <installing/> : An update was applied and the app will soon be running.
-#
-# AppListXml will event changes at most once per second.
-var AppListXml : string;
+type $AppListXml : string;
+
+# Array of 32-bit unsigned integer handles. Network-endian.
+var AppHandleArray : bin.base64;
+
+# Array of 32-bit unsigned integer sequence numbers. Network-endian.
+# These are evented
+var AppSequenceNumberArray : bin.base64;
 
 # The URL to download an app from.
 type $AppURL : uri;
 
-# A unique identifier for an app.
-type $AppId : string;
+# A handle to uniquely identify a locally installed app.
+type $AppHandle : ui4;
 
 # The permissions required by and granted to an app.
 # <appPermissions id="ohwidget">
@@ -41,14 +47,24 @@ type $AppId : string;
 # </appPermissions>
 type $AppPermissionsXml : string;
 
+# Get the status of a single app. Returns appList XML with zero or one entries.
+action GetAppStatus(AppHandle : in $AppHandle) = AppListXml : $AppListXml;
+
+# Get the status of multiple apps at once.
+# AppHandles should be a binary encoded array of 32-bit big-endian unsigned integers.
+# Each is one app handle to query. If the provided array is empty, XML for all apps
+# is returned. If some of the app handles do not correspond to apps they will be omitted
+# from the XML.
+action GetMultipleAppsStatus(AppHandles : in AppHandleArray) = AppListXml : $AppListXml;
+
 # Download an app from the supplied URL, then install it.
 action InstallAppFromUrl(AppURL : in $AppURL);
 
 # Query the permissions required by and granted to an app.
-action GetAppPermissions(AppId : in $AppId) = AppPermissionsXml : $AppPermissionsXml;
+action GetAppPermissions(AppHandle : in $AppHandle) = AppPermissionsXml : $AppPermissionsXml;
 
 # Modify the permissions granted to an app.
-action SetAppGrantedPermissions(AppId : in $AppId, AppPermissionsXml : in $AppPermissionsXml);
+action SetAppGrantedPermissions(AppHandle : in $AppHandle, AppPermissionsXml : in $AppPermissionsXml);
 
 # Uninstall the specified app.
-action RemoveApp(AppId : in $AppId);
+action RemoveApp(AppHandle : in $AppHandle);

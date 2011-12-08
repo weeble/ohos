@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using log4net;
 using OpenHome.Net.Device;
@@ -10,6 +11,7 @@ namespace OpenHome.Os.AppManager
         const string DummyAppListXml =
 @"<appList>
     <app>
+        <handle>1</handle>
         <id>dummyApp</id>
         <name>OpenHome Dummy App</name>
         <version>1.2.3</version>
@@ -19,34 +21,72 @@ namespace OpenHome.Os.AppManager
     </app>
 </appList>";
 
+        const string EmptyAppListXml = "<appList/>";
+        const uint DummyAppId = 1;
+
         private static readonly ILog iLog = LogManager.GetLogger(typeof(AppManagerProvider));
+
+        private uint iDummySequenceNumber;
+        private object iDummySeqNoLock = new object();
+
         public AppManagerProvider(DvDevice aDevice) : base(aDevice)
         {
-            EnablePropertyAppListXml();
+            EnablePropertyAppHandleArray();
+            EnablePropertyAppSequenceNumberArray();
+            // TODO: Initialize handle array.
+            // TODO: Initialize seqno array.
+
+            EnableActionGetAppStatus();
+            EnableActionGetMultipleAppsStatus();
             EnableActionGetAppPermissions();
             EnableActionInstallAppFromUrl();
             EnableActionRemoveApp();
             EnableActionSetAppGrantedPermissions();
-            SetPropertyAppListXml(DummyAppListXml);
+            SetPropertyAppHandleArray(Platform.Converter.ConvertUintListToNetworkOrderByteArray(new List<uint> { DummyAppId }));
+            BumpDummySequenceNumber();
         }
-        protected override void GetAppPermissions(IDvInvocation aInvocation, string aAppId, out string aAppPermissionsXml)
+
+        public void BumpDummySequenceNumber()
         {
-            iLog.ErrorFormat("GetAppPermissions(\"{0}\") - not implemented.", aAppId);
+            uint value;
+            lock (iDummySeqNoLock)
+            {
+                iLog.InfoFormat("Bumping the AppManager dummy sequence number up to {0}.", iDummySequenceNumber + 1);
+                iDummySequenceNumber += 1;
+                value = iDummySequenceNumber;
+            }
+            SetPropertyAppSequenceNumberArray(Platform.Converter.ConvertUintListToNetworkOrderByteArray(new List<uint> { value }));
+        }
+
+        protected override void GetAppStatus(IDvInvocation aInvocation, uint aAppHandle, out string aAppListXml)
+        {
+            iLog.ErrorFormat("GetAppStatus(\"{0}\") - not implemented.", aAppHandle);
+            aAppListXml = (aAppHandle == DummyAppId) ? DummyAppListXml : EmptyAppListXml;
+        }
+        protected override void GetMultipleAppsStatus(IDvInvocation aInvocation, byte[] aAppHandles, out string aAppListXml)
+        {
+            List<uint> handles = Platform.Converter.BinaryToUintArray(aAppHandles);
+            iLog.ErrorFormat("GetMultipleAppsStatus(\"{0}\") - not implemented.", String.Join(", ", handles.ToArray()));
+            aAppListXml = (handles.Contains(DummyAppId)) ? DummyAppListXml : EmptyAppListXml;
+        }
+        protected override void GetAppPermissions(IDvInvocation aInvocation, uint aAppHandle, out string aAppPermissionsXml)
+        {
+            iLog.ErrorFormat("GetAppPermissions(\"{0}\") - not implemented.", aAppHandle);
             aAppPermissionsXml = String.Format(
                 "<appPermissions id=\"{0}\"><required></required><granted></granted></appPermissions>",
-                aAppId);
+                aAppHandle);
         }
         protected override void InstallAppFromUrl(IDvInvocation aInvocation, string aAppUrl)
         {
             iLog.ErrorFormat("InstallAppFromUrl(\"{0}\") - not implemented.", aAppUrl);
         }
-        protected override void RemoveApp(IDvInvocation aInvocation, string aAppId)
+        protected override void RemoveApp(IDvInvocation aInvocation, uint aAppHandle)
         {
-            iLog.ErrorFormat("RemoveApp(\"{0}\") - not implemented.", aAppId);
+            iLog.ErrorFormat("RemoveApp(\"{0}\") - not implemented.", aAppHandle);
         }
-        protected override void SetAppGrantedPermissions(IDvInvocation aInvocation, string aAppId, string aAppPermissionsXml)
+        protected override void SetAppGrantedPermissions(IDvInvocation aInvocation, uint aAppHandle, string aAppPermissionsXml)
         {
-            iLog.ErrorFormat("SetAppGrantedPermissions(\"{0}\", \"{1}\") - not implemented.", aAppId, aAppPermissionsXml);
+            iLog.ErrorFormat("SetAppGrantedPermissions(\"{0}\", \"{1}\") - not implemented.", aAppHandle, aAppPermissionsXml);
         }
     }
 
@@ -68,6 +108,10 @@ namespace OpenHome.Os.AppManager
             iDevice.SetAttribute("Upnp.ModelName", "OpenHome App Manager");
             iProvider = new AppManagerProvider(iDevice);
             iDevice.SetEnabled();
+        }
+        public void BumpDummySequenceNumber()
+        {
+            iProvider.BumpDummySequenceNumber();
         }
         public void Dispose()
         {

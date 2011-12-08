@@ -241,6 +241,7 @@ namespace Node
                         }
                         using (var appController = new AppController(nodeGuid))
                         {
+                            commandDispatcher.AddCommand("bump", aArguments => appController.BumpDummySequenceNumber(), "Bump the sequence number for the dummy app, for testing.");
                             //string exePath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
                             //appManager.Install(System.IO.Path.Combine(exePath, "ohOs.TestApp1.zip"));
                             if (!(sysConfig.GetAttributeAsBoolean(e=>e.Elements("console").Attributes("enable").FirstOrDefault()) ?? true))
