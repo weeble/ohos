@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.IO;
 using System.Reflection;
 using System.Threading;
@@ -98,7 +99,7 @@ namespace OpenHome.Os.AppManager
         {
             iFullPrivilegeAppServices = aFullPrivilegeAppServices;
             iConfiguration = aConfiguration;
-            iStorePath = iConfiguration.GetElementValueAsFilepath("system-settings/store");
+            iStorePath = iConfiguration.GetElementValueAsFilepath(e=>e.Element("system-settings").Element("store"));
             if (iStorePath == null)
             {
                 iStorePath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "store");
@@ -183,7 +184,12 @@ namespace OpenHome.Os.AppManager
             // Take care here! We don't want an app peeking at other apps'
             // settings by injecting crazy XPath nonsense into its name.
             string sanitizedName = app.Name.Replace("'", "").Replace("\"", "").Replace("\\","-").Replace("/","-");
-            IConfigFileCollection appConfig = iConfiguration.GetSubcollection(String.Format("app-settings[@name='{0}']", sanitizedName));
+            IConfigFileCollection appConfig = iConfiguration.GetSubcollection(
+                el=>el
+                    .Elements("app-settings")
+                    .Where(e=>(string)e.Attribute("name")==sanitizedName)
+                    .FirstOrDefault()
+                );
 
             AppContext appContext = new AppContext
             {

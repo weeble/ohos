@@ -1,5 +1,7 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
+using System.Xml.Linq;
 using Mono.Addins;
 using ohWidget.Utils;
 using OpenHome.Os.AppManager;
@@ -103,10 +105,10 @@ namespace Node
 
             string configFilename = optionConfigFile.Value ?? Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + Path.DirectorySeparatorChar + "ohOs" + Path.DirectorySeparatorChar + "ohos.config.xml";
             ConfigFileCollection config = new ConfigFileCollection(new[] { configFilename });
-            IConfigFileCollection sysConfig = config.GetSubcollection("/system-settings");
+            IConfigFileCollection sysConfig = config.GetSubcollection(e=>e.Element("system-settings"));
 
             string storeDirectory =
-                sysConfig.GetElementValueAsFilepath("store") ??
+                sysConfig.GetElementValueAsFilepath(e=>e.Element("store")) ??
                 (Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + Path.DirectorySeparatorChar + "ohOs");
             //DirectoryInfo storeDirectory = Directory.CreateDirectory(path);
 
@@ -126,7 +128,7 @@ namespace Node
             config.LogErrors(Logger);
 
             string noErrorDialogs = Environment.GetEnvironmentVariable("OPENHOME_NO_ERROR_DIALOGS");
-            if (sysConfig.GetAttributeAsBoolean("errors/native/@dialog") ?? 
+            if (sysConfig.GetAttributeAsBoolean(e=>e.Elements("errors").Elements("native").Attributes("dialog").FirstOrDefault()) ?? 
                 (noErrorDialogs != null && noErrorDialogs != "0"))
             {
                 if (Environment.OSVersion.Platform == PlatformID.Win32NT)
@@ -136,23 +138,23 @@ namespace Node
             }
 
             InitParams initParams = new InitParams();
-            if (sysConfig.GetAttributeAsBoolean("network/@loopback") ?? true)
+            if (sysConfig.GetAttributeAsBoolean(e=>e.Elements("network").Attributes("loopback").FirstOrDefault()) ?? true)
             {
-                if (sysConfig.GetAttributeAsBoolean("mdns/@enable") ?? true)
+                if (sysConfig.GetAttributeAsBoolean(e=>e.Elements("mdns").Attributes("enable").FirstOrDefault()) ?? true)
                 {
                     Console.WriteLine("ERROR: cannot usefully enable mdns with loopback");
                     throw new Exception();
                 }
                 initParams.UseLoopbackNetworkAdapter = true;
             }
-            bool wsEnabled = sysConfig.GetAttributeAsBoolean("websockets/@enable") ?? true;
-            uint wsPort = uint.Parse(sysConfig.GetAttributeValue("websockets/@port") ?? "54321");
+            bool wsEnabled = sysConfig.GetAttributeAsBoolean(e=>e.Elements("websockets").Attributes("enable").FirstOrDefault()) ?? true;
+            uint wsPort = uint.Parse(sysConfig.GetAttributeValue(e=>e.Elements("websockets").Attributes("port").FirstOrDefault()) ?? "54321");
             initParams.DvNumWebSocketThreads = 10; // max 10 web based control points
             initParams.DvWebSocketPort = wsEnabled ? wsPort : 0;
             initParams.NumActionInvokerThreads = 8;
             initParams.DvNumServerThreads = 8;
             initParams.TcpConnectTimeoutMs = 1000; // NOTE: Defaults to 500ms. At that value, we miss a lot of nodes during soak and stress tests.
-            if (config.GetAttributeAsBoolean("mdns/@enable") ?? true)
+            if (sysConfig.GetAttributeAsBoolean(e=>e.Elements("mdns").Attributes("enable").FirstOrDefault()) ?? true)
             {
                 initParams.DvEnableBonjour = true;
             }
@@ -173,7 +175,7 @@ namespace Node
                     var combinedStack = library.StartCombined(subnet);
                     var deviceListFactory = new CpUpnpDeviceListFactory(combinedStack.ControlPointStack);
                     var deviceFactory = new DvDeviceFactory(combinedStack.DeviceStack);
-                    string nodeGuid = (sysConfig.GetElementValue("uuid") ?? "").Trim();
+                    string nodeGuid = (sysConfig.GetElementValue(e=>e.Elements("uuid").FirstOrDefault()) ?? "").Trim();
                     if (nodeGuid.Length == 0)
                     {
                         nodeGuid = Guid.NewGuid().ToString();
@@ -212,14 +214,14 @@ namespace Node
                         {
                             if (aCommand != "") { Console.WriteLine("Unknown command. Type exit to quit."); }
                         };
-                    consoleInterface.Prompt = (sysConfig.GetAttributeAsBoolean("console/@prompt") ?? true) ? "OpenHome>" : "";
+                    consoleInterface.Prompt = (sysConfig.GetAttributeAsBoolean(e=>e.Elements("console").Attributes("prompt").FirstOrDefault()) ?? true) ? "OpenHome>" : "";
 
                     AppServices services = new AppServices()
                     {
                         //StorePath = storeDirectory,
                         NodeInformation = new NodeInformation{
                             WebSocketPort = wsEnabled ? wsPort : (uint?)null,
-                            MultiNodeEnabled = sysConfig.GetAttributeAsBoolean("multinode/@enable") ?? false
+                            MultiNodeEnabled = sysConfig.GetAttributeAsBoolean(e=>e.Elements("multinode").Attributes("enable").FirstOrDefault()) ?? false
                         },
                         CommandRegistry = commandDispatcher,
                         CpDeviceListFactory = deviceListFactory,
@@ -241,16 +243,16 @@ namespace Node
                         {
                             //string exePath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
                             //appManager.Install(System.IO.Path.Combine(exePath, "ohOs.TestApp1.zip"));
-                            if (!(sysConfig.GetAttributeAsBoolean("console/@enable") ?? true))
+                            if (!(sysConfig.GetAttributeAsBoolean(e=>e.Elements("console").Attributes("enable").FirstOrDefault()) ?? true))
                             {
                                 WaitForever();
                             }
                             else
                             {
-                                RunConsole(consoleInterface, sysConfig.GetAttributeAsBoolean("console/@prompt") ?? true);
+                                RunConsole(consoleInterface, sysConfig.GetAttributeAsBoolean(e=>e.Element("console").Attribute("prompt")) ?? true);
                             }
                             Logger.Info("Shutting down node...");
-                            if (sysConfig.GetAttributeAsBoolean("console/@enable") ?? true)
+                            if (sysConfig.GetAttributeAsBoolean(e=>e.Elements("console").Attributes("enable").FirstOrDefault()) ?? true)
                             {
                                 Console.WriteLine("Shutting down node...");
                             }

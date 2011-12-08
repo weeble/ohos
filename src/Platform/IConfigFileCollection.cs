@@ -5,29 +5,29 @@ namespace OpenHome.Os.Platform
 {
     public interface IConfigFileCollection
     {
-        IConfigFileCollection GetSubcollection(string aXPath);
-        XAttribute GetAttribute(string aXPath);
-        XElement GetElement(string aXPath);
-        string GetAttributeValue(string aXPath);
-        string GetAttributeAsFilepath(string aXPath, string aDefault);
-        string GetElementValue(string aXPath);
-        string GetElementValueAsFilepath(string aXPath);
-        bool? GetAttributeAsBoolean(string aXPath);
+        IConfigFileCollection GetSubcollection(Func<XElement, XElement> aElementQuery);
+        XAttribute GetAttribute(Func<XElement, XAttribute> aAttributeQuery);
+        string GetAttributeValue(Func<XElement, XAttribute> aAttributeQuery);
+        string GetAttributeAsFilepath(Func<XElement, XAttribute> aAttributeQuery, string aDefault);
+        bool? GetAttributeAsBoolean(Func<XElement, XAttribute> aAttributeQuery);
+        XElement GetElement(Func<XElement, XElement> aElementQuery);
+        string GetElementValue(Func<XElement, XElement> aElementQuery);
+        string GetElementValueAsFilepath(Func<XElement, XElement> aElementQuery);
     }
 
     public class NullConfigFileCollection : IConfigFileCollection
     {
-        public IConfigFileCollection GetSubcollection(string aXPath)
+        public IConfigFileCollection GetSubcollection(Func<XElement, XElement> aElementQuery)
         {
             return this;
         }
 
-        public XAttribute GetAttribute(string aXPath) { return null; }
-        public XElement GetElement(string aXPath) { return null; }
-        public string GetAttributeValue(string aXPath) { return null; }
-        public string GetAttributeAsFilepath(string aXPath, string aDefault) { return null; }
-        public string GetElementValue(string aXPath) { return null; }
-        public string GetElementValueAsFilepath(string aXPath) { return null; }
-        public bool? GetAttributeAsBoolean(string aXPath) { return null; }
+        public XAttribute GetAttribute(Func<XElement, XAttribute> aAttributeQuery) { return null; }
+        public string GetAttributeValue(Func<XElement, XAttribute> aAttributeQuery) { return null; }
+        public string GetAttributeAsFilepath(Func<XElement, XAttribute> aAttributeQuery, string aDefault) { return null; }
+        public bool? GetAttributeAsBoolean(Func<XElement, XAttribute> aAttributeQuery) { return null; }
+        public XElement GetElement(Func<XElement, XElement> aElementQuery) { return null; }
+        public string GetElementValue(Func<XElement, XElement> aElementQuery) { return null; }
+        public string GetElementValueAsFilepath(Func<XElement, XElement> aElementQuery) { return null; }
     }
 }

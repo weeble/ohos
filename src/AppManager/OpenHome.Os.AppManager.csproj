@@ -34,6 +34,7 @@
   <ItemGroup>
     <Compile Include="./Manager.cs" />
     <Compile Include="./ProviderApp.cs" />
+    <Compile Include="AppController.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Platform\OpenHome.Os.Platform.csproj">

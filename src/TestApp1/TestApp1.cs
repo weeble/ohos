@@ -38,7 +38,7 @@ namespace OpenHome.Os.TestApps
         public void Start(IAppContext aAppContext)
         {
             Console.WriteLine("Started app.");
-            Console.WriteLine(aAppContext.Configuration.GetElementValue("test")??"No value for test.");
+            Console.WriteLine(aAppContext.Configuration.GetElementValue(e=>e.Element("test"))??"No value for test.");
         }
         public void Stop()
         {

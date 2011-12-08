@@ -18,7 +18,17 @@ namespace Node
             public XElement XElement;
             public object GetNode(string aXPath)
             {
-                return ((System.Collections.IEnumerable)XElement.XPathEvaluate(aXPath)).Cast<object>().FirstOrDefault();
+                var items = (System.Collections.IEnumerable)XElement.XPathEvaluate(aXPath);
+                Console.WriteLine("Retval type:{0}", items.GetType());
+                var listItems = new List<object>(items.Cast<object>());
+                Console.WriteLine("Size:{0}", listItems.Count);
+                if (listItems.Count>=1)
+                {
+                    Console.WriteLine(listItems[0]);
+                    Console.WriteLine(listItems[0].GetType());
+                }
+                return listItems.FirstOrDefault();
+                //return ().Cast<object>().FirstOrDefault();
             }
             public string GetAttributeValue(string aXPath)
             {
@@ -87,45 +97,47 @@ namespace Node
             }
             return aDefault;
         }
-        public IConfigFileCollection GetSubcollection(string aXPath)
+        public IConfigFileCollection GetSubcollection(Func<XElement, XElement> aElementQuery)
         {
             List<ConfigFile> newConfigs = (
                 from cf in iConfigFiles
-                let newRoot = cf.GetNode(aXPath) as XElement
+                let newRoot = aElementQuery(cf.XElement)
                 where newRoot != null
                 select new ConfigFile {Name = cf.Name, XElement = newRoot}).ToList();
             //Console.WriteLine("Path {0} -> {1}", aXPath, newConfigs.Count);
+            Console.WriteLine(newConfigs.Count);
+            Console.WriteLine(newConfigs[0].XElement);
             return new ConfigFileCollection(newConfigs);
         }
-        public XAttribute GetAttribute(string aXPath)
+        public XAttribute GetAttribute(Func<XElement, XAttribute> aAttributeQuery)
         {
-            return SeekNotNull(cf => cf.GetNode(aXPath) as XAttribute, (cf, v) => v, null);
+            return SeekNotNull(cf => aAttributeQuery(cf.XElement), (cf, v) => v, null);
         }
-        public XElement GetElement(string aXPath)
+        public XElement GetElement(Func<XElement, XElement> aElementQuery)
         {
-            return SeekNotNull(cf => cf.GetNode(aXPath) as XElement, (cf, v) => v, null);
+            return SeekNotNull(cf => aElementQuery(cf.XElement), (cf, v) => v, null);
         }
-        public string GetAttributeValue(string aXPath)
+        public string GetAttributeValue(Func<XElement, XAttribute> aAttributeQuery)
         {
-            return SeekNotNull(cf=>cf.GetAttributeValue(aXPath), (cf,v)=>v, null);
+            return SeekNotNull(cf => aAttributeQuery(cf.XElement), (cf,v) => v.Value, null);
         }
-        public string GetAttributeAsFilepath(string aXPath, string aDefault)
+        public string GetAttributeAsFilepath(Func<XElement, XAttribute> aAttributeQuery, string aDefault)
         {
-            return SeekNotNull(cf=>cf.GetAttributeValue(aXPath), (cf,v)=>cf.ResolveRelativePath(v), aDefault);
+            return SeekNotNull(cf => aAttributeQuery(cf.XElement), (cf,v) => cf.ResolveRelativePath(v.Value), aDefault);
         }
-        public string GetElementValue(string aXPath)
+        public string GetElementValue(Func<XElement, XElement> aElementQuery)
         {
-            return SeekNotNull(cf=>cf.GetElementValue(aXPath), (cf,v)=>v, null);
+            return SeekNotNull(cf => aElementQuery(cf.XElement), (cf,v) => v.Value, null);
         }
-        public string GetElementValueAsFilepath(string aXPath)
+        public string GetElementValueAsFilepath(Func<XElement, XElement> aElementQuery)
         {
-            return SeekNotNull(cf=>cf.GetElementValue(aXPath), (cf,v)=>cf.ResolveRelativePath(v), null);
+            return SeekNotNull(cf => aElementQuery(cf.XElement), (cf,v) => cf.ResolveRelativePath(v.Value), null);
         }
-        public bool? GetAttributeAsBoolean(string aXPath)
+        public bool? GetAttributeAsBoolean(Func<XElement, XAttribute> aAttributeQuery)
         {
             return SeekNotNull(
-                cf => cf.GetAttributeValue(aXPath),
-                (cf, v) => TrueStrings.Contains(v),
+                cf => aAttributeQuery(cf.XElement),
+                (cf, v) => TrueStrings.Contains(v.Value),
                 (bool?)null);
         }
 
