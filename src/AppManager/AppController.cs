@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using log4net;
 using OpenHome.Net.Device;
@@ -66,7 +67,7 @@ namespace OpenHome.Os.AppManager
         protected override void GetMultipleAppsStatus(IDvInvocation aInvocation, byte[] aAppHandles, out string aAppListXml)
         {
             List<uint> handles = Platform.Converter.BinaryToUintArray(aAppHandles);
-            iLog.ErrorFormat("GetMultipleAppsStatus(\"{0}\") - not implemented.", String.Join(", ", handles.ToArray()));
+            iLog.ErrorFormat("GetMultipleAppsStatus(\"{0}\") - not implemented.", String.Join(", ", handles.Select(h=>h.ToString()).ToArray()));
             aAppListXml = (handles.Contains(DummyAppId)) ? DummyAppListXml : EmptyAppListXml;
         }
         protected override void GetAppPermissions(IDvInvocation aInvocation, uint aAppHandle, out string aAppPermissionsXml)
