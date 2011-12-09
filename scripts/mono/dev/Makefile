@@ -13,7 +13,7 @@ REQUIRED_ASSEMBLIES += Mono.Cairo              \
 install: 
 	@$(call common_install)
 	@$(call clr_install,2.0,$(GACUTIL2))
-	@for f in mcs gmcs dmcs ; do \
+	@for f in mcs gmcs dmcs al al2; do \
              install -D $(TMP_INSTALL_DIR)-x86$(prefix)/bin/$${f} $(DESTDIR)$(prefix)/bin/$${f} ; \
          done ; \
 	 install -D $(TMP_INSTALL_DIR)-x86$(LIB_PREFIX)/2.0/mcs.exe  $(DESTDIR)$(LIB_PREFIX)/2.0/mcs.exe ; \

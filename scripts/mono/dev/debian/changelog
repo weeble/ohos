@@ -1,3 +1,9 @@
+ohmono-dev (2.10.6-3) nightly; urgency=low
+
+  * Added missing Mono linker executables 
+
+ -- Stathis Voukelatos <stathisv@StathisVM.linn.co.uk>  Fri, 09 Dec 2011 15:11:17 +0000
+
 ohmono-dev (2.10.6-2) nightly; urgency=low
 
   * Added some more assemblies 
