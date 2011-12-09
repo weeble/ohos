@@ -1,0 +1,15 @@
+Source: ohgtksharp
+Section: cli-mono
+Priority: extra
+Maintainer: Openhome <admin@openhome.org>
+Build-Depends: debhelper (>= 7.0.50~)
+Standards-Version: 3.8.4
+Homepage: http://www.openhome.org
+#Vcs-Git: git://git.debian.org/collab-maint/ohgtksharp.git
+#Vcs-Browser: http://git.debian.org/?p=collab-maint/ohgtksharp.git;a=summary
+
+Package: ohgtksharp
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, ohmono-dev
+Description: GTK# Debian package for the Openhome project
+ GTK# Debian package for the Openhome project
