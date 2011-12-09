@@ -16,7 +16,7 @@
 # ${PLATFORM} expands to the name of the target platform, e.g. "Windows-x86" or "Linux-ARM".
 
 "ohnet" "${OHNET_ARTIFACTS}/ohNet/ohNet-0.0.75-${PLATFORM}-release.tar.gz" "dependencies/${PLATFORM}/" "--ohnet-dir dependencies/${PLATFORM}/ohNet-${PLATFORM}-dev/lib/"
-"nunit" "${OHNET_ARTIFACTS}/${PLATFORM}/NUnit-2.5.10.11092.tar.gz" "dependencies/${PLATFORM}/" "--nunit-dir dependencies/${PLATFORM}/NUnit-2.5.10.11092.tar.gz/"
+"nunit" "${OHNET_ARTIFACTS}/${PLATFORM}/NUnit-2.5.10.11092.tar.gz" "dependencies/${PLATFORM}/" "--nunit-dir dependencies/${PLATFORM}/NUnit-2.5.10.11092/"
 "ndesk-options" "${OHNET_ARTIFACTS}/${PLATFORM}/ndesk-options-0.2.1.bin.tar.gz" "dependencies/${PLATFORM}/" "--ndesk-options-dir dependencies/${PLATFORM}/ndesk-options-0.2.1.bin/"
 "yui-compressor" "${OHNET_ARTIFACTS}/${PLATFORM}/yui-compressor.tar.gz" "dependencies/${PLATFORM}/" "--yui-compressor-dir dependencies/${PLATFORM}/yui-compressor/"
 "mono-addins" "${OHNET_ARTIFACTS}/${PLATFORM}/Mono.Addins-0.6.tar.gz" "dependencies/${PLATFORM}/" "--mono-addins-dir dependencies/${PLATFORM}/Mono.Addins-0.6/ --mono-addins-setup-dir dependencies/${PLATFORM}/Mono.Addins-0.6/"
