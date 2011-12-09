@@ -74,7 +74,7 @@ builder:
             tar jxf mono.tar.bz2 ; \
 	    rm -f mono.tar.bz2 ; \
          else \
-            echo "Using existing Mono source directory: $(MONO_SRC_DIR)" ; \
+            echo "Using existing Mono source directory: $(MONO_SRC_DIR) ..." ; \
 	 fi	
 	@cd $(MONO_SRC_DIR) ; ./configure $(MONO_CONFIG_OPTS) ;  make CFLAGS=\"-Os\"; \
          make install-strip DESTDIR=$(TMP_INSTALL_DIR)-x86 ; make distclean ; \

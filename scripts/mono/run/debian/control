@@ -10,7 +10,7 @@ Homepage: http://www.openhome.org
 
 Package: ohmono
 Architecture: any
-Depends: ${shlibs:Depends} ${misc:Depends}
+Depends: ${misc:Depends}
 Conflicts: mono-runtime, mono-gac
 Description: Mono software package for the Openhome project
   Mono software package for the Openhome project

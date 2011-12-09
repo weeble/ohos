@@ -3,7 +3,8 @@ prefix = /usr
 
 include ../common.mk  
 
-REQUIRED_ASSEMBLIES += System.Windows.Forms    \
+REQUIRED_ASSEMBLIES += Mono.Cairo              \
+                       System.Windows.Forms    \
                        System.Data             \
                        System.Drawing          \
                        System.Runtime.Remoting \
@@ -17,7 +18,9 @@ install:
          done ; \
 	 install -D $(TMP_INSTALL_DIR)-x86$(LIB_PREFIX)/2.0/mcs.exe  $(DESTDIR)$(LIB_PREFIX)/2.0/mcs.exe ; \
          install -D $(TMP_INSTALL_DIR)-x86$(LIB_PREFIX)/2.0/gmcs.exe $(DESTDIR)$(LIB_PREFIX)/2.0/gmcs.exe ; \
-         install -D $(TMP_INSTALL_DIR)-x86$(LIB_PREFIX)/4.0/dmcs.exe $(DESTDIR)$(LIB_PREFIX)/4.0/dmcs.exe
+         install -D $(TMP_INSTALL_DIR)-x86$(LIB_PREFIX)/2.0/al.exe $(DESTDIR)$(LIB_PREFIX)/2.0/al.exe ; \
+         install -D $(TMP_INSTALL_DIR)-x86$(LIB_PREFIX)/4.0/dmcs.exe $(DESTDIR)$(LIB_PREFIX)/4.0/dmcs.exe ; \
+         install -D $(TMP_INSTALL_DIR)-x86$(LIB_PREFIX)/4.0/al.exe $(DESTDIR)$(LIB_PREFIX)/4.0/al.exe
 	@rm -rf $(TMP_INSTALL_DIR)-x86
 	@rm -rf $(TMP_INSTALL_DIR)-arm
 

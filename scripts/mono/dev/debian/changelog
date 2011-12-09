@@ -1,3 +1,9 @@
+ohmono-dev (2.10.6-2) nightly; urgency=low
+
+  * Added some more assemblies 
+
+ -- Stathis Voukelatos <stathisv@StathisVM.linn.co.uk>  Fri, 09 Dec 2011 11:49:58 +0000
+
 ohmono-dev (2.10.6-1) nightly; urgency=low
 
   * Initial Release.
