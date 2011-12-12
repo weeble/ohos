@@ -11,5 +11,6 @@ Homepage: http://www.openhome.org
 Package: ohgtksharp
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, ohmono-dev
+Conflicts: gtk-sharp2
 Description: GTK# Debian package for the Openhome project
  GTK# Debian package for the Openhome project

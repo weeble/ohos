@@ -11,6 +11,6 @@ Homepage: http://www.openhome.org
 Package: ohmono-dev
 Architecture: any
 Depends: ${misc:Depends}
-Conflicts: mono-runtime, mono-gac
+Conflicts: mono-runtime, mono-gac, ohmono
 Description: Mono development software package for the Openhome project
  Mono development software package for the Openhome project

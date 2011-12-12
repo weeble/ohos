@@ -1,3 +1,9 @@
+ohgtksharp (2.12.10-2) nightly; urgency=low
+
+  * Added conflict with gtk-sharp2 Debian package 
+
+ -- Stathis Voukelatos <stathisv@StathisVM.linn.co.uk>  Mon, 12 Dec 2011 12:58:38 +0000
+
 ohgtksharp (2.12.10-1) nightly; urgency=low
 
   * Initial Release.
