@@ -32,7 +32,14 @@ bin/
 /build*/
 /debian/usr
 debian/usr
+*.debhelper.log
+/scripts/gtk-sharp/debian/ohgtksharp/
+/scripts/gtk-sharp/debian/files
+/scripts/mono/run/debian/ohmono/
+/scripts/mono/dev/debian/ohmono-dev/
+/scripts/mono/*/debian/files
 mono-2.10.*/
+gtk-sharp-2.12.*/
 
 # Waf temporaries
 /.lock-waf*
