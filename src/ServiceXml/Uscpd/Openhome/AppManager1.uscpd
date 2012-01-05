@@ -28,7 +28,7 @@ type $AppListXml : string;
 var AppHandleArray : bin.base64;
 
 # Array of 32-bit unsigned integer sequence numbers. Network-endian.
-# These are evented
+# These are incremented whenever 
 var AppSequenceNumberArray : bin.base64;
 
 # The URL to download an app from.

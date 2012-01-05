@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.IO;
 using System.Reflection;
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Xml.Linq;
 using log4net;
@@ -51,6 +52,35 @@ namespace OpenHome.Os.AppManager
         public IConfigFileCollection Configuration { get; set; }
         public DvDevice Device { get; set; }
     }
+
+    [Serializable]
+    public class BadPluginException : Exception
+    {
+        //
+        // For guidelines regarding the creation of new exception types, see
+        //    http://msdn.microsoft.com/library/default.asp?url=/library/en-us/cpgenref/html/cpconerrorraisinghandlingguidelines.asp
+        // and
+        //    http://msdn.microsoft.com/library/default.asp?url=/library/en-us/dncscol/html/csharp07192001.asp
+        //
+
+        public BadPluginException()
+        {
+        }
+
+        public BadPluginException(string message) : base(message)
+        {
+        }
+
+        public BadPluginException(string message, Exception inner) : base(message, inner)
+        {
+        }
+
+        protected BadPluginException(
+            SerializationInfo info,
+            StreamingContext context) : base(info, context)
+        {
+        }
+    }
     
     public class Manager : IDisposable
     {
@@ -85,17 +115,18 @@ namespace OpenHome.Os.AppManager
         private const string kAppsDirectory = "Apps";
         private readonly Dictionary<string, PublishedApp> iApps;
         private readonly List<HistoryItem> iHistory;
-        private readonly bool iInitialising;
+        private bool iInitialising;
         readonly IAppServices iFullPrivilegeAppServices;
         private readonly IConfigFileCollection iConfiguration;
         string iStorePath;
+        bool iAppsStarted;
 
         public List<HistoryItem> History
         {
             get { lock (iHistory) { return iHistory; } }
         }
 
-        public Manager(string aInstallBase, IAppServices aFullPrivilegeAppServices, IConfigFileCollection aConfiguration)
+        public Manager(string aInstallBase, IAppServices aFullPrivilegeAppServices, IConfigFileCollection aConfiguration, bool aAutoStart)
         {
             iFullPrivilegeAppServices = aFullPrivilegeAppServices;
             iConfiguration = aConfiguration;
@@ -108,12 +139,22 @@ namespace OpenHome.Os.AppManager
             iApps = new Dictionary<string, PublishedApp>();
             iHistory = new List<HistoryItem>();
             // !!!! restore previous history from disk
+            if (aAutoStart)
+            {
+                Start();
+            }
+        }
+        public void Start()
+        {
+            if (iAppsStarted) return;
+            iAppsStarted = true;
             AddinManager.Initialize(iInstallBase, iInstallBase, iInstallBase);
             AddinManager.AddExtensionNodeHandler("/ohOs/App", AppListChanged);
             iInitialising = false;
             UpdateAppList();
             iInitialising = true;
         }
+
         public void Install(string aZipFile)
         {
             var unzipper = new FastZip();
@@ -122,6 +163,61 @@ namespace OpenHome.Os.AppManager
             unzipper.ExtractZip(aZipFile, target, "");
             UpdateAppList();
         }
+        /// <summary>
+        /// Verify that the plugin installs to a single subdirectory,
+        /// and return the name of that subdirectory.
+        /// </summary>
+        /// <param name="aZipFile"></param>
+        /// <returns></returns>
+        public string VerifyPluginZip(string aZipFile)
+        {
+            ZipFile zf = new ZipFile(aZipFile);
+            HashSet<string> topLevelDirectories = new HashSet<string>();
+            try
+            {
+                foreach (ZipEntry entry in zf)
+                {
+                    string fname = entry.Name;
+                    if (Path.IsPathRooted(fname))
+                    {
+                        throw new BadPluginException("Bad plugin: contains absolute paths.");
+                    }
+                    string path = fname;
+                    string component;
+                    while (true)
+                    {
+                        component = Path.GetFileName(path);
+                        if (component==".." || component==".")
+                        {
+                            throw new BadPluginException("Bad plugin: contains special path components.");
+                        }
+                        string parent = Path.GetDirectoryName(path);
+                        if (parent=="")
+                        {
+                            if (component=="")
+                            {
+                                // Zip files use entries like "foo\" to indicate an empty
+                                // directory called foo. The top level directory should not
+                                // be empty.
+                                throw new BadPluginException("Bad plugin: empty directory entry.");
+                            }
+                            topLevelDirectories.Add(component);
+                            break;
+                        }
+
+                    }
+                }
+            }
+            catch (NotSupportedException)
+            {
+                throw new BadPluginException("Bad plugin: filenames contain illegal characters.");
+            }
+            if (topLevelDirectories.Count != 1)
+            {
+                throw new BadPluginException("Bad plugin: doesn't have exactly 1 subdirectory.");
+            }
+            return topLevelDirectories.First();
+        }
         public void Uninstall(string aUdn)
         {
             lock (iApps)
@@ -129,6 +225,10 @@ namespace OpenHome.Os.AppManager
                 Uninstall(aUdn, true);
             }
             UpdateAppList();
+        }
+        public void UninstallAllApps()
+        {
+
         }
         private bool Uninstall(string aUdn, bool aUpdateHistory)
         {
@@ -148,8 +248,9 @@ namespace OpenHome.Os.AppManager
             iApps.Remove(aUdn);
             return true;
         }
-        public void Dispose()
+        public void Stop()
         {
+            if (!iAppsStarted) return;
             AddinManager.RemoveExtensionNodeHandler("/ohOs/App", AppListChanged);
             lock (iApps)
             {
@@ -173,8 +274,13 @@ namespace OpenHome.Os.AppManager
             }
             // !!!! write history to disk (here or earlier)
         }
+        public void Dispose()
+        {
+            Stop();
+        }
         private void AppListChanged(object aSender, ExtensionNodeEventArgs aArgs)
         {
+            if (!iAppsStarted) return;
             if (aArgs.Change == ExtensionChange.Remove)
             {
                 return;
@@ -246,8 +352,11 @@ namespace OpenHome.Os.AppManager
         }
         private void UpdateAppList()
         {
+            // TODO: This locking is a mess. Fix it.
+            // Here we lock on 'this', elsewhere 'iApps' and 'iHistory'.
             lock (this)
             {
+                if (!iAppsStarted) return;
                 AddinManager.Registry.Update();
             }
         }
