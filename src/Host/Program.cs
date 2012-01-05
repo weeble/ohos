@@ -241,6 +241,17 @@ namespace Node
                         }
                         else
                         {
+                            commandDispatcher.AddCommand("install", arguments =>
+                                {
+                                    try
+                                    {
+                                        appManager.Install(arguments);
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        Console.Error.WriteLine(e);
+                                    }
+                                }, "Install an app from a file.");
                             appManager.Start();
                             using (var appController = new AppController(nodeGuid))
                             {
