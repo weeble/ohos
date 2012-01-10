@@ -385,6 +385,12 @@ csharp_projects = [
             packages=['ohnet', 'mono-addins', 'log4net', 'systemxmllinq'],
             references=['ohOs.Platform', 'ohOs.AppManager']
             ),
+        CSharpProject(
+            name="ohOs.Network", dir="Network", type="library",
+            categories=["core"],
+            packages=['log4net', 'systemxmllinq'],
+            references=[]
+            ),
     ]
 
 files_to_copy = [
