@@ -233,7 +233,7 @@ namespace Node
                     };
 
                     Console.WriteLine(storeDirectory);
-                    using (var appManager = new Manager(storeDirectory, services, config, false))
+                    using (var appManager = new Manager(services, config, false))
                     {
                         if (optionInstallFile.Value != null)
                         {

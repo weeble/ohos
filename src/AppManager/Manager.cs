@@ -19,11 +19,11 @@ namespace OpenHome.Os.AppManager
                 }
             }
         }
-        public Manager(string aInstallBase, IAppServices aFullPrivilegeAppServices, IConfigFileCollection aConfiguration, bool aAutoStart)
+        public Manager(IAppServices aFullPrivilegeAppServices, IConfigFileCollection aConfiguration, bool aAutoStart)
         {
             lock (iLock)
             {
-                iImpl = new ManagerImpl(aInstallBase, aFullPrivilegeAppServices, aConfiguration, aAutoStart);
+                iImpl = new ManagerImpl(aFullPrivilegeAppServices, aConfiguration, aAutoStart);
             }
         }
 

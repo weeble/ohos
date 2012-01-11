@@ -112,7 +112,7 @@ namespace OpenHome.Os.AppManager
         }
 
         private readonly string iInstallBase;
-        private const string kAppsDirectory = "Apps";
+        private const string kAppsDirectory = "InstalledApps";
         private readonly Dictionary<string, PublishedApp> iApps;
         private readonly List<HistoryItem> iHistory;
         private bool iInitialising;
@@ -127,7 +127,7 @@ namespace OpenHome.Os.AppManager
             get { return new List<HistoryItem>(iHistory); }
         }
 
-        public ManagerImpl(string aInstallBase, IAppServices aFullPrivilegeAppServices, IConfigFileCollection aConfiguration, bool aAutoStart)
+        public ManagerImpl(IAppServices aFullPrivilegeAppServices, IConfigFileCollection aConfiguration, bool aAutoStart)
         {
             iFullPrivilegeAppServices = aFullPrivilegeAppServices;
             iConfiguration = aConfiguration;
@@ -136,7 +136,11 @@ namespace OpenHome.Os.AppManager
             {
                 iStorePath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "store");
             }
-            iInstallBase = System.IO.Path.Combine(aInstallBase, kAppsDirectory);
+            iInstallBase = iConfiguration.GetElementValueAsFilepath(e=>e.Element("system-settings").Element("installed-apps"));
+            if (iInstallBase == null)
+            {
+                    iInstallBase = System.IO.Path.Combine(iStorePath, kAppsDirectory);
+            }
             iApps = new Dictionary<string, PublishedApp>();
             iHistory = new List<HistoryItem>();
             // !!!! restore previous history from disk
