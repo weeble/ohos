@@ -11,6 +11,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenHome.Os.Tests", "Tests\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenHome.Os.Host", "Host\OpenHome.Os.Host.csproj", "{192EAE4A-07F8-4608-AC8C-3C07EDCDEF11}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenHome.Os.Network", "Network\OpenHome.Os.Network.csproj", "{4120B71E-CF20-47B4-8A8D-7E7B220EFB9A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenHome.Os.Remote", "Remote\OpenHome.Os.Remote.csproj", "{F0A29A4A-BB67-49DC-8E06-894484F72049}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -37,6 +41,14 @@ Global
 		{192EAE4A-07F8-4608-AC8C-3C07EDCDEF11}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{192EAE4A-07F8-4608-AC8C-3C07EDCDEF11}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{192EAE4A-07F8-4608-AC8C-3C07EDCDEF11}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4120B71E-CF20-47B4-8A8D-7E7B220EFB9A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4120B71E-CF20-47B4-8A8D-7E7B220EFB9A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4120B71E-CF20-47B4-8A8D-7E7B220EFB9A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4120B71E-CF20-47B4-8A8D-7E7B220EFB9A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F0A29A4A-BB67-49DC-8E06-894484F72049}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F0A29A4A-BB67-49DC-8E06-894484F72049}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F0A29A4A-BB67-49DC-8E06-894484F72049}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F0A29A4A-BB67-49DC-8E06-894484F72049}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

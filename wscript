@@ -391,6 +391,12 @@ csharp_projects = [
             packages=['log4net', 'systemxmllinq'],
             references=[]
             ),
+        CSharpProject(
+            name="ohOs.Remote", dir="Remote", type="exe",
+            categories=["core"],
+            packages=['log4net', 'systemxmllinq'],
+            references=[]
+            ),
     ]
 
 files_to_copy = [
