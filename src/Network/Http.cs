@@ -433,8 +433,6 @@ namespace OpenHome.Os.Network
         }
     }
 
-    // ReaderResponse
-
     class ReaderResponse
     {
         private readonly IReader iReader;
@@ -496,6 +494,8 @@ namespace OpenHome.Os.Network
 
     class WriterHeader : IWriterHeaderExtended
     {
+        protected WriterAscii iWriter;
+
         protected WriterHeader(IWriter aWriter)
         {
             iWriter = new WriterAscii(aWriter);
@@ -536,8 +536,6 @@ namespace OpenHome.Os.Network
         {
             iWriter.WriteNewline();
         }
-
-        protected WriterAscii iWriter;
     }
 
     class WriterRequest : WriterHeader, IWriterMethod 
