@@ -61,7 +61,7 @@ namespace Node
             OptionParser parser = new OptionParser(aArgs);
             OptionParser.OptionString optionConfigFile = new OptionParser.OptionString("-c", "--config", null, "Configuration file location.", "CONFIG");
             parser.AddOption(optionConfigFile);
-            OptionParser.OptionString optionInstallFile = new OptionParser.OptionString("-i", "--install", null, "App to install.", "APPFILE");
+            OptionParser.OptionString optionInstallFile = new OptionParser.OptionString("-i", "--install", null, "Install the given app and exit.", "APPFILE");
             parser.AddOption(optionInstallFile);
             /*OptionParser.OptionBool optionNoLoopback = new OptionParser.OptionBool("-p", "--publish", "Advertise this node on the network (default is to use loopback only)");
             parser.AddOption(optionNoLoopback);
@@ -233,29 +233,44 @@ namespace Node
                     };
 
                     Console.WriteLine(storeDirectory);
-                    using (var appManager = new Manager(storeDirectory, services, config))
+                    using (var appManager = new Manager(services, config, false))
                     {
                         if (optionInstallFile.Value != null)
                         {
                             appManager.Install(optionInstallFile.Value);
                         }
-                        using (var appController = new AppController(nodeGuid))
+                        else
                         {
-                            commandDispatcher.AddCommand("bump", aArguments => appController.BumpDummySequenceNumber(), "Bump the sequence number for the dummy app, for testing.");
-                            //string exePath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-                            //appManager.Install(System.IO.Path.Combine(exePath, "ohOs.TestApp1.zip"));
-                            if (!(sysConfig.GetAttributeAsBoolean(e=>e.Elements("console").Attributes("enable").FirstOrDefault()) ?? true))
+                            commandDispatcher.AddCommand("install", arguments =>
+                                {
+                                    try
+                                    {
+                                        appManager.Install(arguments);
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        Console.Error.WriteLine(e);
+                                    }
+                                }, "Install an app from a file.");
+                            appManager.Start();
+                            using (var appController = new AppController(nodeGuid))
                             {
-                                WaitForever();
-                            }
-                            else
-                            {
-                                RunConsole(consoleInterface, sysConfig.GetAttributeAsBoolean(e=>e.Element("console").Attribute("prompt")) ?? true);
-                            }
-                            Logger.Info("Shutting down node...");
-                            if (sysConfig.GetAttributeAsBoolean(e=>e.Elements("console").Attributes("enable").FirstOrDefault()) ?? true)
-                            {
-                                Console.WriteLine("Shutting down node...");
+                                commandDispatcher.AddCommand("bump", aArguments => appController.BumpDummySequenceNumber(), "Bump the sequence number for the dummy app, for testing.");
+                                //string exePath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+                                //appManager.Install(System.IO.Path.Combine(exePath, "ohOs.TestApp1.zip"));
+                                if (!(sysConfig.GetAttributeAsBoolean(e=>e.Elements("console").Attributes("enable").FirstOrDefault()) ?? true))
+                                {
+                                    WaitForever();
+                                }
+                                else
+                                {
+                                    RunConsole(consoleInterface, sysConfig.GetAttributeAsBoolean(e=>e.Element("console").Attribute("prompt")) ?? true);
+                                }
+                                Logger.Info("Shutting down node...");
+                                if (sysConfig.GetAttributeAsBoolean(e=>e.Elements("console").Attributes("enable").FirstOrDefault()) ?? true)
+                                {
+                                    Console.WriteLine("Shutting down node...");
+                                }
                             }
                         }
                     }

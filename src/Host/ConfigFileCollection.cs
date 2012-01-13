@@ -105,8 +105,8 @@ namespace Node
                 where newRoot != null
                 select new ConfigFile {Name = cf.Name, XElement = newRoot}).ToList();
             //Console.WriteLine("Path {0} -> {1}", aXPath, newConfigs.Count);
-            Console.WriteLine(newConfigs.Count);
-            Console.WriteLine(newConfigs[0].XElement);
+            //Console.WriteLine(newConfigs.Count);
+            //Console.WriteLine(newConfigs[0].XElement);
             return new ConfigFileCollection(newConfigs);
         }
         public XAttribute GetAttribute(Func<XElement, XAttribute> aAttributeQuery)

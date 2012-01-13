@@ -513,6 +513,7 @@ def build(bld):
             ".",
             "ohos",
             [
+                "ohOs.Host.exe",
                 "ohOs.AppManager.dll",
                 "ohOs.Platform.dll",
                 "App.addins",
