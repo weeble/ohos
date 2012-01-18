@@ -1,6 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.IO.Pipes;
 using System.Linq;
+using System.Threading;
 using System.Xml.Linq;
 using Mono.Addins;
 using ohWidget.Utils;
@@ -53,63 +57,145 @@ namespace Node
         public bool MultiNodeEnabled { get; set; }
     }
 
+
     public class Program
     {
+        private class Options
+        {
+            public OptionParser.OptionString ConfigFile { get; private set; }
+            public OptionParser.OptionString InstallFile { get; private set; }
+            public OptionParser.OptionString Subprocess { get; private set; }
+            public Options()
+            {
+                ConfigFile = new OptionParser.OptionString("-c", "--config", null, "Configuration file location.", "CONFIG");
+                InstallFile = new OptionParser.OptionString("-i", "--install", null, "Install the given app and exit.", "APPFILE");
+                Subprocess = new OptionParser.OptionString(null, "--subprocess", null, "Reserved.", "SUBPROCESSDATA");
+            }
+            public OptionParser Parse(string[] aArgs)
+            {
+                OptionParser parser = new OptionParser(aArgs);
+                parser.AddOption(ConfigFile);
+                parser.AddOption(InstallFile);
+                parser.AddOption(Subprocess);
+                parser.Parse();
+                return parser;
+            }
+        }
         static ILog Logger = LogManager.GetLogger(typeof(Program));
         static void Main(string[] aArgs)
         {
-            OptionParser parser = new OptionParser(aArgs);
-            OptionParser.OptionString optionConfigFile = new OptionParser.OptionString("-c", "--config", null, "Configuration file location.", "CONFIG");
-            parser.AddOption(optionConfigFile);
-            OptionParser.OptionString optionInstallFile = new OptionParser.OptionString("-i", "--install", null, "Install the given app and exit.", "APPFILE");
-            parser.AddOption(optionInstallFile);
-            /*OptionParser.OptionBool optionNoLoopback = new OptionParser.OptionBool("-p", "--publish", "Advertise this node on the network (default is to use loopback only)");
-            parser.AddOption(optionNoLoopback);
-            OptionParser.OptionString optionUuid = new OptionParser.OptionString("-u", "--uuid", "", "Set a uuid for the Node (default is to use an auto-generated guid)", "");
-            parser.AddOption(optionUuid);
-            OptionParser.OptionString optionUiDir = new OptionParser.OptionString("-d", "--ui-dir", "", "Absolute path to read Web UI files from", "");
-            parser.AddOption(optionUiDir);
-            OptionParser.OptionString optionZigBeeSerial = new OptionParser.OptionString("-z", "--zigbee-serial", null, "Serial device for Telegesis module", "");
-            parser.AddOption(optionZigBeeSerial);
-            OptionParser.OptionString optionZWaveSerial = new OptionParser.OptionString("-w", "--zwave-serial", null, "Serial device for aeon z-stick module", "");
-            parser.AddOption(optionZWaveSerial);
-            OptionParser.OptionBool optionMdns = new OptionParser.OptionBool("-m", "--mdns", "Enable lookup of node using multicast DNS");
-            parser.AddOption(optionMdns);
-            OptionParser.OptionBool optionDisableSimpleUpnp = new OptionParser.OptionBool("-U", "--disable-simpleupnp", "Disable UPnP widget discovery.");
-            parser.AddOption(optionDisableSimpleUpnp);
-            OptionParser.OptionString optionSimpleUpnpDrivers = new OptionParser.OptionString(null, "--simpleupnp-drivers", "", "Widget types for which to load Simple UPnP drivers. (Comma separated list, possible values: BinaryLight,DimmableLight,TestDataTypes,Thermometer.)", "DRIVERS");
-            parser.AddOption(optionSimpleUpnpDrivers);
-            OptionParser.OptionString optionStoreDirectory = new OptionParser.OptionString("-s", "--store", null, "Directory to store persisted widgets.", "");
-            parser.AddOption(optionStoreDirectory);
-            OptionParser.OptionString optionUpdateDir = new OptionParser.OptionString(null, "--update-dir", null, "Directory containing update configuration files.", "");
-            parser.AddOption(optionUpdateDir);
-            OptionParser.OptionBool optionEnableUpdateReboot = new OptionParser.OptionBool(null, "--reboot-on-update", "Automatically reboot to apply an installed update.");
-            parser.AddOption(optionEnableUpdateReboot);
-            OptionParser.OptionUint optionWebSocketPort = new OptionParser.OptionUint(null, "--ws-port", 54321, "Port for WebSocket server.", "");
-            parser.AddOption(optionWebSocketPort);
-            OptionParser.OptionBool optionNoGui = new OptionParser.OptionBool(null, "--no-gui", "Disable serving of the web GUI. Prevents overwriting of \"Node.js\".");
-            parser.AddOption(optionNoGui);
-            OptionParser.OptionBool optionSuppressErrorDialogs = new OptionParser.OptionBool(null, "--suppress-error-dialogs", "Suppress popups when a fatal error occurs. (Windows only.)");
-            parser.AddOption(optionSuppressErrorDialogs);
-            OptionParser.OptionString optionLogFile = new OptionParser.OptionString("-l", "--logfile", null, "Specify log file.", "");
-            parser.AddOption(optionLogFile);
-            OptionParser.OptionString optionLogLevel = new OptionParser.OptionString(null, "--loglevel", null, "Override default log level. Choose: DEBUG, INFO, WARN, ERROR, FATAL.", "");
-            parser.AddOption(optionLogLevel);
-            OptionParser.OptionBool optionNoPrompt = new OptionParser.OptionBool(null, "--no-prompt", "Suppress display of the prompt.");
-            parser.AddOption(optionNoPrompt);
-            OptionParser.OptionBool optionNoConsole = new OptionParser.OptionBool(null, "--no-console", "Don't use a console.");
-            parser.AddOption(optionNoConsole);*/
-            parser.Parse();
+            Options options = new Options();
+            OptionParser parser = options.Parse(aArgs);
             if (parser.HelpSpecified())
                 return;
 
-            string configFilename = optionConfigFile.Value ?? Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + Path.DirectorySeparatorChar + "ohOs" + Path.DirectorySeparatorChar + "ohos.config.xml";
+            RunAsMainProcess(options);
+
+            // Subprocess code doesn't work on Linux.
+            //if (options.Subprocess.Value == null)
+            //{
+            //    RunAsGuardianProcess(aArgs);
+            //}
+            //else
+            //{
+            //    RunAsMainProcess(options);
+            //}
+        }
+
+        static void RunAsGuardianProcess(string[] aArgs)
+        {
+            // Guardian process is responsible for starting the main process,
+            // monitoring crashes and restarting it when necessary.
+            for (; ; )
+            {
+                int exitCode = RunChildProcess(aArgs);
+                if (exitCode == 0)
+                {
+                    return;
+                }
+                Console.WriteLine("Restarting child process in 5s...");
+                Thread.Sleep(5000);
+            }
+        }
+        static int RunChildProcess(string[] aArgs)
+        {
+            var guardianToChildStream = new System.IO.Pipes.AnonymousPipeServerStream(PipeDirection.Out, HandleInheritability.Inheritable);
+            var childToGuardianStream = new System.IO.Pipes.AnonymousPipeServerStream(PipeDirection.In, HandleInheritability.Inheritable);
+            string handle1 = guardianToChildStream.GetClientHandleAsString();
+            string handle2 = childToGuardianStream.GetClientHandleAsString();
+            List<string> childArgs = new List<string> { "--subprocess", handle1 + "," + handle2 };
+            childArgs.AddRange(aArgs);
+            var startInfo = new ProcessStartInfo(
+                System.Reflection.Assembly.GetExecutingAssembly().Location,
+                string.Join(" ", childArgs.ToArray()))
+                {
+                    UseShellExecute = false,
+                    
+                };
+            Process childProcess = Process.Start(startInfo);
+            guardianToChildStream.DisposeLocalCopyOfClientHandle();
+            childToGuardianStream.DisposeLocalCopyOfClientHandle();
+            //Console.In.Close();
+            //Console.Out.Close();
+            //Console.Error.Close();
+            using (var reader = new StreamReader(childToGuardianStream))
+            {
+                //childToGuardianStream.
+                string output = reader.ReadToEnd();
+                Console.WriteLine("Guardian received output ({0} chars):", output.Length);
+                Console.WriteLine(output);
+                Console.WriteLine("Guardian waiting for child to exit...");
+                childProcess.WaitForExit();
+                Console.WriteLine("Guardian saw child exit with code {0}.", childProcess.ExitCode);
+                guardianToChildStream.Close();
+                return childProcess.ExitCode;
+            }
+
+        }
+
+        static void RunAsMainProcess(Options aOptions)
+        {
+            if (aOptions.Subprocess.Value != null && aOptions.Subprocess.Value != "no")
+            {
+                string[] handleStrings = aOptions.Subprocess.Value.Split(new[] { ',' });
+                if (handleStrings.Length != 2)
+                {
+                    throw new Exception("Bad --subprocess value");
+                }
+                Console.WriteLine(">>>{0}<<<", handleStrings[0]);
+                Console.WriteLine(">>>{0}<<<", handleStrings[1]);
+                var pipeFromGuardian = new System.IO.Pipes.AnonymousPipeClientStream(PipeDirection.In, handleStrings[0]);
+                var pipeToGuardian = new System.IO.Pipes.AnonymousPipeClientStream(PipeDirection.Out, handleStrings[1]);
+                var x = pipeFromGuardian.BeginRead(new byte[1], 0, 1, (aResult) => {
+                    try
+                    {
+                        int bytesRead = pipeFromGuardian.EndRead(aResult);
+                        Console.WriteLine("Received {0} bytes from guardian.", bytesRead);
+                        Environment.Exit(543);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine("The guardian has died! Oh noes!");
+                        Console.WriteLine("Received exception: {0}", e);
+                        Environment.Exit(987);
+                    }
+                }, null);
+                
+                Thread.Sleep(5000);
+                using (var writer = new StreamWriter(pipeToGuardian))
+                {
+                    writer.WriteLine("Message from child.");
+                    writer.Flush();
+                    Environment.Exit(123);
+                }
+            }
+            string configFilename = aOptions.ConfigFile.Value ?? Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + Path.DirectorySeparatorChar + "ohOs" + Path.DirectorySeparatorChar + "ohos.config.xml";
             ConfigFileCollection config = new ConfigFileCollection(new[] { configFilename });
             IConfigFileCollection sysConfig = config.GetSubcollection(e=>e.Element("system-settings"));
 
             string storeDirectory =
                 sysConfig.GetElementValueAsFilepath(e=>e.Element("store")) ??
-                (Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + Path.DirectorySeparatorChar + "ohOs");
+                    (Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + Path.DirectorySeparatorChar + "ohOs");
             //DirectoryInfo storeDirectory = Directory.CreateDirectory(path);
 
             string exeDirectory = Path.GetDirectoryName(
@@ -197,61 +283,62 @@ namespace Node
                     commandDispatcher.AddCommand("logdump", aArguments => Console.WriteLine(logSystem.LogReader.GetLogTail(10000)), "Dump the current contents of the logfile.");
                     commandDispatcher.AddCommand("log", aArguments => Logger.Debug(aArguments), "Add a message to the log.");
                     commandDispatcher.AddCommand("loginfo", aArguments =>
-                        {
-                            foreach (var kvp in logSystem.LogController.GetLogLevels())
-                            {
-                                Console.WriteLine("{0}:{1}", kvp.Key, kvp.Value);
-                            }
-                        }, "Show log levels");
+                                                                {
+                                                                    foreach (var kvp in logSystem.LogController.GetLogLevels())
+                                                                    {
+                                                                        Console.WriteLine("{0}:{1}", kvp.Key, kvp.Value);
+                                                                    }
+                                                                }, "Show log levels");
                     commandDispatcher.AddCommand("logset", aArguments =>
-                        {
-                            string[] args = aArguments.Split(new[]{' '}, 2);
-                            logSystem.LogController.SetLogLevel(args[0], args[1]);
-                        }, "Show log levels");
+                                                               {
+                                                                   string[] args = aArguments.Split(new[]{' '}, 2);
+                                                                   logSystem.LogController.SetLogLevel(args[0], args[1]);
+                                                               }, "Show log levels");
 
                     commandDispatcher.AddCommand("crash", aArguments => { throw new Exception("Crash requested."); }, "Crash the node.");
                     commandDispatcher.UnrecognizedCommandHandler = (aCommand, aArguments) =>
-                        {
-                            if (aCommand != "") { Console.WriteLine("Unknown command. Type exit to quit."); }
-                        };
+                                                                       {
+                                                                           if (aCommand != "") { Console.WriteLine("Unknown command. Type exit to quit."); }
+                                                                       };
                     consoleInterface.Prompt = (sysConfig.GetAttributeAsBoolean(e=>e.Elements("console").Attributes("prompt").FirstOrDefault()) ?? true) ? "OpenHome>" : "";
 
                     AppServices services = new AppServices()
-                    {
-                        //StorePath = storeDirectory,
-                        NodeInformation = new NodeInformation{
-                            WebSocketPort = wsEnabled ? wsPort : (uint?)null,
-                            MultiNodeEnabled = sysConfig.GetAttributeAsBoolean(e=>e.Elements("multinode").Attributes("enable").FirstOrDefault()) ?? false
-                        },
-                        CommandRegistry = commandDispatcher,
-                        CpDeviceListFactory = deviceListFactory,
-                        DeviceFactory = deviceFactory,
-                        LogController = logSystem.LogController,
-                        LogReader = logSystem.LogReader,
-                        NodeRebooter = null,
-                        UpdateService = null
-                    };
+                                               {
+                                                   //StorePath = storeDirectory,
+                                                   NodeInformation = new NodeInformation{
+                                                       WebSocketPort = wsEnabled ? wsPort : (uint?)null,
+                                                       MultiNodeEnabled = sysConfig.GetAttributeAsBoolean(e=>e.Elements("multinode").Attributes("enable").FirstOrDefault()) ?? false
+                                                   },
+                                                   CommandRegistry = commandDispatcher,
+                                                   CpDeviceListFactory = deviceListFactory,
+                                                   DeviceFactory = deviceFactory,
+                                                   LogController = logSystem.LogController,
+                                                   LogReader = logSystem.LogReader,
+                                                   NodeRebooter = null,
+                                                   UpdateService = null
+                                               };
 
                     Console.WriteLine(storeDirectory);
-                    using (var appManager = new Manager(services, config, false))
+                    using (var appModule = new ManagerModule(services, config))
                     {
-                        if (optionInstallFile.Value != null)
+                        var appManager = appModule.Manager;
+                        if (aOptions.InstallFile.Value != null)
                         {
-                            appManager.Install(optionInstallFile.Value);
+                            appManager.Install(aOptions.InstallFile.Value);
                         }
                         else
                         {
                             commandDispatcher.AddCommand("install", arguments =>
-                                {
-                                    try
-                                    {
-                                        appManager.Install(arguments);
-                                    }
-                                    catch (Exception e)
-                                    {
-                                        Console.Error.WriteLine(e);
-                                    }
-                                }, "Install an app from a file.");
+                                                                        {
+                                                                            try
+                                                                            {
+                                                                                appManager.Install(arguments);
+                                                                            }
+                                                                            catch (Exception e)
+                                                                            {
+                                                                                Console.Error.WriteLine(e);
+                                                                            }
+                                                                        }, "Install an app from a file.");
                             appManager.Start();
                             using (var appController = new AppController(nodeGuid))
                             {

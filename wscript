@@ -1,10 +1,6 @@
 from os import path
-import sys
 import shutil
-import platform
-import subprocess
 import os
-import glob
 import zipfile
 import tarfile
 
@@ -140,6 +136,21 @@ log4netdir.add_assemblies(
         'log4net.dll',
         reference=True, copy=True)
 
+moq = csharp_dependencies.add_package('moq')
+moqdir = moq.add_directory(
+    unique_id = 'moq-dir',
+    as_option = '--moq-dir',
+    option_help = 'Location of Moq install',
+    in_dependencies = '${PLATFORM}/[Mm]oq*')
+moqdlldir = moqdir.add_directory(
+    unique_id = 'moq-dll-dir',
+    relative_path = {
+        '*':       'NET40',
+        'Linux-*': 'NET35'})
+moqdlldir.add_assemblies(
+    'Moq.dll',
+    reference=True, copy=True)
+
 # == Command-line options ==
 
 def options(opt):
@@ -150,6 +161,7 @@ def options(opt):
     opt.add_option('--nogui', action='store_false', default=True, dest='gui', help='Disable compilation of GUI')
     opt.add_option('--notests', action='store_false', default=True, dest='tests', help='Disable compilation of NUnit tests')
     opt.add_option('--ohnet-source-dir', action='store', default=None, help='Location of OhNet source tree, if using OhNet built from source')
+    opt.add_option('--nunit-args', action='store', default=None, help='Arguments to pass on to NUnit (only during "test")')
 
 def configure(conf):
     def set_env(conf, varname, value):
@@ -162,7 +174,7 @@ def configure(conf):
         return value
     conf.load('compiler_c')
     conf.load('cs')
-    buildtests = set_env(conf, 'BUILDTESTS', conf.options.tests)
+    set_env(conf, 'BUILDTESTS', conf.options.tests)
     conf.env.CSDEBUG='full'
     plat = set_env(conf, 'PLATFORM', get_platform(conf))
 
@@ -187,13 +199,13 @@ def configure(conf):
         # NUnit uses $TMP to shadow copy assemblies. If it's not set it can end up writing
         # to /tmp/nunit20, causing all sorts of problems on a multi-user system. On non-Windows
         # platforms we point $TMP to .tmp in the build folder while running NUnit.
-        invokenunit = set_env(conf, 'INVOKENUNIT',
+        set_env(conf, 'INVOKENUNIT',
                 [nunitexe] if plat.startswith('Windows') else
                 ['env', 'LD_LIBRARY_PATH=' + conf.path.get_bld().abspath(), 'TMP=' + path.join(conf.path.get_bld().abspath(), '.tmp')] + mono + [nunitexe])
-        invokeintegrationtest = set_env(conf, 'INVOKEINTEGRATIONTEST',
+        set_env(conf, 'INVOKEINTEGRATIONTEST',
                 ['python'] if plat.startswith('Windows') else
                 ['env', 'LD_LIBRARY_PATH=' + conf.path.get_bld().abspath(), 'python'])
-        invokeclr = set_env(conf, 'INVOKECLR',
+        set_env(conf, 'INVOKECLR',
                 [] if plat.startswith('Windows') else
                 ['env','LD_LIBRARY_PATH=' + conf.path.get_bld().abspath(),'mono','--debug'])
 
@@ -309,7 +321,7 @@ def create_zip_task(bld, zipfile, sourceroot, ziproot, sourcefiles):
 def get_active_dependencies(env):
     active_dependency_names = set(['ohnet', 'yui-compressor','mono-addins','mono-addins-setup', 'sharpziplib', 'log4net', 'systemxmllinq'])
     if env.BUILDTESTS:
-        active_dependency_names |= set(['nunit', 'ndeskoptions'])
+        active_dependency_names |= set(['nunit', 'ndeskoptions', 'moq'])
     return csharp_dependencies.get_subset(active_dependency_names)
 
 def get_path_inside_archive(input_path, source_root, target_root):
@@ -360,8 +372,9 @@ csharp_projects = [
         CSharpProject(
             name="ohOs.Tests", dir="Tests", type="exe",
             categories=["core"],
-            packages=['ohnet'],
+            packages=['ohnet', 'mono-addins'],
             references=[
+                'DvOpenhomeOrgApp1',
                 'ohOs.AppManager',
                 'ohOs.Platform',
             ]),
@@ -397,6 +410,15 @@ csharp_projects = [
             packages=['log4net', 'systemxmllinq'],
             references=[]
             ),
+        CSharpProject(
+            name="ohOs.AppManager.Tests", dir="AppManager.Tests", type="library",
+            categories=["test"],
+            packages=['ohnet', 'mono-addins', 'nunit', 'moq'],
+            references=[
+                'DvOpenhomeOrgApp1',
+                'ohOs.AppManager',
+                'ohOs.Platform',
+            ]),
     ]
 
 files_to_copy = [
@@ -476,15 +498,16 @@ def build(bld):
                 target=bld.path.find_or_declare(prefix + service.target + ext))
     bld.add_group()
 
-    # Build our tests and miscellaneous testing tools:
-    if bld.env.BUILDTESTS:
-        print 'BUILDTESTS: nothing to do here yet'
 
     for copyfile in files_to_copy:
         bld(rule=copy_task, source=copyfile.source, target=copyfile.target)
 
     # Build all our assemblies.
-    create_csharp_tasks(bld, [prj for prj in csharp_projects if 'core' in prj.categories], csharp_dependencies)
+    categories_to_build = set(['core'])
+    if bld.env.BUILDTESTS:
+        categories_to_build.update(['test','testsupport'])
+
+    create_csharp_tasks(bld, [prj for prj in csharp_projects if categories_to_build.intersection(prj.categories)], csharp_dependencies)
 
     for ohos_app in ohos_apps:
         create_zip_task(
@@ -547,7 +570,17 @@ def do_install(bld):
 # == Command for invoking unit tests ==
 
 def test(tst):
-    print 'No tests to run yet'
+    nunit_args = tst.options.nunit_args or ''
+    test_projects = [prj.name for prj in csharp_projects if "test" in prj.categories]
+    target = tst(
+        rule='${INVOKENUNIT} -labels ${SRC} -xml="${TGT}" -noshadow ' + nunit_args,
+        source=[
+            tst.path.get_bld().find_node(test_project+'.dll')
+            for test_project in test_projects],
+        target='UnitTests.test.xml',
+        always=True)
+    target.env.env = dict(os.environ)
+    target.env.env['NO_ERROR_DIALOGS'] = '1'
 
 
 # == Command for invoking integration tests ==

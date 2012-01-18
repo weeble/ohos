@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using System.IO;
 using System.Reflection;
-using System.Runtime.Serialization;
 using System.Threading;
 using System.Xml.Linq;
 using log4net;
@@ -10,6 +9,7 @@ using Mono.Addins;
 using OpenHome.Net.Device;
 using ICSharpCode.SharpZipLib.Zip;
 using System.Collections.Generic;
+using OpenHome.Net.Device.Providers;
 using OpenHome.Os.Platform;
 
 // !!!! need IOsContext definition
@@ -53,35 +53,6 @@ namespace OpenHome.Os.AppManager
         public DvDevice Device { get; set; }
     }
 
-    [Serializable]
-    public class BadPluginException : Exception
-    {
-        //
-        // For guidelines regarding the creation of new exception types, see
-        //    http://msdn.microsoft.com/library/default.asp?url=/library/en-us/cpgenref/html/cpconerrorraisinghandlingguidelines.asp
-        // and
-        //    http://msdn.microsoft.com/library/default.asp?url=/library/en-us/dncscol/html/csharp07192001.asp
-        //
-
-        public BadPluginException()
-        {
-        }
-
-        public BadPluginException(string message) : base(message)
-        {
-        }
-
-        public BadPluginException(string message, Exception inner) : base(message, inner)
-        {
-        }
-
-        protected BadPluginException(
-            SerializationInfo info,
-            StreamingContext context) : base(info, context)
-        {
-        }
-    }
-
     public class ManagerImpl : IDisposable
     {
         static readonly ILog Logger = LogManager.GetLogger(typeof(ManagerImpl));
@@ -89,10 +60,10 @@ namespace OpenHome.Os.AppManager
         {
             public IApp App { get { return iApp; } }
             private readonly IApp iApp;
-            private readonly DvDevice iDevice;
-            private readonly ProviderApp iProvider;
+            private readonly IDvDevice iDevice;
+            private readonly IDvProviderOpenhomeOrgApp1 iProvider;
 
-            public PublishedApp(IApp aApp, DvDevice aDevice, ProviderApp aProvider)
+            public PublishedApp(IApp aApp, IDvDevice aDevice, IDvProviderOpenhomeOrgApp1 aProvider)
             {
                 iApp = aApp;
                 iDevice = aDevice;
@@ -111,15 +82,16 @@ namespace OpenHome.Os.AppManager
             }
         }
 
-        private readonly string iInstallBase;
-        private const string kAppsDirectory = "InstalledApps";
         private readonly Dictionary<string, PublishedApp> iApps;
         private readonly List<HistoryItem> iHistory;
         private bool iInitialising;
         readonly IAppServices iFullPrivilegeAppServices;
         private readonly IConfigFileCollection iConfiguration;
-        string iStorePath;
         bool iAppsStarted;
+        readonly IAddinManager iAddinManager;
+        readonly IAppsDirectory iAppsDirectory;
+        readonly IStoreDirectory iStoreDirectory;
+        readonly Func<DvDevice, IApp, IDvProviderOpenhomeOrgApp1> iAppProviderConstructor;
         private readonly Dictionary<string, string> iAppDirsToAppUdns = new Dictionary<string, string>();
 
         public List<HistoryItem> History
@@ -127,20 +99,21 @@ namespace OpenHome.Os.AppManager
             get { return new List<HistoryItem>(iHistory); }
         }
 
-        public ManagerImpl(IAppServices aFullPrivilegeAppServices, IConfigFileCollection aConfiguration, bool aAutoStart)
+        public ManagerImpl(
+            IAppServices aFullPrivilegeAppServices,
+            IConfigFileCollection aConfiguration,
+            IAddinManager aAddinManager,
+            IAppsDirectory aAppsDirectory,
+            IStoreDirectory aStoreDirectory,
+            Func<DvDevice, IApp, IDvProviderOpenhomeOrgApp1> aAppProviderConstructor,
+            bool aAutoStart)
         {
             iFullPrivilegeAppServices = aFullPrivilegeAppServices;
             iConfiguration = aConfiguration;
-            iStorePath = iConfiguration.GetElementValueAsFilepath(e=>e.Element("system-settings").Element("store"));
-            if (iStorePath == null)
-            {
-                iStorePath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "store");
-            }
-            iInstallBase = iConfiguration.GetElementValueAsFilepath(e=>e.Element("system-settings").Element("installed-apps"));
-            if (iInstallBase == null)
-            {
-                    iInstallBase = System.IO.Path.Combine(iStorePath, kAppsDirectory);
-            }
+            iAddinManager = aAddinManager;
+            iAppsDirectory = aAppsDirectory;
+            iStoreDirectory = aStoreDirectory;
+            iAppProviderConstructor = aAppProviderConstructor;
             iApps = new Dictionary<string, PublishedApp>();
             iHistory = new List<HistoryItem>();
             // !!!! restore previous history from disk
@@ -153,8 +126,6 @@ namespace OpenHome.Os.AppManager
         {
             if (iAppsStarted) return;
             iAppsStarted = true;
-            AddinManager.Initialize(iInstallBase, iInstallBase, iInstallBase);
-            AddinManager.AddExtensionNodeHandler("/ohOs/App", AppListChanged);
             iInitialising = false;
             UpdateAppList();
             iInitialising = true;
@@ -172,9 +143,7 @@ namespace OpenHome.Os.AppManager
         /// </remarks>
         public void Install(string aZipFile)
         {
-            var unzipper = new FastZip();
             //string target = System.IO.Path.Combine(iInstallBase, "Temp"); // hardcoding of 'Temp' not threadsafe
-            string target = iInstallBase;
             string appDirName = VerifyPluginZip(aZipFile);
             if (iAppDirsToAppUdns.ContainsKey(appDirName))
             {
@@ -182,18 +151,20 @@ namespace OpenHome.Os.AppManager
                 IApp app = iApps[appUdn].App;
                 Logger.InfoFormat("Updating app {0} (UDN={1}, directory={2}).", app.Name, app.Udn, appDirName);
                 // TODO: Stop all apps.
-                Directory.Delete(Path.Combine(target, appDirName), true);
+                iAppsDirectory.DeleteSubdirectory(appDirName, true);
             }
-            else if (Directory.Exists(Path.Combine(target, appDirName)))
+            else if (iAppsDirectory.DoesSubdirectoryExist(appDirName))
             {
                 Logger.InfoFormat("Overwriting app in directory {0}.", appDirName);
-                Directory.Delete(Path.Combine(target, appDirName), true);
+                iAppsDirectory.DeleteSubdirectory(appDirName, true);
             }
             else
             {
                 Logger.InfoFormat("Installing new app in directory {0}.", appDirName);
             }
-            unzipper.ExtractZip(aZipFile, target, "");
+            iAppsDirectory.InstallZipFile(aZipFile);
+            //var unzipper = new FastZip();
+            //unzipper.ExtractZip(aZipFile, target, "");
             UpdateAppList();
         }
 
@@ -252,15 +223,18 @@ namespace OpenHome.Os.AppManager
             }
             return topLevelDirectories.First();
         }
+
         public void Uninstall(string aUdn)
         {
             Uninstall(aUdn, true);
             UpdateAppList();
         }
+
         public void UninstallAllApps()
         {
             throw new NotImplementedException();
         }
+
         private bool Uninstall(string aUdn, bool aUpdateHistory)
         {
             PublishedApp app;
@@ -273,16 +247,17 @@ namespace OpenHome.Os.AppManager
             {
                 iHistory.Add(new HistoryItem(app.App.Name, HistoryItem.ItemType.EUninstall, app.App.Udn));
             }
-            string appPath = app.App.AssemblyPath;
+            string appDir = iAppsDirectory.GetAssemblySubdirectory(app.App.GetType().Assembly);
             app.App.Dispose();
-            System.IO.Directory.Delete(appPath, true);
+            iAppsDirectory.DeleteSubdirectory(appDir, true);
             iApps.Remove(aUdn);
             return true;
         }
+
         public void Stop()
         {
             if (!iAppsStarted) return;
-            AddinManager.RemoveExtensionNodeHandler("/ohOs/App", AppListChanged);
+            //iAddinManager.RemoveExtensionNodeHandler("/ohOs/App", AppListChanged);
             List<Exception> exceptions = new List<Exception>();
             foreach (var app in iApps.Values)
             {
@@ -302,33 +277,26 @@ namespace OpenHome.Os.AppManager
             iApps.Clear();
             // !!!! write history to disk (here or earlier)
         }
+
         public void Dispose()
         {
             Stop();
         }
-        private static string GetAssemblyCodeBasePath(Assembly aAssembly)
-        {
-            // Note: different from Location when shadow-copied. This will return
-            // the location the file was copied *from*, while Location would return
-            // the shadow copy's path.
-            return new Uri(aAssembly.CodeBase).LocalPath;
-        }
-        private void AppListChanged(object aSender, ExtensionNodeEventArgs aArgs)
+
+        private void AppAdded(IApp aApp)
         {
             if (!iAppsStarted) return;
-            if (aArgs.Change == ExtensionChange.Remove)
+
+            var app = aApp;
+
+            string appDirName;
+            try
             {
-                return;
+                appDirName = iAppsDirectory.GetAssemblySubdirectory(app.GetType().Assembly);
             }
-            var app = (IApp)aArgs.ExtensionObject;
-
-            string appDir = Path.GetDirectoryName(GetAssemblyCodeBasePath(app.GetType().Assembly));
-            string appDirParent = Path.GetDirectoryName(appDir);
-            string appDirName = Path.GetFileName(appDir);
-
-            if (Path.GetFullPath(appDirParent) != Path.GetFullPath(iInstallBase))
+            catch (PluginFoundInWrongDirectoryException)
             {
-                Logger.WarnFormat("Ignoring app found in wrong directory: {0} in {1}", app.Name, appDir);
+                Logger.WarnFormat("Ignoring app found in wrong directory: {0} in {1}", app.Name, app.GetType().Assembly.CodeBase);
                 return;
             }
 
@@ -343,7 +311,7 @@ namespace OpenHome.Os.AppManager
                 );
             if (sanitizedName != appDirName)
             {
-                Logger.ErrorFormat("Bad app: name ({0}) does not match directory ({1}).", app.Name, appDir);
+                Logger.ErrorFormat("Bad app: name ({0}) does not match directory ({1}).", app.Name, appDirName);
                 return;
             }
 
@@ -352,8 +320,8 @@ namespace OpenHome.Os.AppManager
                 Configuration = appConfig,
                 Device = null,
                 Services = iFullPrivilegeAppServices,
-                StaticPath = appDir,
-                StorePath = Path.Combine(iStorePath, Path.Combine("apps", sanitizedName))
+                StaticPath = iAppsDirectory.GetAbsolutePathForSubdirectory(appDirName),
+                StorePath = iStoreDirectory.GetAbsolutePathForAppDirectory(appDirName)
             };
 
             // Initialize the app to allow it to read its config files before we
@@ -361,13 +329,12 @@ namespace OpenHome.Os.AppManager
             app.Init(appContext);
 
             string udn = app.Udn;
-            Console.WriteLine("UDN:{0}", udn);
             iAppDirsToAppUdns[appDirName] = udn;
 
-            DvDevice device = CreateAppDevice(app, udn);
-            appContext.Device = device;
+            IDvDevice device = CreateAppDevice(app, udn);
+            appContext.Device = device.RawDevice;
 
-            var provider = new ProviderApp(device, app);
+            var provider = iAppProviderConstructor(device.RawDevice, app);
             var change = HistoryItem.ItemType.EInstall;
             if (!iInitialising && Uninstall(udn, false))
             {
@@ -395,11 +362,11 @@ namespace OpenHome.Os.AppManager
             return app.Name.Replace("'", "").Replace("\"", "").Replace("\\","-").Replace("/","-").Replace(":","").Replace(";","");
         }
 
-        static DvDevice CreateAppDevice(IApp app, string udn)
+        IDvDevice CreateAppDevice(IApp app, string udn)
         {
-            DvDevice device = (app.ResourceManager == null
-                ? new DvDeviceStandard(udn)
-                : new DvDeviceStandard(udn, app.ResourceManager));
+            IDvDevice device = (app.ResourceManager == null
+                ? iFullPrivilegeAppServices.DeviceFactory.CreateDeviceStandard(udn)
+                : iFullPrivilegeAppServices.DeviceFactory.CreateDeviceStandard(udn, app.ResourceManager));
             // Set initial values for the attributes mandated by UPnP
             // These may be over-ridden by the Start function below
             device.SetAttribute("Upnp.Domain", "openhome.org");
@@ -415,7 +382,7 @@ namespace OpenHome.Os.AppManager
         private void UpdateAppList()
         {
             if (!iAppsStarted) return;
-            AddinManager.Registry.Update();
+            iAddinManager.UpdateRegistry(AppAdded, aApp => { });
         }
     }
 }

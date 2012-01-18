@@ -1,10 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
+using OpenHome.Net.Device;
+using OpenHome.Net.Device.Providers;
 using OpenHome.Os.Platform;
 
 namespace OpenHome.Os.AppManager
 {
-    public class Manager : IDisposable
+    public interface IManager : IDisposable
+    {
+        void Start();
+        void Install(string aZipFile);
+        void Uninstall(string aUdn);
+        void UninstallAllApps();
+        void Stop();
+    }
+
+    public class Manager : IManager
     {
         private readonly object iLock = new object();
         private readonly ManagerImpl iImpl;
@@ -19,11 +30,19 @@ namespace OpenHome.Os.AppManager
                 }
             }
         }
-        public Manager(IAppServices aFullPrivilegeAppServices, IConfigFileCollection aConfiguration, bool aAutoStart)
+
+        public Manager(
+            IAppServices aFullPrivilegeAppServices,
+            IConfigFileCollection aConfiguration,
+            IAddinManager aAddinManager,
+            IAppsDirectory aAppsDirectory,
+            IStoreDirectory aStoreDirectory,
+            Func<DvDevice, IApp, IDvProviderOpenhomeOrgApp1> aAppProviderConstructor,
+            bool aAutoStart)
         {
             lock (iLock)
             {
-                iImpl = new ManagerImpl(aFullPrivilegeAppServices, aConfiguration, aAutoStart);
+                iImpl = new ManagerImpl(aFullPrivilegeAppServices, aConfiguration, aAddinManager, aAppsDirectory, aStoreDirectory, aAppProviderConstructor, aAutoStart);
             }
         }
 

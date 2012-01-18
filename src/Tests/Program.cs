@@ -20,9 +20,11 @@ namespace OpenHome.Os
                 /*var combinedStack = */ library.StartCombined(subnet);
 
                 string exePath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-                using (var installer = new Manager(null, new NullConfigFileCollection(), true))
+                using (var installModule = new ManagerModule(null, new NullConfigFileCollection()))
                 {
-                    installer.Install(System.IO.Path.Combine(exePath, "ohOs.TestApp1.zip"));
+                    installModule.Manager.Start();
+
+                    installModule.Manager.Install(System.IO.Path.Combine(exePath, "ohOs.TestApp1.zip"));
                 }
             }
         }
