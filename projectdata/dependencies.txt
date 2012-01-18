@@ -13,11 +13,12 @@
 # with backslashes.
 #
 # ${OHNET_ARTIFACTS} expands to the location of the OhNet artifacts share.
-# ${PLATFORM} expands to the name of the target platform, e.g. "Windows-x86" or "Linux-ARM".
+# ${OH_PLATFORM} expands to the name of the target platform, e.g. "Windows-x86" or "Linux-ARM".
 
-"ohnet" "${OHNET_ARTIFACTS}/ohNet/ohNet-0.0.84-${PLATFORM}-dev-release.tar.gz" "dependencies/${PLATFORM}/" "--ohnet-dir dependencies/${PLATFORM}/ohNet-${PLATFORM}-release-dev/lib/"
-"nunit" "${OHNET_ARTIFACTS}/${PLATFORM}/NUnit-2.5.10.11092.tar.gz" "dependencies/${PLATFORM}/" "--nunit-dir dependencies/${PLATFORM}/NUnit-2.5.10.11092/"
-"ndesk-options" "${OHNET_ARTIFACTS}/${PLATFORM}/ndesk-options-0.2.1.bin.tar.gz" "dependencies/${PLATFORM}/" "--ndesk-options-dir dependencies/${PLATFORM}/ndesk-options-0.2.1.bin/"
-"yui-compressor" "${OHNET_ARTIFACTS}/${PLATFORM}/yui-compressor.tar.gz" "dependencies/${PLATFORM}/" "--yui-compressor-dir dependencies/${PLATFORM}/yui-compressor/"
-"mono-addins" "${OHNET_ARTIFACTS}/${PLATFORM}/Mono.Addins-0.6.tar.gz" "dependencies/${PLATFORM}/" "--mono-addins-dir dependencies/${PLATFORM}/Mono.Addins-0.6/ --mono-addins-setup-dir dependencies/${PLATFORM}/Mono.Addins-0.6/"
-"log4net" "${OHNET_ARTIFACTS}/${PLATFORM}/log4net-1.2.10.tar.gz" "dependencies/${PLATFORM}/" "--log4net-dir dependencies/${PLATFORM}/log4net-1.2.10/bin/net/2.0/release/"
+"ohnet" "${OHNET_ARTIFACTS}/ohNet/ohNet-0.0.84-${OH_PLATFORM}-dev-release.tar.gz" "dependencies/${OH_PLATFORM}/" "--ohnet-dir dependencies/${OH_PLATFORM}/ohNet-${OH_PLATFORM}-release-dev/lib/"
+"nunit" "${OHNET_ARTIFACTS}/${OH_PLATFORM}/NUnit-2.5.10.11092.tar.gz" "dependencies/${OH_PLATFORM}/" "--nunit-dir dependencies/${OH_PLATFORM}/NUnit-2.5.10.11092/"
+"ndesk-options" "${OHNET_ARTIFACTS}/${OH_PLATFORM}/ndesk-options-0.2.1.bin.tar.gz" "dependencies/${OH_PLATFORM}/" "--ndesk-options-dir dependencies/${OH_PLATFORM}/ndesk-options-0.2.1.bin/"
+"moq" "${OHNET_ARTIFACTS}/${OH_PLATFORM}/Moq.4.0.10827.tar.gz" "dependencies/${OH_PLATFORM}/" "--moq-dir dependencies/${OH_PLATFORM}/Moq.4.0.10827/"
+"yui-compressor" "${OHNET_ARTIFACTS}/${OH_PLATFORM}/yui-compressor.tar.gz" "dependencies/${OH_PLATFORM}/" "--yui-compressor-dir dependencies/${OH_PLATFORM}/yui-compressor/"
+"mono-addins" "${OHNET_ARTIFACTS}/${OH_PLATFORM}/Mono.Addins-0.6.tar.gz" "dependencies/${OH_PLATFORM}/" "--mono-addins-dir dependencies/${OH_PLATFORM}/Mono.Addins-0.6/ --mono-addins-setup-dir dependencies/${OH_PLATFORM}/Mono.Addins-0.6/"
+"log4net" "${OHNET_ARTIFACTS}/${OH_PLATFORM}/log4net-1.2.10.tar.gz" "dependencies/${OH_PLATFORM}/" "--log4net-dir dependencies/${OH_PLATFORM}/log4net-1.2.10/bin/net/2.0/release/"
