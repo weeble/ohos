@@ -15,7 +15,7 @@
 # ${OHNET_ARTIFACTS} expands to the location of the OhNet artifacts share.
 # ${OH_PLATFORM} expands to the name of the target platform, e.g. "Windows-x86" or "Linux-ARM".
 
-"ohnet" "${OHNET_ARTIFACTS}/ohNet/ohNet-0.0.84-${OH_PLATFORM}-dev-release.tar.gz" "dependencies/${OH_PLATFORM}/" "--ohnet-dir dependencies/${OH_PLATFORM}/ohNet-${OH_PLATFORM}-release-dev/lib/"
+"ohnet" "${OHNET_ARTIFACTS}/ohNet/ohNet-0.0.85-${OH_PLATFORM}-dev-release.tar.gz" "dependencies/${OH_PLATFORM}/" "--ohnet-dir dependencies/${OH_PLATFORM}/ohNet-${OH_PLATFORM}-release-dev/lib/"
 "nunit" "${OHNET_ARTIFACTS}/${OH_PLATFORM}/NUnit-2.5.10.11092.tar.gz" "dependencies/${OH_PLATFORM}/" "--nunit-dir dependencies/${OH_PLATFORM}/NUnit-2.5.10.11092/"
 "ndesk-options" "${OHNET_ARTIFACTS}/${OH_PLATFORM}/ndesk-options-0.2.1.bin.tar.gz" "dependencies/${OH_PLATFORM}/" "--ndesk-options-dir dependencies/${OH_PLATFORM}/ndesk-options-0.2.1.bin/"
 "moq" "${OHNET_ARTIFACTS}/${OH_PLATFORM}/Moq.4.0.10827.tar.gz" "dependencies/${OH_PLATFORM}/" "--moq-dir dependencies/${OH_PLATFORM}/Moq.4.0.10827/"
