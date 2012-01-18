@@ -117,6 +117,7 @@ namespace Node
                 Thread.Sleep(5000);
             }
         }
+
         static int RunChildProcess(string[] aArgs)
         {
             var guardianToChildStream = new System.IO.Pipes.AnonymousPipeServerStream(PipeDirection.Out, HandleInheritability.Inheritable);
@@ -162,32 +163,9 @@ namespace Node
                 {
                     throw new Exception("Bad --subprocess value");
                 }
-                Console.WriteLine(">>>{0}<<<", handleStrings[0]);
-                Console.WriteLine(">>>{0}<<<", handleStrings[1]);
-                var pipeFromGuardian = new System.IO.Pipes.AnonymousPipeClientStream(PipeDirection.In, handleStrings[0]);
-                var pipeToGuardian = new System.IO.Pipes.AnonymousPipeClientStream(PipeDirection.Out, handleStrings[1]);
-                var x = pipeFromGuardian.BeginRead(new byte[1], 0, 1, (aResult) => {
-                    try
-                    {
-                        int bytesRead = pipeFromGuardian.EndRead(aResult);
-                        Console.WriteLine("Received {0} bytes from guardian.", bytesRead);
-                        Environment.Exit(543);
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine("The guardian has died! Oh noes!");
-                        Console.WriteLine("Received exception: {0}", e);
-                        Environment.Exit(987);
-                    }
-                }, null);
-                
-                Thread.Sleep(5000);
-                using (var writer = new StreamWriter(pipeToGuardian))
-                {
-                    writer.WriteLine("Message from child.");
-                    writer.Flush();
-                    Environment.Exit(123);
-                }
+                /* var pipeFromGuardian = */ new System.IO.Pipes.AnonymousPipeClientStream(PipeDirection.In, handleStrings[0]);
+                /* var pipeToGuardian = */ new System.IO.Pipes.AnonymousPipeClientStream(PipeDirection.Out, handleStrings[1]);
+                throw new NotImplementedException();
             }
             string configFilename = aOptions.ConfigFile.Value ?? Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + Path.DirectorySeparatorChar + "ohOs" + Path.DirectorySeparatorChar + "ohos.config.xml";
             ConfigFileCollection config = new ConfigFileCollection(new[] { configFilename });
