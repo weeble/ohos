@@ -27,9 +27,10 @@
         <multinode enable="no"/>
     </system-settings>
 
-    <app-settings name="ohwidget">
-        <zwave enable="no" serial=""/> <!-- Example serial values: COM3, COM4, /dev/ttyUSB0 -->
-        <zigbee enable="no" serial=""/>
+    <app-settings name="OhWidget">
+        <!-- Example serial values: COM3, COM4, /dev/ttyUSB0 -->
+        <!-- <zwave enable="no" serial=""/> -->
+        <!-- <zigbee enable="no" serial=""/> -->
         <simple-upnp enable="yes">
             <drivers>BinaryLight, DimmableLight, Thermometer, TestDataTypes, Curtains, BinarySwitch</drivers>
         </simple-upnp>
