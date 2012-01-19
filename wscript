@@ -21,12 +21,12 @@ nunitdir = nunit.add_directory(
     unique_id='nunit-dir',
     as_option = '--nunit-dir',
     option_help = 'Location of NUnit install',
-    in_dependencies = '${PLATFORM}/[Nn][Uu]nit*')
+    in_dependencies = 'AnyPlatform/[Nn][Uu]nit*')
 nunitframeworkdir = nunitdir.add_directory(
     unique_id='nunit-framework-dir',
     as_option = '--nunit-framework-dir',
-    option_help = 'Location of NUnit framework DLL, defaults to "bin/net-4.0/framework" relative to NUNIT_DIR.',
-    relative_path = 'bin/net-4.0/framework')
+    option_help = 'Location of NUnit framework DLL, defaults to "bin/framework" relative to NUNIT_DIR.',
+    relative_path = 'bin/framework')
 nunitframeworkdir.add_assemblies(
     'nunit.framework.dll',
     reference=True, copy=True)
@@ -67,7 +67,7 @@ ndeskoptionsdir = ndeskoptions.add_directory(
     unique_id = 'ndesk-options-dir',
     as_option = '--ndesk-options-dir',
     option_help = 'Location of NDesk.Options install',
-    in_dependencies = '${PLATFORM}/ndesk-options*')
+    in_dependencies = 'AnyPlatform/ndesk-options*')
 ndeskoptionsdlldir = ndeskoptionsdir.add_directory(
     unique_id = 'ndesk-options-dll-dir',
     relative_path = 'lib/ndesk-options')
@@ -80,7 +80,7 @@ yuicompressordir = yuicompressor.add_directory(
     unique_id = 'yui-compressor-dir',
     as_option = '--yui-compressor-dir',
     option_help = 'Location containing the .NET YUI compressor library',
-    in_dependencies = '${PLATFORM}/yui-compressor')
+    in_dependencies = 'AnyPlatform/yui-compressor')
 yuicompressordir.add_assemblies(
     'Yahoo.Yui.Compressor.dll',
     reference=True, copy=True)
@@ -94,7 +94,7 @@ monoaddinsdir = monoaddins.add_directory(
     unique_id = 'mono-addins-dir',
     as_option = '--mono-addins-dir',
     option_help = 'Location of Mono.Addins library',
-    in_dependencies = '${PLATFORM}/Mono.Addins*')
+    in_dependencies = 'AnyPlatform/Mono.Addins*')
 monoaddinsdir.add_assemblies(
     'Mono.Addins.dll',
     reference=True, copy=True)
@@ -109,7 +109,7 @@ monoaddinssetupdir = monoaddins.add_directory(
     unique_id = 'mono-addins-setup-dir',
     as_option = '--mono-addins-setup-dir',
     option_help = 'Location of Mono.Addins.Setup library',
-    in_dependencies = '${PLATFORM}/Mono.Addins*')
+    in_dependencies = 'AnyPlatform/Mono.Addins*')
 monoaddinssetupdir.add_assemblies(
     'Mono.Addins.Setup.dll',
     reference=True, copy=True)
@@ -120,7 +120,7 @@ sharpziplibdir = sharpziplib.add_directory(
     unique_id = 'sharpziplib-dir',
     as_option = '--mono-addins-dir',
     option_help = 'Location containing the SharpZipLib library (we use the version supplied by Mono.Addins)',
-    in_dependencies = '${PLATFORM}/Mono.Addins*')
+    in_dependencies = 'AnyPlatform/Mono.Addins*')
 sharpziplibdir.add_assemblies(
     'ICSharpCode.SharpZipLib.dll',
     reference=True, copy=False) # Duplicated in Mono.Addins, so don't copy it twice.
@@ -131,7 +131,7 @@ log4netdir = log4net.add_directory(
         unique_id = 'log4net-dir',
         as_option = '--log4net-dir',
         option_help = 'Location of log4net DLL',
-        in_dependencies = '${PLATFORM}/log4net-*/bin/net/2.0/release')
+        in_dependencies = 'AnyPlatform/log4net-*/bin/net/2.0/release')
 log4netdir.add_assemblies(
         'log4net.dll',
         reference=True, copy=True)
@@ -141,7 +141,7 @@ moqdir = moq.add_directory(
     unique_id = 'moq-dir',
     as_option = '--moq-dir',
     option_help = 'Location of Moq install',
-    in_dependencies = '${PLATFORM}/[Mm]oq*')
+    in_dependencies = 'AnyPlatform/[Mm]oq*')
 moqdlldir = moqdir.add_directory(
     unique_id = 'moq-dll-dir',
     relative_path = {
@@ -194,14 +194,14 @@ def configure(conf):
     mono = set_env(conf, 'MONO', [] if plat.startswith('Windows') else ["mono", "--debug"])
 
     if conf.env.BUILDTESTS:
-        nunitexedir = path.join(nunitdir.absolute_path, 'bin/net-4.0')
+        nunitexedir = path.join(nunitdir.absolute_path, 'bin')
         nunitexe = set_env(conf, 'NUNITEXE', path.join(nunitexedir, 'nunit-console-x86.exe' if plat.endswith('x86') else 'nunit-console.exe'))
         # NUnit uses $TMP to shadow copy assemblies. If it's not set it can end up writing
         # to /tmp/nunit20, causing all sorts of problems on a multi-user system. On non-Windows
         # platforms we point $TMP to .tmp in the build folder while running NUnit.
         set_env(conf, 'INVOKENUNIT',
-                [nunitexe] if plat.startswith('Windows') else
-                ['env', 'LD_LIBRARY_PATH=' + conf.path.get_bld().abspath(), 'TMP=' + path.join(conf.path.get_bld().abspath(), '.tmp')] + mono + [nunitexe])
+                [nunitexe, '/framework=v4.0'] if plat.startswith('Windows') else
+                ['env', 'LD_LIBRARY_PATH=' + conf.path.get_bld().abspath(), 'TMP=' + path.join(conf.path.get_bld().abspath(), '.tmp')] + mono + [nunitexe, '/framework=v4.0'])
         set_env(conf, 'INVOKEINTEGRATIONTEST',
                 ['python'] if plat.startswith('Windows') else
                 ['env', 'LD_LIBRARY_PATH=' + conf.path.get_bld().abspath(), 'python'])
