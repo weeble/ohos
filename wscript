@@ -200,8 +200,8 @@ def configure(conf):
         # to /tmp/nunit20, causing all sorts of problems on a multi-user system. On non-Windows
         # platforms we point $TMP to .tmp in the build folder while running NUnit.
         set_env(conf, 'INVOKENUNIT',
-                [nunitexe, '/framework=v4.0'] if plat.startswith('Windows') else
-                ['env', 'LD_LIBRARY_PATH=' + conf.path.get_bld().abspath(), 'TMP=' + path.join(conf.path.get_bld().abspath(), '.tmp')] + mono + [nunitexe, '/framework=v4.0'])
+                [nunitexe, '-framework=v4.0'] if plat.startswith('Windows') else
+                ['env', 'LD_LIBRARY_PATH=' + conf.path.get_bld().abspath(), 'TMP=' + path.join(conf.path.get_bld().abspath(), '.tmp')] + mono + [nunitexe, '-framework=v4.0'])
         set_env(conf, 'INVOKEINTEGRATIONTEST',
                 ['python'] if plat.startswith('Windows') else
                 ['env', 'LD_LIBRARY_PATH=' + conf.path.get_bld().abspath(), 'python'])
