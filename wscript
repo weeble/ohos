@@ -413,7 +413,7 @@ csharp_projects = [
         CSharpProject(
             name="ohOs.AppManager.Tests", dir="AppManager.Tests", type="library",
             categories=["test"],
-            packages=['ohnet', 'mono-addins', 'nunit', 'moq'],
+            packages=['ohnet', 'mono-addins', 'nunit', 'moq', 'sharpziplib'],
             references=[
                 'DvOpenhomeOrgApp1',
                 'ohOs.AppManager',

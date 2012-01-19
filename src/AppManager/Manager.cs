@@ -38,11 +38,12 @@ namespace OpenHome.Os.AppManager
             IAppsDirectory aAppsDirectory,
             IStoreDirectory aStoreDirectory,
             Func<DvDevice, IApp, IDvProviderOpenhomeOrgApp1> aAppProviderConstructor,
+            IZipReader aZipReader,
             bool aAutoStart)
         {
             lock (iLock)
             {
-                iImpl = new ManagerImpl(aFullPrivilegeAppServices, aConfiguration, aAddinManager, aAppsDirectory, aStoreDirectory, aAppProviderConstructor, aAutoStart);
+                iImpl = new ManagerImpl(aFullPrivilegeAppServices, aConfiguration, aAddinManager, aAppsDirectory, aStoreDirectory, aAppProviderConstructor, aZipReader, aAutoStart);
             }
         }
 

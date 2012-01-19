@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using ICSharpCode.SharpZipLib.Zip;
 using Mono.Addins;
 using Moq;
 using NUnit.Framework;
@@ -19,6 +20,7 @@ namespace OpenHome.Os.AppManager.Tests
         {
             IDvProviderOpenhomeOrgApp1 Create(DvDevice aDevice, IApp aApp);
         }
+
         protected Mock<IAppServices> iAppServicesMock;
         protected Mock<IConfigFileCollection> iConfigMock;
         protected Mock<IAddinManager> iAddinManagerMock;
@@ -28,6 +30,9 @@ namespace OpenHome.Os.AppManager.Tests
         protected Mock<IApp> iAppMock;
         protected Mock<IDvDeviceFactory> iDeviceFactoryMock;
         protected Mock<IDvDevice> iDeviceMock;
+        protected Mock<IZipReader> iZipReaderMock;
+        protected Mock<IDvProviderOpenhomeOrgApp1> iProviderMock;
+
         protected IAppServices iAppServices;
         protected IConfigFileCollection iConfig;
         protected IAddinManager iAddinManager;
@@ -37,6 +42,8 @@ namespace OpenHome.Os.AppManager.Tests
         protected IApp iApp;
         protected IDvDeviceFactory iDeviceFactory;
         protected IDvDevice iDevice;
+        protected IZipReader iZipReader;
+        protected IDvProviderOpenhomeOrgApp1 iProvider;
 
         protected Manager iManager;
 
@@ -59,6 +66,8 @@ namespace OpenHome.Os.AppManager.Tests
             iDeviceFactoryMock.Setup(x => x.CreateDevice(It.IsAny<string>())).Returns(iDevice);
             iDeviceFactoryMock.Setup(x => x.CreateDeviceStandard(It.IsAny<string>())).Returns(iDevice);
             iDeviceFactoryMock.Setup(x => x.CreateDeviceStandard(It.IsAny<string>(), It.IsAny<IResourceManager>())).Returns(iDevice);
+            iDeviceMock.Setup(x => x.SetDisabled(It.IsAny<Action>())).Callback<Action>(aAction => aAction());
+            iProviderConstructorMock.Setup(x => x.Create(It.IsAny<DvDevice>(), It.IsAny<IApp>())).Returns(iProvider);
         }
         protected virtual string AppUdn { get { return "APP1"; } }
         protected virtual string AppName { get { return "My Test Application"; } }
@@ -77,10 +86,12 @@ namespace OpenHome.Os.AppManager.Tests
             MakeMock(out iAppMock, out iApp);
             MakeMock(out iDeviceFactoryMock, out iDeviceFactory);
             MakeMock(out iDeviceMock, out iDevice);
-            PrepareMocks();
+            MakeMock(out iZipReaderMock, out iZipReader);
+            MakeMock(out iProviderMock, out iProvider);
             iProviderConstructorMock = new Mock<IProviderConstructor>();
             iProviderConstructor = iProviderConstructorMock.Object.Create;
-            iManager = new Manager(iAppServices, iConfig, iAddinManager, iAppsDirectory, iStoreDirectory, iProviderConstructor, false);
+            PrepareMocks();
+            iManager = new Manager(iAppServices, iConfig, iAddinManager, iAppsDirectory, iStoreDirectory, iProviderConstructor, iZipReader, false);
             // When the App Manager calls AddExtensionNodeHandler, store the
             // handler so that we can call it back later.
             //AddinManagerMock.Setup(x=>x.AddExtensionNodeHandler(It.IsAny<string>(), It.IsAny<ExtensionNodeEventHandler>())).Callback(
@@ -91,6 +102,126 @@ namespace OpenHome.Os.AppManager.Tests
         //{
         //    CurrentExtensionNodeEventHandler = aHandler;
         //}
+    }
+
+    public class WhenTheAppManagerIsStartedAfterAnAppIsInstalled : AppManagerTestContext
+    {
+    }
+
+    public abstract class WhenAnAppIsInstalledContext : AppManagerTestContext
+    {
+        protected abstract IEnumerable<ZipEntry> ZipContents { get; }
+        protected override void PrepareMocks()
+        {
+            base.PrepareMocks();
+            iZipReaderMock.Setup(x => x.Open(It.IsAny<string>())).Returns(ZipContents);
+        }
+        public void InstallAnApp()
+        {
+            iManager.Install("path/to/zip/file.zip");
+        }
+    }
+
+    public class WhenAGoodAppIsInstalled : WhenAnAppIsInstalledContext
+    {
+        protected override IEnumerable<ZipEntry>  ZipContents
+        {
+            get
+            {
+                return new[] {
+                    new ZipEntry("goodApp1/foo.exe"),
+                    new ZipEntry("goodApp1/info.txt"),
+                    new ZipEntry("goodApp1/subdir/x.txt"),
+                    new ZipEntry("goodApp1/empty/"),
+                };
+            }
+        }
+        [Test]
+        public void TheZipIsInstalled()
+        {
+            InstallAnApp();
+            iAppsDirectoryMock.Verify(x => x.InstallZipFile("path/to/zip/file.zip"), Times.Once());
+        }
+        [Test]
+        public void UpdateRegistryIsNotInvoked()
+        {
+            InstallAnApp();
+            // We haven't started any apps, so we don't want them loaded yet.
+            iAddinManagerMock.Verify(x => x.UpdateRegistry(It.IsAny<Action<IApp>>(), It.IsAny<Action<IApp>>()), Times.Never());
+        }
+
+        [Test]
+        public void UpdateRegistryIsInvokedIfTheManagerIsAlreadyStarted()
+        {
+            iManager.Start();
+            iAddinManagerMock.Verify(x => x.UpdateRegistry(It.IsAny<Action<IApp>>(), It.IsAny<Action<IApp>>()), Times.Exactly(1));
+            InstallAnApp();
+            iAddinManagerMock.Verify(x => x.UpdateRegistry(It.IsAny<Action<IApp>>(), It.IsAny<Action<IApp>>()), Times.Exactly(2));
+        }
+    }
+
+    public class WhenAnAppWithMultipleDirectoriesIsInstalled : WhenAnAppIsInstalledContext
+    {
+        protected override IEnumerable<ZipEntry>  ZipContents
+        {
+            get
+            {
+                return new[] {
+                    new ZipEntry("badApp2/foo.exe"),
+                    new ZipEntry("badApp2/info.txt"),
+                    new ZipEntry("goodApp1/naughty.txt"),
+                };
+            }
+        }
+        [Test]
+        public void BadPluginExceptionIsThrown()
+        {
+            Assert.Throws<BadPluginException>(InstallAnApp);
+        }
+        [Test]
+        public void TheZipIsNotInstalled()
+        {
+            try { InstallAnApp(); } catch (BadPluginException) { }
+            iAppsDirectoryMock.Verify(x => x.InstallZipFile(It.IsAny<string>()), Times.Never());
+        }
+        [Test]
+        public void UpdateRegistryIsNotInvoked()
+        {
+            try { InstallAnApp(); } catch (BadPluginException) { }
+            iAddinManagerMock.Verify(x => x.UpdateRegistry(It.IsAny<Action<IApp>>(), It.IsAny<Action<IApp>>()), Times.Never());
+        }
+    }
+
+    public class WhenAnAppWithLooseFilesIsInstalled : WhenAnAppIsInstalledContext
+    {
+        protected override IEnumerable<ZipEntry>  ZipContents
+        {
+            get
+            {
+                return new[] {
+                    new ZipEntry("badApp3/foo.exe"),
+                    new ZipEntry("badApp3/info.txt"),
+                    new ZipEntry("loose_file"),
+                };
+            }
+        }
+        [Test]
+        public void BadPluginExceptionIsThrown()
+        {
+            Assert.Throws<BadPluginException>(InstallAnApp);
+        }
+        [Test]
+        public void TheZipIsNotInstalled()
+        {
+            try { InstallAnApp(); } catch (BadPluginException) { }
+            iAppsDirectoryMock.Verify(x => x.InstallZipFile(It.IsAny<string>()), Times.Never());
+        }
+        [Test]
+        public void UpdateRegistryIsNotInvoked()
+        {
+            try { InstallAnApp(); } catch (BadPluginException) { }
+            iAddinManagerMock.Verify(x => x.UpdateRegistry(It.IsAny<Action<IApp>>(), It.IsAny<Action<IApp>>()), Times.Never());
+        }
     }
 
     public class WhenTheAppManagerIsStartedContext : AppManagerTestContext
@@ -104,6 +235,7 @@ namespace OpenHome.Os.AppManager.Tests
             iManager.Start();
         }
     }
+
 
     public class WhenTheAppManagerIsStarted : WhenTheAppManagerIsStartedContext
     {
@@ -174,6 +306,30 @@ namespace OpenHome.Os.AppManager.Tests
         {
             iAppMock.Verify(x => x.Init(It.Is<IAppContext>(
                 aContext => aContext.StaticPath == AppDirectoryAbsPath)), Times.Once());
+        }
+        [Test]
+        public void StoppingTheManagerStopsTheApp()
+        {
+            iManager.Stop();
+            iAppMock.Verify(x => x.Stop(), Times.Once());
+        }
+        [Test]
+        public void StoppingTheManagerDisposesTheProvider()
+        {
+            iManager.Stop();
+            iProviderMock.Verify(x => x.Dispose(), Times.Once());
+        }
+        [Test]
+        public void StoppingTheManagerDisablesTheDevice()
+        {
+            iManager.Stop();
+            iDeviceMock.Verify(x => x.SetDisabled(It.IsAny<Action>()), Times.Once());
+        }
+        [Test]
+        public void StoppingTheManagerDisposesTheDevice()
+        {
+            iManager.Stop();
+            iDeviceMock.Verify(x => x.Dispose(), Times.Once());
         }
     }
 }

@@ -4,11 +4,22 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using ICSharpCode.SharpZipLib.Zip;
 using OpenHome.Net.Device.Providers;
 using OpenHome.Os.Platform;
 
 namespace OpenHome.Os.AppManager
 {
+    public class DefaultZipReader : IZipReader
+    {
+
+        public IEnumerable<ZipEntry> Open(string aZipName)
+        {
+            ZipFile zipFile = new ZipFile(aZipName);
+            return zipFile.Cast<ZipEntry>();
+        }
+    }
+
     /// <summary>
     /// Assembles and configures the components to make an app manager.
     /// Whereas unit tests want to test each component separately,
@@ -36,6 +47,7 @@ namespace OpenHome.Os.AppManager
                 installBase = Path.Combine(storePath, DefaultAppsDirectory);
             }
             DefaultAppsDirectory appsDirectory = new DefaultAppsDirectory(installBase);
+            DefaultZipReader zipReader = new DefaultZipReader();
             DefaultAddinManager addinManager = new DefaultAddinManager(installBase, installBase, installBase);
             Manager = new Manager(
                 aFullPrivilegeAppServices,
@@ -44,6 +56,7 @@ namespace OpenHome.Os.AppManager
                 appsDirectory,
                 storeDirectory,
                 (aDevice, aApp)=>new ProviderApp(aDevice, aApp),
+                zipReader,
                 false);
         }
 

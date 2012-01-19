@@ -17,6 +17,12 @@ using OpenHome.Os.Platform;
 
 namespace OpenHome.Os.AppManager
 {
+    public interface IZipReader
+    {
+        IEnumerable<ZipEntry> Open(string aZipName);
+        //void ExtractAll(string aDestination);
+    }
+
     public class HistoryItem
     {
         public enum ItemType
@@ -92,6 +98,7 @@ namespace OpenHome.Os.AppManager
         readonly IAppsDirectory iAppsDirectory;
         readonly IStoreDirectory iStoreDirectory;
         readonly Func<DvDevice, IApp, IDvProviderOpenhomeOrgApp1> iAppProviderConstructor;
+        readonly IZipReader iZipReader;
         private readonly Dictionary<string, string> iAppDirsToAppUdns = new Dictionary<string, string>();
 
         public List<HistoryItem> History
@@ -106,9 +113,11 @@ namespace OpenHome.Os.AppManager
             IAppsDirectory aAppsDirectory,
             IStoreDirectory aStoreDirectory,
             Func<DvDevice, IApp, IDvProviderOpenhomeOrgApp1> aAppProviderConstructor,
+            IZipReader aZipReader,
             bool aAutoStart)
         {
             iFullPrivilegeAppServices = aFullPrivilegeAppServices;
+            iZipReader = aZipReader;
             iConfiguration = aConfiguration;
             iAddinManager = aAddinManager;
             iAppsDirectory = aAppsDirectory;
@@ -176,7 +185,7 @@ namespace OpenHome.Os.AppManager
         /// <returns></returns>
         public string VerifyPluginZip(string aZipFile)
         {
-            ZipFile zf = new ZipFile(aZipFile);
+            var zf = iZipReader.Open(aZipFile);
             HashSet<string> topLevelDirectories = new HashSet<string>();
             try
             {
