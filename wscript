@@ -191,7 +191,7 @@ def configure(conf):
     active_dependencies.configure(conf, defaults)
     active_dependencies.validate(conf)
 
-    mono = set_env(conf, 'MONO', [] if plat.startswith('Windows') else ["mono", "--debug"])
+    mono = set_env(conf, 'MONO', [] if plat.startswith('Windows') else ["mono", "--debug", "--runtime=v4.0"])
 
     if conf.env.BUILDTESTS:
         nunitexedir = path.join(nunitdir.absolute_path, 'bin')
@@ -207,7 +207,7 @@ def configure(conf):
                 ['env', 'LD_LIBRARY_PATH=' + conf.path.get_bld().abspath(), 'python'])
         set_env(conf, 'INVOKECLR',
                 [] if plat.startswith('Windows') else
-                ['env','LD_LIBRARY_PATH=' + conf.path.get_bld().abspath(),'mono','--debug'])
+                (['env','LD_LIBRARY_PATH=' + conf.path.get_bld().abspath()]+mono))
 
     conf.env.append_value('CSFLAGS', '/warnaserror+')
 
