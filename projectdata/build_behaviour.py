@@ -58,7 +58,7 @@
 import os
 import shutil
 
-require_version(5)
+require_version(6)
 
 
 # Command-line options. See documentation for Python's optparse module.
