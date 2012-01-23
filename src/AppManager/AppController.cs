@@ -9,6 +9,7 @@ namespace OpenHome.Os.AppManager
 {
     class AppManagerProvider : Net.Device.Providers.DvProviderOpenhomeOrgAppManager1
     {
+        const int NoSuchAppError = 801;
         const string DummyAppListXml =
 @"<appList>
     <app>
@@ -16,11 +17,17 @@ namespace OpenHome.Os.AppManager
         <id>dummyApp</id>
         <name>OpenHome Dummy App</name>
         <version>1.2.3</version>
+        <url>http://www.openhome.org/dummyapp.zip</url>
         <description>This is a dummy app to stub out the AppManager API.</description>
-        <status><running /></status>
-        <updateStatus><downloading progress=""2%"" /></updateStatus>
+        <running />
+        <downloading progressBytes=""7700"" progressPercent=""77%"" totalBytes=""10000"" />
     </app>
 </appList>";
+        const string DummyAppDownloadXml =
+@"<appDownloadStatus id=""dummyApp"" url=""http://www.openhome.org/dummyapp.zip"">
+    <downloading progressBytes=""7700"" progressPercent=""77%"" totalBytes=""10000"" />
+</appList>";
+
 
         const string EmptyAppListXml = "<appList/>";
         const uint DummyAppId = 1;
@@ -28,12 +35,14 @@ namespace OpenHome.Os.AppManager
         private static readonly ILog iLog = LogManager.GetLogger(typeof(AppManagerProvider));
 
         private uint iDummySequenceNumber;
+        private uint iDummyDownloadSequenceNumber;
         private object iDummySeqNoLock = new object();
 
         public AppManagerProvider(DvDevice aDevice) : base(aDevice)
         {
             EnablePropertyAppHandleArray();
             EnablePropertyAppSequenceNumberArray();
+            EnablePropertyAppDownloadSequenceNumberArray();
             // TODO: Initialize handle array.
             // TODO: Initialize seqno array.
 
@@ -43,26 +52,49 @@ namespace OpenHome.Os.AppManager
             EnableActionInstallAppFromUrl();
             EnableActionRemoveApp();
             EnableActionSetAppGrantedPermissions();
+            EnableActionCancelDownload();
+            EnableActionGetAppDownloadStatus();
             SetPropertyAppHandleArray(Platform.Converter.ConvertUintListToNetworkOrderByteArray(new List<uint> { DummyAppId }));
             BumpDummySequenceNumber();
         }
 
         public void BumpDummySequenceNumber()
         {
-            uint value;
             lock (iDummySeqNoLock)
             {
                 iLog.InfoFormat("Bumping the AppManager dummy sequence number up to {0}.", iDummySequenceNumber + 1);
                 iDummySequenceNumber += 1;
-                value = iDummySequenceNumber;
+                uint value = iDummySequenceNumber;
+                SetPropertyAppSequenceNumberArray(Platform.Converter.ConvertUintListToNetworkOrderByteArray(new List<uint> { value }));
             }
-            SetPropertyAppSequenceNumberArray(Platform.Converter.ConvertUintListToNetworkOrderByteArray(new List<uint> { value }));
+        }
+
+        public void BumpDummyDownloadSequenceNumber()
+        {
+            lock (iDummySeqNoLock)
+            {
+                iLog.InfoFormat("Bumping the AppManager dummy sequence number up to {0}.", iDummySequenceNumber + 1);
+                iDummyDownloadSequenceNumber += 1;
+                uint value = iDummyDownloadSequenceNumber;
+                SetPropertyAppDownloadSequenceNumberArray(Platform.Converter.ConvertUintListToNetworkOrderByteArray(new List<uint> { value }));
+            }
         }
 
         protected override void GetAppStatus(IDvInvocation aInvocation, uint aAppHandle, out string aAppListXml)
         {
             iLog.ErrorFormat("GetAppStatus(\"{0}\") - not implemented.", aAppHandle);
             aAppListXml = (aAppHandle == DummyAppId) ? DummyAppListXml : EmptyAppListXml;
+        }
+        protected override void CancelDownload(IDvInvocation aInvocation, uint aAppHandle)
+        {
+            iLog.ErrorFormat("CancelDownload(\"{0}\") - not implemented", aAppHandle);
+        }
+        protected override void GetAppDownloadStatus(IDvInvocation aInvocation, uint aAppHandle, out string aAppDownloadXml)
+        {
+            iLog.ErrorFormat("GetAppDownloadStatus(\"{0}\") - not implemented", aAppHandle);
+            if (aAppHandle != DummyAppId)
+                throw new ActionError(String.Format("App handle not recognized: {0}", aAppHandle), NoSuchAppError);
+            aAppDownloadXml = DummyAppDownloadXml;
         }
         protected override void GetMultipleAppsStatus(IDvInvocation aInvocation, byte[] aAppHandles, out string aAppListXml)
         {

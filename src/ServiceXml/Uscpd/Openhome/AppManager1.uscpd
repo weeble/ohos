@@ -5,31 +5,48 @@
 #         <id>ohwidget</id>
 #         <name>OpenHome Widget Control</name>
 #         <version>1.2.3</version>
+#         <url>https://www.openhome.org/path/to/app.zip</url>
 #         <description>This is an example app for controlling widgets in the home.</description>
-#         <status><running /></status>
-#         <updateStatus><downloading progress="2%" /></updateStatus>
+#         <running />
+#         <downloading progress="2%" />
 #     </app>
 # </appList>
 #
-# status can be:
+# handle is always present, and identifies a handle from AppHandleArray.
+# id is present except for new downloads.
+# name is present except for new downloads.
+# version is present only for running apps.
+# url may not be present for permanently installed apps.
+# description is present only for running apps.
+# status can be one of:
 #     <running/>      : Currently running.
 #     <stopped/>      : Not running.
+#     <broken/>        : Not running, something is broken.
 #     <notInstalled/> : Indicates app is a dummy entry for a downloading app.
-# updateStatus can be:
+# updateStatus can be one of:
 #     <noUpdate/>  : No update is known to be available.
 #     <available/> : An update is available for download.
-#     <downloading progressPercent="77%" progressBytes="18000" />  : An update is downloading.
-#         Both progressPercent and progressBytes may be absent if not known.
+#     <downloading progressPercent="77%" progressBytes="18000" totalBytes="234000" />  : An update is downloading.
+#         Both progressPercent and totalBytes may be absent if not known.
 #     <needsPermission/> : An update has downloaded, but cannot run without new permissions.
 #     <installing/> : An update was applied and the app will soon be running.
 type $AppListXml : string;
+
+# <appDownloadStatus id="ohwidget" url="http://www.openhome.org/path/to/app.zip">
+#     <downloading progressPercent="77%" progressBytes="18000" totalBytes="234000" />
+# </appDownloadStatus>
+type $AppDownloadXml : string;
 
 # Array of 32-bit unsigned integer handles. Network-endian.
 var AppHandleArray : bin.base64;
 
 # Array of 32-bit unsigned integer sequence numbers. Network-endian.
-# These are incremented whenever 
+# These are incremented whenever an app's status changes *except* for changes to download progress.
 var AppSequenceNumberArray : bin.base64;
+
+# Array of 32-bit unsigned integer sequence numbers. Network-endian.
+# These are incremented whenever an app's download progres changes.
+var AppDownloadSequenceNumberArray : bin.base64;
 
 # The URL to download an app from.
 type $AppURL : uri;
@@ -50,6 +67,9 @@ type $AppPermissionsXml : string;
 # Get the status of a single app. Returns appList XML with zero or one entries.
 action GetAppStatus(AppHandle : in $AppHandle) = AppListXml : $AppListXml;
 
+# Get the downloading status of a single app. Returns 
+action GetAppDownloadStatus(AppHandle : in $AppHandle) = AppDownloadXml : $AppDownloadXml;
+
 # Get the status of multiple apps at once.
 # AppHandles should be a binary encoded array of 32-bit big-endian unsigned integers.
 # Each is one app handle to query. If the provided array is empty, XML for all apps
@@ -68,3 +88,6 @@ action SetAppGrantedPermissions(AppHandle : in $AppHandle, AppPermissionsXml : i
 
 # Uninstall the specified app.
 action RemoveApp(AppHandle : in $AppHandle);
+
+# Cancel a download.
+action CancelDownload(AppHandle : in $AppHandle);
