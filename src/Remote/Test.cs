@@ -4,7 +4,6 @@ using System.Threading;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using System.Net.Sockets;
 
 namespace OpenHome.Os.Remote
 {
@@ -39,8 +38,9 @@ namespace OpenHome.Os.Remote
                         {
                             if (key.ToUpper() == "UPGRADE" && clientReq.Headers.GetValues(key)[0].ToUpper() == "WEBSOCKET")
                             {
-                                Console.WriteLine("!!! Ws connect attempt !!!");
-                                HandleWebSocketConnection(aContext);
+                                // we can't support websockets so reject any handshake attempt to encourage the client to switch to long polling instead
+                                clientResp.StatusCode = 404;
+                                clientResp.Close();
                                 return;
                             }
                         }
@@ -102,10 +102,6 @@ namespace OpenHome.Os.Remote
                     case "ACCEPT-LANGUAGE":
                     case "ORIGIN":
                     case "SOAPACTION":
-                    //case "SEC-WEBSOCKET-PROTOCOL":
-                    //case "SEC-WEBSOCKET-KEY":
-                    //case "SEC-WEBSOCKET-VERSION":
-                    //case "UPGRADE":
                         string[] values = clientReq.Headers.GetValues(key);
                         foreach (string val in values)
                             forwardedReq.Headers.Add(key, val);
@@ -197,74 +193,6 @@ namespace OpenHome.Os.Remote
             // docs suggest following is unnecessary - we only have to close one from clientRespStream / clientResp
             if (connectionClose)
                 clientResp.Close();
-        }
-        private static void HandleWebSocketConnection(HttpListenerContext aContext)
-        {
-            Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.IPv4);
-            socket.Connect("http://127.0.0.1", 8080); // TODO: remove hard-coding of address / port
-            const string newline = "\r\n";
-            string request = "GET / HTTP/1.1" + newline;
-            System.Collections.Specialized.NameValueCollection headers = aContext.Request.Headers;
-            foreach (string key in headers.AllKeys)
-            {
-                string header = String.Format("{0}: {1}{2}", key, headers.GetValues(key)[0], newline);
-                request += header;
-            }
-            request += newline;
-            socket.Send(Encoding.UTF8.GetBytes(request));
-            byte[] serverMsg = new byte[4*1024];
-            socket.BeginReceive(serverMsg, 0, serverMsg.Length, SocketFlags.None, WebSocketServerEvent, aContext);
-
-
-
-
-            Semaphore blocker = new Semaphore(0, 1);
-            blocker.WaitOne(); // TODO: allow exit when either side closes their socket
-
-            socket.Shutdown(SocketShutdown.Receive);
-            socket.Close();
-            aContext.Response.Close();
-        }
-        private static void WebSocketServerEvent(IAsyncResult aAr)
-        {
-        }
-    }
-
-    class WebSocketConnection
-    {
-        private readonly HttpListenerContext iContext;
-        private readonly Socket iSocket;
-
-        public WebSocketConnection(HttpListenerContext aContext)
-        {
-            iContext = aContext;
-            iSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.IPv4);
-        }
-        public void Start()
-        {
-            iSocket.Connect("http://127.0.0.1", 8080); // TODO: remove hard-coding of address / port
-            const string newline = "\r\n";
-            string request = "GET / HTTP/1.1" + newline;
-            System.Collections.Specialized.NameValueCollection headers = iContext.Request.Headers;
-            foreach (string key in headers.AllKeys)
-            {
-                string header = String.Format("{0}: {1}{2}", key, headers.GetValues(key)[0], newline);
-                request += header;
-            }
-            request += newline;
-            iSocket.Send(Encoding.UTF8.GetBytes(request));
-            byte[] serverMsg = new byte[4 * 1024];
-            iSocket.BeginReceive(serverMsg, 0, serverMsg.Length, SocketFlags.None, WebSocketServerEvent, this);
-        }
-        private static void WebSocketServerEvent(IAsyncResult aAr)
-        {
-            WebSocketConnection self = (WebSocketConnection)aAr.AsyncState;
-            SocketError error;
-            self.iSocket.EndReceive(aAr, out error);
-            if (error != SocketError.Success)
-            {
-                // TODO: do something to close connections
-            }
         }
     }
 
