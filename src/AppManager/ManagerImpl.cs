@@ -384,6 +384,7 @@ namespace OpenHome.Os.AppManager
             device.SetAttribute("Upnp.FriendlyName", app.Name);
             device.SetAttribute("Upnp.Manufacturer", "N/A");
             device.SetAttribute("Upnp.ModelName", "ohOs Application");
+            device.SetAttribute("Core.LongPollEnable", "");
 
             return device;
         }
