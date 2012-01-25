@@ -3,7 +3,6 @@ using System.Net;
 using System.Threading;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 
 namespace OpenHome.Os.Remote
 {
@@ -11,22 +10,36 @@ namespace OpenHome.Os.Remote
     {
         static void Main()
         {
-            HttpServer server = new HttpServer(8);
-            server.Start(8080, ProcessRequest);
+            ProxyServer manager = new ProxyServer();
+            uint loopback = (1 << 24) | 127;
+            manager.Enable(loopback, 52128, "bbc19702-27a7-4fe8-bdd4-335d0a13c009");
             Thread.Sleep(15 * 60 * 1000);
-            server.Dispose();
+            manager.Dispose();
         }
+    }
 
-        private static void ProcessRequest(HttpListenerContext aContext)
+    public class ProxyServer : IDisposable
+    {
+        private HttpServer iHttpServer;
+        private string iForwardAddress;
+        private uint iForwardPort;
+        private string iForwardUdn;
+
+        public void Enable(uint aNetworkAdapter, uint aPort, string aUdn)
         {
-            const string kAppName = "/ohWidget";
-            string forwardAddress = "http://127.0.0.1:50610"; // TODO: should be specified by client
-            string resourcePath = "/6ad23af3-6ccd-4460-982d-34bb93f62a09/Upnp/resource/"; // TODO: should be specified by client
+            iForwardAddress = String.Format("{0}.{1}.{2}.{3}", aNetworkAdapter & 0xff, (aNetworkAdapter >> 8) & 0xff, (aNetworkAdapter >> 16) & 0xff, (aNetworkAdapter >> 24) & 0xff); // assumes little endian
+            iForwardPort = aPort;
+            iForwardUdn = aUdn;
+            iHttpServer = new HttpServer(8);
+            iHttpServer.Start(8080, ProcessRequest);
+        }
+        private void ProcessRequest(HttpListenerContext aContext)
+        {
             HttpListenerRequest clientReq = aContext.Request;
             HttpListenerResponse clientResp = aContext.Response;
             string pathAndQuery = clientReq.Url.PathAndQuery;
             bool connectionClose;
-            bool connectionKeepAlive = connectionClose = false;
+            bool connectionKeepAlive;
             string targetUrl;
             string method = clientReq.HttpMethod.ToUpper();
             switch (method)
@@ -45,14 +58,14 @@ namespace OpenHome.Os.Remote
                             }
                         }
                     }
-                    if (pathAndQuery.StartsWith(kAppName))
-                        pathAndQuery = pathAndQuery.Remove(0, kAppName.Length);
                     if (pathAndQuery.StartsWith("/"))
                         pathAndQuery = pathAndQuery.Remove(0, 1);
-                    targetUrl = forwardAddress + resourcePath + pathAndQuery;
+                    targetUrl = String.Format("http://{0}:{1}/{2}/Upnp/resource/{3}", iForwardAddress, iForwardPort, iForwardUdn, pathAndQuery);
+                    //targetUrl = forwardAddress + resourcePath + pathAndQuery;
                     break;
                 case "POST":
-                    targetUrl = forwardAddress + pathAndQuery;
+                    targetUrl = String.Format("http://{0}:{1}{2}", iForwardAddress, iForwardPort, pathAndQuery);
+                    //targetUrl = forwardAddress + pathAndQuery;
                     break;
                 default:
                     Console.WriteLine("Unexpected method - {0}", method);
@@ -62,61 +75,7 @@ namespace OpenHome.Os.Remote
             }
             Console.WriteLine("Method: {0}, url: {1}", clientReq.HttpMethod, targetUrl);
             HttpWebRequest forwardedReq = (HttpWebRequest)WebRequest.Create(targetUrl);
-            forwardedReq.Method = clientReq.HttpMethod;
-            foreach (string key in clientReq.Headers.AllKeys)
-            {
-                switch (key.ToUpper())
-                {
-                    case "HOST":
-                        forwardedReq.Host = clientReq.Headers.GetValues(key)[0];
-                        break;
-                    case "CONTENT-LENGTH":
-                        forwardedReq.ContentLength = Convert.ToInt32(clientReq.Headers.GetValues(key)[0]);
-                        break;
-                    case "TRANSFER-ENCODING":
-                        forwardedReq.TransferEncoding = clientReq.Headers.GetValues(key)[0];
-                        break;
-                    case "CACHE-CONTROL":
-                        // TODO
-                        //forwardedReq.CachePolicy = clientReq.Headers.GetValues(key)[0];
-                        break;
-                    case "CONTENT-TYPE":
-                        forwardedReq.ContentType = clientReq.Headers.GetValues(key)[0];
-                        break;
-                    case "CONNECTION":
-                        string value = clientReq.Headers.GetValues(key)[0];
-                        if (String.Compare(value, "keep-alive", true) == 0)
-                            connectionKeepAlive = true;
-                        else if (String.Compare(value, "close", true) == 0)
-                            connectionClose = true;
-                        else
-                            forwardedReq.Connection = clientReq.Headers.GetValues(key)[0];
-                            //Console.WriteLine("Unhandled CONNECTION header in request: {0}", clientReq.Headers.GetValues(key)[0]);
-                        forwardedReq.KeepAlive = connectionKeepAlive;
-                        break;
-                    case "ACCEPT":
-                        forwardedReq.Accept = clientReq.Headers.GetValues(key)[0];
-                        break;
-                    case "ACCEPT-CHARSET":
-                    case "ACCEPT-ENCODING":
-                    case "ACCEPT-LANGUAGE":
-                    case "ORIGIN":
-                    case "SOAPACTION":
-                        string[] values = clientReq.Headers.GetValues(key);
-                        foreach (string val in values)
-                            forwardedReq.Headers.Add(key, val);
-                        break;
-                    case "USER-AGENT":
-                    case "REFERER":
-                        // we deliberately don't pass these on
-                        break;
-                    default:
-                        Console.WriteLine("Ignored header in request: {0}", key);
-                        break;
-                }
-            }
-            if (String.Compare(clientReq.HttpMethod, "POST", true) == 0)
-                clientReq.InputStream.CopyTo(forwardedReq.GetRequestStream());
+            WriteForwardedRequestHeaders(clientReq, forwardedReq, out connectionKeepAlive, out connectionClose);
 
             HttpWebResponse resp;
             try
@@ -159,40 +118,108 @@ namespace OpenHome.Os.Remote
             }
             Stream clientRespStream = clientResp.OutputStream;
             Stream respStream = resp.GetResponseStream();
-            if (!targetUrl.EndsWith("/Node.js"))
+            // following can remain commented until we want to proxy websocket connections
+            /*if (targetUrl.EndsWith("/Node.js"))
             {
+                RewriteNodeJsFile(clientResp, respStream);
+            }
+            else
+            {*/
                 if (contentLength > 0) // response may be chunked
                     clientResp.ContentLength64 = contentLength;
                 respStream.CopyTo(clientRespStream);
-            }
-            else
-            {
-                contentLength = 0; // we're re-writing content so ignore the received length
-                MemoryStream memStream = new MemoryStream();
-                MemoryStream outStream = new MemoryStream();
-                respStream.CopyTo(memStream);
-                byte[] bytes = memStream.ToArray();
-                memStream = new MemoryStream(bytes);
-                StreamReader reader = new StreamReader(memStream);
-                string line;
-                const string wsPortDecl = "var webSocketPort =";
-                while ((line = reader.ReadLine()) != null)
-                {
-                    if (line.StartsWith(wsPortDecl))
-                        line = String.Format("{0} {1};", wsPortDecl, 8080); // TODO: remove hard-coding of port
-                    line += "\r\n";
-                    contentLength += line.Length;
-                    byte[] buf = Encoding.UTF8.GetBytes(line);
-                    outStream.Write(buf, 0, buf.Length);
-                }
-                clientResp.ContentLength64 = contentLength;
-                outStream.Seek(0, SeekOrigin.Begin);
-                outStream.CopyTo(clientRespStream);
-            }
+            //}
             clientRespStream.Close();
             // docs suggest following is unnecessary - we only have to close one from clientRespStream / clientResp
             if (connectionClose)
                 clientResp.Close();
+        }
+        static void WriteForwardedRequestHeaders(HttpListenerRequest aClientReq, HttpWebRequest aForwardedReq, out bool aConnectionKeepAlive, out bool aConnectionClose)
+        {
+            aConnectionKeepAlive = aConnectionClose = false;
+            aForwardedReq.Method = aClientReq.HttpMethod;
+            foreach (string key in aClientReq.Headers.AllKeys)
+            {
+                switch (key.ToUpper())
+                {
+                    case "HOST":
+                        aForwardedReq.Host = aClientReq.Headers.GetValues(key)[0];
+                        break;
+                    case "CONTENT-LENGTH":
+                        aForwardedReq.ContentLength = Convert.ToInt32(aClientReq.Headers.GetValues(key)[0]);
+                        break;
+                    case "TRANSFER-ENCODING":
+                        aForwardedReq.TransferEncoding = aClientReq.Headers.GetValues(key)[0];
+                        break;
+                    case "CACHE-CONTROL":
+                        // TODO
+                        //forwardedReq.CachePolicy = clientReq.Headers.GetValues(key)[0];
+                        break;
+                    case "CONTENT-TYPE":
+                        aForwardedReq.ContentType = aClientReq.Headers.GetValues(key)[0];
+                        break;
+                    case "CONNECTION":
+                        string value = aClientReq.Headers.GetValues(key)[0];
+                        if (String.Compare(value, "keep-alive", true) == 0)
+                            aConnectionKeepAlive = true;
+                        else if (String.Compare(value, "close", true) == 0)
+                            aConnectionClose = true;
+                        else
+                            aForwardedReq.Connection = aClientReq.Headers.GetValues(key)[0];
+                        //Console.WriteLine("Unhandled CONNECTION header in request: {0}", clientReq.Headers.GetValues(key)[0]);
+                        aForwardedReq.KeepAlive = aConnectionKeepAlive;
+                        break;
+                    case "ACCEPT":
+                        aForwardedReq.Accept = aClientReq.Headers.GetValues(key)[0];
+                        break;
+                    case "ACCEPT-CHARSET":
+                    case "ACCEPT-ENCODING":
+                    case "ACCEPT-LANGUAGE":
+                    case "ORIGIN":
+                    case "SOAPACTION":
+                        string[] values = aClientReq.Headers.GetValues(key);
+                        foreach (string val in values)
+                            aForwardedReq.Headers.Add(key, val);
+                        break;
+                    case "USER-AGENT":
+                    case "REFERER":
+                        // we deliberately don't pass these on
+                        break;
+                    default:
+                        Console.WriteLine("Ignored header in request: {0}", key);
+                        break;
+                }
+            }
+            if (String.Compare(aClientReq.HttpMethod, "POST", true) == 0)
+                aClientReq.InputStream.CopyTo(aForwardedReq.GetRequestStream());
+        }
+        /*static void RewriteNodeJsFile(HttpListenerResponse aClientResp, Stream aFileStream)
+        {
+            int contentLength = 0;
+            MemoryStream memStream = new MemoryStream();
+            MemoryStream outStream = new MemoryStream();
+            aFileStream.CopyTo(memStream);
+            byte[] bytes = memStream.ToArray();
+            memStream = new MemoryStream(bytes);
+            StreamReader reader = new StreamReader(memStream);
+            string line;
+            const string wsPortDecl = "var webSocketPort =";
+            while ((line = reader.ReadLine()) != null)
+            {
+                if (line.StartsWith(wsPortDecl))
+                    line = String.Format("{0} {1};", wsPortDecl, 8080); // TODO: remove hard-coding of port
+                line += "\r\n";
+                contentLength += line.Length;
+                byte[] buf = Encoding.UTF8.GetBytes(line);
+                outStream.Write(buf, 0, buf.Length);
+            }
+            aClientResp.ContentLength64 = contentLength;
+            outStream.Seek(0, SeekOrigin.Begin);
+            outStream.CopyTo(aClientResp.OutputStream);
+        }*/
+        public void Dispose()
+        {
+            iHttpServer.Dispose();
         }
     }
 
