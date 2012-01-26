@@ -11,8 +11,9 @@ namespace OpenHome.Os.Remote
         static void Main()
         {
             ProxyServer manager = new ProxyServer();
-            uint loopback = (1 << 24) | 127;
-            manager.Enable(loopback, 52128, "bbc19702-27a7-4fe8-bdd4-335d0a13c009");
+            const uint adapter = (1 << 24) | 127;
+            //const uint adapter = (78 << 24) | (9 << 16) | (2 << 8) | 10;
+            manager.Enable(adapter, 63513, "remote");
             Thread.Sleep(15 * 60 * 1000);
             manager.Dispose();
         }
@@ -24,14 +25,17 @@ namespace OpenHome.Os.Remote
         private string iForwardAddress;
         private uint iForwardPort;
         private string iForwardUdn;
+        private Dictionary<string, string> iAuthenticatedClients;
+        private const string kAuthCookieName = "remoteId";
 
         public void Enable(uint aNetworkAdapter, uint aPort, string aUdn)
         {
             iForwardAddress = String.Format("{0}.{1}.{2}.{3}", aNetworkAdapter & 0xff, (aNetworkAdapter >> 8) & 0xff, (aNetworkAdapter >> 16) & 0xff, (aNetworkAdapter >> 24) & 0xff); // assumes little endian
             iForwardPort = aPort;
             iForwardUdn = aUdn;
+            iAuthenticatedClients = new Dictionary<string, string>();
             iHttpServer = new HttpServer(8);
-            iHttpServer.Start(8080, ProcessRequest);
+            iHttpServer.Start(8082, ProcessRequest);
         }
         private void ProcessRequest(HttpListenerContext aContext)
         {
@@ -41,6 +45,31 @@ namespace OpenHome.Os.Remote
             bool connectionClose;
             bool connectionKeepAlive;
             string targetUrl;
+
+            bool isAuthenticated = false;
+            foreach (Cookie cookie in clientReq.Cookies)
+            {
+                if (cookie.Name == kAuthCookieName)
+                {
+                    isAuthenticated = iAuthenticatedClients.ContainsKey(cookie.Value);
+                    break;
+                }
+            }
+            Console.WriteLine("Request {0} for {1}", clientReq.HttpMethod, pathAndQuery);
+            if (!isAuthenticated && pathAndQuery != "/login.html")
+            {
+                clientResp.StatusCode = (int)HttpStatusCode.Moved;
+                string location = clientReq.Headers.GetValues("HOST")[0];
+                if (!location.StartsWith("http"))
+                    location = "http://" + location;
+                if (!location.EndsWith("/"))
+                    location += "/";
+                location += "login.html";
+                clientResp.AddHeader("Location", location);
+                clientResp.Close();
+                return;
+            }
+
             string method = clientReq.HttpMethod.ToUpper();
             switch (method)
             {
@@ -52,7 +81,7 @@ namespace OpenHome.Os.Remote
                             if (key.ToUpper() == "UPGRADE" && clientReq.Headers.GetValues(key)[0].ToUpper() == "WEBSOCKET")
                             {
                                 // we can't support websockets so reject any handshake attempt to encourage the client to switch to long polling instead
-                                clientResp.StatusCode = 404;
+                                clientResp.StatusCode = (int)HttpStatusCode.NotFound;
                                 clientResp.Close();
                                 return;
                             }
@@ -69,7 +98,7 @@ namespace OpenHome.Os.Remote
                     break;
                 default:
                     Console.WriteLine("Unexpected method - {0}", method);
-                    clientResp.StatusCode = 404;
+                    clientResp.StatusCode = (int)HttpStatusCode.NotFound;
                     clientResp.Close();
                     return;
             }
