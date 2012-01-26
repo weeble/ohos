@@ -30,6 +30,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="HttpServer.cs" />
+    <Compile Include="ProxyServer.cs" />
     <Compile Include="Test.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
