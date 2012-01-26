@@ -15,7 +15,7 @@ namespace OpenHome.Os.Remote
             ProxyServer proxy = new ProxyServer();
             const uint adapter = (1 << 24) | 127;
             //const uint adapter = (78 << 24) | (9 << 16) | (2 << 8) | 10;
-            proxy.Enable(adapter, 63513, "remote");
+            proxy.Enable(adapter, 57022, "remote");
             Thread.Sleep(60 * 60 * 1000); // wait for 1 hour
             proxy.Dispose();
         }
@@ -92,6 +92,7 @@ namespace OpenHome.Os.Remote
                 lock (this)
                 {
                     iAuthenticatedClients.Add(guid, guid);
+                    // TODO: write clients to xml file
                 }
                 aResponse.AppendCookie(new Cookie(kAuthCookieName, guid));
                 aResponse.StatusCode = (int)HttpStatusCode.OK;
@@ -214,6 +215,7 @@ namespace OpenHome.Os.Remote
                         break;
                     case "USER-AGENT":
                     case "REFERER":
+                    case "COOKIE":
                         // we deliberately don't pass these on
                         break;
                     default:
