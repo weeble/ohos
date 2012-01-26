@@ -1,3 +1,9 @@
+ohmono (2.10.6-2) nightly; urgency=low
+
+  * Added the System.ComponentModel.Composition assembly 
+
+ -- Openhome <admin@openhome.org>  Thu, 26 Jan 2012 16:26:14 +0000
+
 ohmono (2.10.6-1) nightly; urgency=low
 
   * Initial release 

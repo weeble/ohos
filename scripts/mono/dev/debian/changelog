@@ -1,3 +1,9 @@
+ohmono-dev (2.10.6-4) nightly; urgency=low
+
+  * Added the System.ComponentModel.Composition assembly 
+
+ -- Stathis Voukelatos <stathisv@StathisVM.linn.co.uk>  Thu, 26 Jan 2012 16:24:01 +0000
+
 ohmono-dev (2.10.6-3) nightly; urgency=low
 
   * Added missing Mono linker executables 
