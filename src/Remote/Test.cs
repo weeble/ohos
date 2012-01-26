@@ -12,12 +12,12 @@ namespace OpenHome.Os.Remote
     {
         static void Main()
         {
-            ProxyServer manager = new ProxyServer();
+            ProxyServer proxy = new ProxyServer();
             const uint adapter = (1 << 24) | 127;
             //const uint adapter = (78 << 24) | (9 << 16) | (2 << 8) | 10;
-            manager.Enable(adapter, 63513, "remote");
-            Thread.Sleep(15 * 60 * 1000);
-            manager.Dispose();
+            proxy.Enable(adapter, 63513, "remote");
+            Thread.Sleep(60 * 60 * 1000); // wait for 1 hour
+            proxy.Dispose();
         }
     }
 
@@ -94,14 +94,15 @@ namespace OpenHome.Os.Remote
                     iAuthenticatedClients.Add(guid, guid);
                 }
                 aResponse.AppendCookie(new Cookie(kAuthCookieName, guid));
-                aResponse.StatusCode = (int)HttpStatusCode.Moved;
+                aResponse.StatusCode = (int)HttpStatusCode.OK;
                 location = aRequest.Headers.GetValues("HOST")[0];
                 if (!location.StartsWith("http"))
                     location = "http://" + location;
-                aResponse.AddHeader("Location", location);
-                aResponse.Close();
-                // just completed authentication.  Redirect client to (assumed) original url
+                aResponse.ContentLength64 = location.Length + 2;
+                byte[] buf = Encoding.UTF8.GetBytes(location + "\r\n");
+                aResponse.OutputStream.Write(buf, 0, buf.Length);
                 Console.WriteLine("Redirecting: {0} to {1}", pathAndQuery, location);
+                // just completed authentication.  Redirect client to (assumed) original url
                 return true;
             }
 
@@ -119,14 +120,13 @@ namespace OpenHome.Os.Remote
                 return false;
 
             // redirect any other requests to the login page
-            aResponse.StatusCode = (int)HttpStatusCode.Moved;
             location = aRequest.Headers.GetValues("HOST")[0];
             if (!location.StartsWith("http"))
                 location = "http://" + location;
             if (!location.EndsWith("/"))
                 location += "/";
             location += "login.html";
-            aResponse.AddHeader("Location", location);
+            aResponse.Redirect(location);
             aResponse.Close();
             Console.WriteLine("Redirecting: {0} to {1}", pathAndQuery, location);
             return true;
