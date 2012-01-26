@@ -3,6 +3,8 @@ using System.Net;
 using System.Threading;
 using System.Collections.Generic;
 using System.IO;
+using System.Xml.Linq;
+using System.Text;
 
 namespace OpenHome.Os.Remote
 {
@@ -41,71 +43,21 @@ namespace OpenHome.Os.Remote
         {
             HttpListenerRequest clientReq = aContext.Request;
             HttpListenerResponse clientResp = aContext.Response;
-            string pathAndQuery = clientReq.Url.PathAndQuery;
-            bool connectionClose;
-            bool connectionKeepAlive;
-            string targetUrl;
 
-            bool isAuthenticated = false;
-            foreach (Cookie cookie in clientReq.Cookies)
+            if (IsAuthenticating(clientReq, clientResp))
+                return;
+            string targetUrl = RewriteUrl(clientReq);
+            if (targetUrl == null)
             {
-                if (cookie.Name == kAuthCookieName)
-                {
-                    isAuthenticated = iAuthenticatedClients.ContainsKey(cookie.Value);
-                    break;
-                }
-            }
-            Console.WriteLine("Request {0} for {1}", clientReq.HttpMethod, pathAndQuery);
-            if (!isAuthenticated && pathAndQuery != "/login.html")
-            {
-                clientResp.StatusCode = (int)HttpStatusCode.Moved;
-                string location = clientReq.Headers.GetValues("HOST")[0];
-                if (!location.StartsWith("http"))
-                    location = "http://" + location;
-                if (!location.EndsWith("/"))
-                    location += "/";
-                location += "login.html";
-                clientResp.AddHeader("Location", location);
+                clientResp.StatusCode = (int)HttpStatusCode.NotFound;
                 clientResp.Close();
                 return;
             }
-
-            string method = clientReq.HttpMethod.ToUpper();
-            switch (method)
-            {
-                case "GET":
-                    if (pathAndQuery == "/")
-                    {
-                        foreach (string key in clientReq.Headers.AllKeys)
-                        {
-                            if (key.ToUpper() == "UPGRADE" && clientReq.Headers.GetValues(key)[0].ToUpper() == "WEBSOCKET")
-                            {
-                                // we can't support websockets so reject any handshake attempt to encourage the client to switch to long polling instead
-                                clientResp.StatusCode = (int)HttpStatusCode.NotFound;
-                                clientResp.Close();
-                                return;
-                            }
-                        }
-                    }
-                    if (pathAndQuery.StartsWith("/"))
-                        pathAndQuery = pathAndQuery.Remove(0, 1);
-                    targetUrl = String.Format("http://{0}:{1}/{2}/Upnp/resource/{3}", iForwardAddress, iForwardPort, iForwardUdn, pathAndQuery);
-                    //targetUrl = forwardAddress + resourcePath + pathAndQuery;
-                    break;
-                case "POST":
-                    targetUrl = String.Format("http://{0}:{1}{2}", iForwardAddress, iForwardPort, pathAndQuery);
-                    //targetUrl = forwardAddress + pathAndQuery;
-                    break;
-                default:
-                    Console.WriteLine("Unexpected method - {0}", method);
-                    clientResp.StatusCode = (int)HttpStatusCode.NotFound;
-                    clientResp.Close();
-                    return;
-            }
             Console.WriteLine("Method: {0}, url: {1}", clientReq.HttpMethod, targetUrl);
             HttpWebRequest forwardedReq = (HttpWebRequest)WebRequest.Create(targetUrl);
+            bool connectionClose;
+            bool connectionKeepAlive;
             WriteForwardedRequestHeaders(clientReq, forwardedReq, out connectionKeepAlive, out connectionClose);
-
             HttpWebResponse resp;
             try
             {
@@ -116,54 +68,104 @@ namespace OpenHome.Os.Remote
                 resp = (HttpWebResponse)e.Response;
                 Console.WriteLine("ERROR: {0} for {1}", (int)resp.StatusCode, targetUrl);
             }
-            clientResp.StatusCode = (int)resp.StatusCode;
-            clientResp.StatusDescription = resp.StatusDescription;
-            int contentLength = 0;
-            foreach (var key in resp.Headers.AllKeys)
-            {
-                switch (key.ToUpper())
-                {
-                    case "CONTENT-LENGTH":
-                        // don't set clientResp.ContentLength64 yet as we may re-write some content below (if we're serving Node.js)
-                        contentLength = Convert.ToInt32(resp.Headers.GetValues(key)[0]);
-                        break;
-                    case "CONTENT-TYPE":
-                    case "EXT":
-                    case "SERVER":
-                        string[] values = resp.Headers.GetValues(key);
-                        foreach (string val in values)
-                            clientResp.Headers.Add(key, val);
-                        break;
-                    case "TRANSFER-ENCODING":
-                        clientResp.SendChunked = (String.Compare(resp.Headers.GetValues(key)[0], "chunked", true) == 0);
-                        break;
-                    case "CONNECTION":
-                        clientResp.Headers.Add(key, resp.Headers.GetValues(key)[0]);
-                        break;
-                    default:
-                        Console.WriteLine("Ignored header in response: {0}", key);
-                        break;
-                }
-            }
-            Stream clientRespStream = clientResp.OutputStream;
-            Stream respStream = resp.GetResponseStream();
-            // following can remain commented until we want to proxy websocket connections
-            /*if (targetUrl.EndsWith("/Node.js"))
-            {
-                RewriteNodeJsFile(clientResp, respStream);
-            }
-            else
-            {*/
-                if (contentLength > 0) // response may be chunked
-                    clientResp.ContentLength64 = contentLength;
-                respStream.CopyTo(clientRespStream);
-            //}
-            clientRespStream.Close();
+            WriteResponse(resp, clientResp);
             // docs suggest following is unnecessary - we only have to close one from clientRespStream / clientResp
             if (connectionClose)
                 clientResp.Close();
         }
-        static void WriteForwardedRequestHeaders(HttpListenerRequest aClientReq, HttpWebRequest aForwardedReq, out bool aConnectionKeepAlive, out bool aConnectionClose)
+        private bool IsAuthenticating(HttpListenerRequest aRequest, HttpListenerResponse aResponse)
+        {
+            string pathAndQuery = aRequest.Url.PathAndQuery;
+            string location;
+            if (String.Compare(aRequest.HttpMethod, "POST", true) == 0 && pathAndQuery == "/loginService")
+            {
+                MemoryStream memStream = new MemoryStream();
+                aRequest.InputStream.CopyTo(memStream);
+                byte[] bytes = memStream.ToArray();
+                XElement tree = XElement.Parse(Encoding.UTF8.GetString(bytes));
+                string username = tree.Element("username").Value;
+                string password = tree.Element("password").Value;
+                Console.WriteLine("FIXME - need to actually check username/password");
+                Console.WriteLine("...username={0}, password={1}", username, password);
+
+                string guid = Guid.NewGuid().ToString();
+                lock (this)
+                {
+                    iAuthenticatedClients.Add(guid, guid);
+                }
+                aResponse.AppendCookie(new Cookie(kAuthCookieName, guid));
+                aResponse.StatusCode = (int)HttpStatusCode.Moved;
+                location = aRequest.Headers.GetValues("HOST")[0];
+                if (!location.StartsWith("http"))
+                    location = "http://" + location;
+                aResponse.AddHeader("Location", location);
+                aResponse.Close();
+                // just completed authentication.  Redirect client to (assumed) original url
+                Console.WriteLine("Redirecting: {0} to {1}", pathAndQuery, location);
+                return true;
+            }
+
+            foreach (Cookie cookie in aRequest.Cookies)
+            {
+                if (cookie.Name == kAuthCookieName && !iAuthenticatedClients.ContainsKey(cookie.Value))
+                    Console.WriteLine("WARNING: received old cookie. May need to clear cookies on browser to log in");
+                if (cookie.Name == kAuthCookieName && iAuthenticatedClients.ContainsKey(cookie.Value))
+                    // already authenticated
+                    return false;
+            }
+            
+            if (pathAndQuery == "/login.html" || pathAndQuery.StartsWith("/login/"))
+                // allow these requests through, regardless of our authentication state as they're needed to load the login screen
+                return false;
+
+            // redirect any other requests to the login page
+            aResponse.StatusCode = (int)HttpStatusCode.Moved;
+            location = aRequest.Headers.GetValues("HOST")[0];
+            if (!location.StartsWith("http"))
+                location = "http://" + location;
+            if (!location.EndsWith("/"))
+                location += "/";
+            location += "login.html";
+            aResponse.AddHeader("Location", location);
+            aResponse.Close();
+            Console.WriteLine("Redirecting: {0} to {1}", pathAndQuery, location);
+            return true;
+        }
+        private string RewriteUrl(HttpListenerRequest aRequest)
+        {
+            string url = null;
+            string pathAndQuery = aRequest.Url.PathAndQuery;
+            string method = aRequest.HttpMethod.ToUpper();
+            switch (method)
+            {
+                case "GET":
+                    if (pathAndQuery == "/")
+                    {
+                        foreach (string key in aRequest.Headers.AllKeys)
+                        {
+                            if (key.ToUpper() == "UPGRADE" && aRequest.Headers.GetValues(key)[0].ToUpper() == "WEBSOCKET")
+                            {
+                                // we can't support websockets so reject any handshake attempt to encourage the client to switch to long polling instead
+                                return null;
+                            }
+                        }
+                    }
+                    if (pathAndQuery.StartsWith("/"))
+                        pathAndQuery = pathAndQuery.Remove(0, 1);
+                    url = String.Format("http://{0}:{1}/{2}/Upnp/resource/{3}", iForwardAddress, iForwardPort, iForwardUdn, pathAndQuery);
+                    //targetUrl = forwardAddress + resourcePath + pathAndQuery;
+                    break;
+                case "POST":
+                    url = String.Format("http://{0}:{1}{2}", iForwardAddress, iForwardPort, pathAndQuery);
+                    //url = forwardAddress + pathAndQuery;
+                    break;
+                default:
+                    Console.WriteLine("Unexpected method - {0}", method);
+                    break;
+            }
+            return url;
+        }
+        private static void WriteForwardedRequestHeaders(HttpListenerRequest aClientReq, HttpWebRequest aForwardedReq, out bool aConnectionKeepAlive, out bool aConnectionClose)
         {
             aConnectionKeepAlive = aConnectionClose = false;
             aForwardedReq.Method = aClientReq.HttpMethod;
@@ -221,6 +223,52 @@ namespace OpenHome.Os.Remote
             }
             if (String.Compare(aClientReq.HttpMethod, "POST", true) == 0)
                 aClientReq.InputStream.CopyTo(aForwardedReq.GetRequestStream());
+        }
+        private static void WriteResponse(HttpWebResponse aProxiedResponse, HttpListenerResponse aResponse)
+        {
+            aResponse.StatusCode = (int)aProxiedResponse.StatusCode;
+            aResponse.StatusDescription = aProxiedResponse.StatusDescription;
+            int contentLength = 0;
+            foreach (var key in aProxiedResponse.Headers.AllKeys)
+            {
+                switch (key.ToUpper())
+                {
+                    case "CONTENT-LENGTH":
+                        // don't set aResponse.ContentLength64 yet as we may re-write some content below (if we're serving Node.js)
+                        contentLength = Convert.ToInt32(aProxiedResponse.Headers.GetValues(key)[0]);
+                        break;
+                    case "CONTENT-TYPE":
+                    case "EXT":
+                    case "SERVER":
+                        string[] values = aProxiedResponse.Headers.GetValues(key);
+                        foreach (string val in values)
+                            aResponse.Headers.Add(key, val);
+                        break;
+                    case "TRANSFER-ENCODING":
+                        aResponse.SendChunked = (String.Compare(aProxiedResponse.Headers.GetValues(key)[0], "chunked", true) == 0);
+                        break;
+                    case "CONNECTION":
+                        aResponse.Headers.Add(key, aProxiedResponse.Headers.GetValues(key)[0]);
+                        break;
+                    default:
+                        Console.WriteLine("Ignored header in response: {0}", key);
+                        break;
+                }
+            }
+            Stream clientRespStream = aResponse.OutputStream;
+            Stream respStream = aProxiedResponse.GetResponseStream();
+            // following can remain commented until we want to proxy websocket connections
+            /*if (targetUrl.EndsWith("/Node.js"))
+            {
+                RewriteNodeJsFile(clientResp, respStream);
+            }
+            else
+            {*/
+            if (contentLength > 0) // response may be chunked
+                aResponse.ContentLength64 = contentLength;
+            respStream.CopyTo(clientRespStream);
+            //}
+            clientRespStream.Close();
         }
         /*static void RewriteNodeJsFile(HttpListenerResponse aClientResp, Stream aFileStream)
         {
