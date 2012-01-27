@@ -381,6 +381,7 @@ csharp_projects = [
                 'DvOpenhomeOrgApp1',
                 'ohOs.AppManager',
                 'ohOs.Platform',
+                'ohOs.Host',
             ]),
         CSharpProject(
             name="ohOs.TestApp1", dir="TestApp1", type="library",

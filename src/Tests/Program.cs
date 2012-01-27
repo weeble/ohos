@@ -1,10 +1,21 @@
 using System;
+using Node;
 using OpenHome.Os.AppManager;
 using OpenHome.Net.Core;
 using OpenHome.Os.Platform;
+using OpenHome.Widget.Nodes;
 
 namespace OpenHome.Os
 {
+    class NullNodeRebooter : INodeRebooter
+    {
+        public void RebootNode()
+        {
+        }
+        public void SoftRestartNode()
+        {
+        }
+    }
     public class Program
     {
         static void Main(string[] aArgs)
@@ -18,9 +29,10 @@ namespace OpenHome.Os
                 uint subnet = nif.Subnet();
                 subnetList.Destroy();
                 /*var combinedStack = */ library.StartCombined(subnet);
-
+                AppServices services = new AppServices();
+                services.NodeRebooter = new NullNodeRebooter();
                 string exePath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-                using (var installModule = new ManagerModule(null, new NullConfigFileCollection()))
+                using (var installModule = new ManagerModule(services, new NullConfigFileCollection()))
                 {
                     installModule.Manager.Start();
 

@@ -67,6 +67,10 @@ namespace OpenHome.Os.AppManager
 
         public IEnumerable<string> GetAppSubdirectories()
         {
+            if (!Directory.Exists(iDirectoryName))
+            {
+                yield break;
+            }
             foreach (string dir in Directory.EnumerateDirectories(iDirectoryName).Select(x=>Path.GetFileName(x)))
             {
                 if (dir.Contains("~")) continue;
