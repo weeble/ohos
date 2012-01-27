@@ -7,23 +7,52 @@ using System.Text;
 
 namespace OpenHome.Os.Remote
 {
+    internal interface ILoginValidator
+    {
+        bool ValidateCredentials(string aUserName, string aPassword);
+    }
+    
     public class ProxyServer : IDisposable
     {
         private HttpServer iHttpServer;
-        private string iForwardAddress;
+        private readonly string iForwardAddress;
         private uint iForwardPort;
         private string iForwardUdn;
-        private Dictionary<string, string> iAuthenticatedClients;
-        private const string kAuthCookieName = "remoteId";
+        private readonly Dictionary<string, string> iAuthenticatedClients;
+        private ILoginValidator iLoginValidator;
 
-        public void Enable(uint aNetworkAdapter, uint aPort, string aUdn)
+        private const string kAuthCookieName = "remoteId";
+        private const int kNumServerThreads = 8;
+        private const int kRemoteAccessPort = 8082; // TODO: hard-coded port.  Can we be sure no ohNet server will have been allocated this before we run?
+
+        public ProxyServer(uint aNetworkAdapter)
         {
             iForwardAddress = String.Format("{0}.{1}.{2}.{3}", aNetworkAdapter & 0xff, (aNetworkAdapter >> 8) & 0xff, (aNetworkAdapter >> 16) & 0xff, (aNetworkAdapter >> 24) & 0xff); // assumes little endian
+            iAuthenticatedClients = new Dictionary<string, string>();
+        }
+        public void AddApp(uint aPort, string aUdn)
+        {
+            // should support multiple apps but only allow one at present
             iForwardPort = aPort;
             iForwardUdn = aUdn;
-            iAuthenticatedClients = new Dictionary<string, string>();
-            iHttpServer = new HttpServer(8);
-            iHttpServer.Start(8082, ProcessRequest);
+        }
+        internal void Start(ILoginValidator aLoginValidator)
+        {
+            iLoginValidator = aLoginValidator;
+            iHttpServer = new HttpServer(kNumServerThreads);
+            iHttpServer.Start(kRemoteAccessPort, ProcessRequest);
+        }
+        internal void Stop()
+        {
+            iHttpServer.Dispose();
+            iHttpServer = null;
+        }
+        public void ClearAuthenticatedClients()
+        {
+            lock (this)
+            {
+                iAuthenticatedClients.Clear();
+            }
         }
         private void ProcessRequest(HttpListenerContext aContext)
         {
@@ -71,8 +100,12 @@ namespace OpenHome.Os.Remote
                 XElement tree = XElement.Parse(Encoding.UTF8.GetString(bytes));
                 string username = tree.Element("username").Value;
                 string password = tree.Element("password").Value;
-                Console.WriteLine("FIXME - need to actually check username/password");
-                Console.WriteLine("...username={0}, password={1}", username, password);
+                if (!iLoginValidator.ValidateCredentials(username, password))
+                {
+                    aResponse.StatusCode = (int)HttpStatusCode.Unauthorized;
+                    aResponse.Close();
+                    return true;
+                }
 
                 string guid = Guid.NewGuid().ToString();
                 lock (this)
@@ -284,7 +317,8 @@ namespace OpenHome.Os.Remote
         }*/
         public void Dispose()
         {
-            iHttpServer.Dispose();
+            if (iHttpServer != null)
+                iHttpServer.Dispose();
         }
     }
 }
