@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 
 namespace OpenHome.Os.AppManager
@@ -13,5 +14,6 @@ namespace OpenHome.Os.AppManager
         void InstallZipFile(string aZipFile);
         string GetAssemblySubdirectory(Assembly aAssembly);
         string GetAbsolutePathForSubdirectory(string aAppDirName);
+        IEnumerable<string> GetAppSubdirectories();
     }
 }

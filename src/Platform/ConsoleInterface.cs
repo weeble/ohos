@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using OpenHome.Os.Platform;
+using OpenHome.Widget.Nodes.Threading;
 
 namespace ohWidget.Utils
 {
@@ -92,6 +95,7 @@ namespace ohWidget.Utils
         public bool Running { get; set; }
         public bool EndOfInput { get; private set; }
         readonly ICommandProcessor iCommandProcessor;
+        readonly Channel<int> iQuitChannel = new Channel<int>(1);
         public ConsoleInterface(ICommandProcessor aCommandProcessor)
         {
             Prompt = ">";
@@ -99,20 +103,69 @@ namespace ohWidget.Utils
             EndOfInput = false;
             iCommandProcessor = aCommandProcessor;
         }
-        public void RunConsole()
+        /// <summary>
+        /// Abandon the console and return from RunConsole with the
+        /// provided exit code. Note that the console thread will
+        /// not terminate immediately - it is trapped inside a blocking
+        /// call to Console.ReadLine(). However, it is set as a background
+        /// thread, so it will not prevent process shutdown.
+        /// </summary>
+        /// <remarks>
+        /// This operation can be safely invoked on a different thread
+        /// from RunConsole(). If invoked multiple times from the same
+        /// thread, only the first exit code will be used. The exit is
+        /// still guaranteed if multiple threads invoke Quit, but it can
+        /// no longer be known which of the provided exit codes will
+        /// be returned from RunConsole.
+        /// </remarks>
+        /// <param name="aExitCode"></param>
+        public void Quit(int aExitCode)
         {
+            iQuitChannel.NonBlockingSend(aExitCode);
+        }
+        public int RunConsole()
+        {
+            int exitCode = 0;
+            Channel<string> commandChannel = new Channel<string>(1);
+            Channel<string> readyChannel = new Channel<string>(1);
+            Thread consoleThread = new Thread(
+                () =>
+                {
+                    while (true)
+                    {
+                        string prompt = readyChannel.Receive();
+                        if (prompt == null)
+                        {
+                            return;
+                        }
+                        Console.Write(prompt);
+                        commandChannel.Send(Console.ReadLine());
+                    }
+                });
+            consoleThread.IsBackground = true;
+            consoleThread.Start();
             while (Running)
             {
-                Console.Write(Prompt);
-                string command = Console.ReadLine();
-                if (command == null)
-                {
-                    Running = false;
-                    EndOfInput = true;
-                    return;
-                }
-                iCommandProcessor.ProcessCommand(command);
+                readyChannel.Send(Prompt);
+                Channel.Select(
+                    iQuitChannel.CaseReceive(aExitCode =>
+                    {
+                        Running = false;
+                        exitCode = aExitCode;
+                    }),
+                    commandChannel.CaseReceive(aCommand =>
+                    {
+                        if (aCommand == null)
+                        {
+                            Running = false;
+                            EndOfInput = true;
+                            return;
+                        }
+                        iCommandProcessor.ProcessCommand(aCommand);
+                    }));
             }
+            readyChannel.Send(null);
+            return exitCode;
         }
     }
 }

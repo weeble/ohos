@@ -10,7 +10,8 @@ namespace OpenHome.Os.AppManager
     {
         void Start();
         void Install(string aZipFile);
-        void Uninstall(string aUdn);
+        void UninstallByUdn(string aUdn);
+        void UninstallByAppName(string aAppName);
         void UninstallAllApps();
         void Stop();
     }
@@ -39,11 +40,22 @@ namespace OpenHome.Os.AppManager
             IStoreDirectory aStoreDirectory,
             Func<DvDevice, IApp, IDvProviderOpenhomeOrgApp1> aAppProviderConstructor,
             IZipReader aZipReader,
+            IAppMetadataStore aAppMetadataStore, IZipVerifier aZipVerifier,
             bool aAutoStart)
         {
             lock (iLock)
             {
-                iImpl = new ManagerImpl(aFullPrivilegeAppServices, aConfiguration, aAddinManager, aAppsDirectory, aStoreDirectory, aAppProviderConstructor, aZipReader, aAutoStart);
+                iImpl = new ManagerImpl(
+                    aFullPrivilegeAppServices,
+                    aConfiguration,
+                    aAddinManager,
+                    aAppsDirectory,
+                    aStoreDirectory,
+                    aAppProviderConstructor,
+                    aZipReader,
+                    aAppMetadataStore,
+                    aZipVerifier,
+                    aAutoStart);
             }
         }
 
@@ -71,11 +83,19 @@ namespace OpenHome.Os.AppManager
             }
         }
 
-        public void Uninstall(string aUdn)
+        public void UninstallByUdn(string aUdn)
         {
             lock (iLock)
             {
-                iImpl.Uninstall(aUdn);
+                iImpl.UninstallByUdn(aUdn);
+            }
+        }
+
+        public void UninstallByAppName(string aAppName)
+        {
+            lock (iLock)
+            {
+                iImpl.UninstallByAppName(aAppName);
             }
         }
 

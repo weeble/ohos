@@ -8,5 +8,6 @@ namespace OpenHome.Widget.Nodes
     public interface INodeRebooter
     {
         void RebootNode();
+        void SoftRestartNode();
     }
 }

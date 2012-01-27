@@ -34,6 +34,9 @@ nunitframeworkdir.add_assemblies(
 systemxmllinq = csharp_dependencies.add_package('systemxmllinq')
 systemxmllinq.add_system_assembly('System.Xml.Linq.dll')
 
+systemxmllinq = csharp_dependencies.add_package('mef')
+systemxmllinq.add_system_assembly('System.ComponentModel.Composition.dll')
+
 ohnet = csharp_dependencies.add_package('ohnet')
 ohnetdir = ohnet.add_directory(
     unique_id = 'ohnet-dir',
@@ -319,7 +322,7 @@ def create_zip_task(bld, zipfile, sourceroot, ziproot, sourcefiles):
 
 
 def get_active_dependencies(env):
-    active_dependency_names = set(['ohnet', 'yui-compressor','mono-addins','mono-addins-setup', 'sharpziplib', 'log4net', 'systemxmllinq'])
+    active_dependency_names = set(['ohnet', 'yui-compressor','mono-addins','mono-addins-setup', 'sharpziplib', 'log4net', 'systemxmllinq', 'mef'])
     if env.BUILDTESTS:
         active_dependency_names |= set(['nunit', 'ndeskoptions', 'moq'])
     return csharp_dependencies.get_subset(active_dependency_names)
@@ -364,7 +367,7 @@ csharp_projects = [
         CSharpProject(
             name="ohOs.AppManager", dir="AppManager", type="library",
             categories=["core"],
-            packages=['ohnet', 'mono-addins', 'sharpziplib', 'log4net', 'systemxmllinq'],
+            packages=['ohnet', 'mono-addins', 'sharpziplib', 'log4net', 'systemxmllinq', 'mef'],
             references=[
                 'DvOpenhomeOrgApp1',
                 'DvOpenhomeOrgAppManager1',
@@ -382,7 +385,7 @@ csharp_projects = [
         CSharpProject(
             name="ohOs.TestApp1", dir="TestApp1", type="library",
             categories=["core"],
-            packages=['ohnet', 'mono-addins'],
+            packages=['ohnet', 'mono-addins', 'mef'],
             references=[
                 'ohOs.AppManager',
                 'ohOs.Platform',

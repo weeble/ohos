@@ -48,7 +48,10 @@ namespace OpenHome.Os.AppManager
             }
             DefaultAppsDirectory appsDirectory = new DefaultAppsDirectory(installBase);
             DefaultZipReader zipReader = new DefaultZipReader();
-            DefaultAddinManager addinManager = new DefaultAddinManager(installBase, installBase, installBase);
+            //DefaultAddinManager addinManager = new DefaultAddinManager(installBase, installBase, installBase);
+            var addinManager = new MefAddinManager(appsDirectory);
+            AppMetadataStore appMetadataStore = new AppMetadataStore(new DirectoryInfo(Path.Combine(storePath, "store", "_installed")));
+            ZipVerifier zipVerifier = new ZipVerifier(zipReader);
             Manager = new Manager(
                 aFullPrivilegeAppServices,
                 aConfiguration,
@@ -57,6 +60,8 @@ namespace OpenHome.Os.AppManager
                 storeDirectory,
                 (aDevice, aApp)=>new ProviderApp(aDevice, aApp),
                 zipReader,
+                appMetadataStore,
+                zipVerifier,
                 false);
         }
 

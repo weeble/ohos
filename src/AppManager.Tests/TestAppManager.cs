@@ -32,6 +32,7 @@ namespace OpenHome.Os.AppManager.Tests
         protected Mock<IDvDevice> iDeviceMock;
         protected Mock<IZipReader> iZipReaderMock;
         protected Mock<IDvProviderOpenhomeOrgApp1> iProviderMock;
+        protected Mock<IAppMetadataStore> iAppMetadataStoreMock;
 
         protected IAppServices iAppServices;
         protected IConfigFileCollection iConfig;
@@ -44,8 +45,10 @@ namespace OpenHome.Os.AppManager.Tests
         protected IDvDevice iDevice;
         protected IZipReader iZipReader;
         protected IDvProviderOpenhomeOrgApp1 iProvider;
+        protected IAppMetadataStore iAppMetadataStore;
 
         protected Manager iManager;
+        protected Dictionary<string, AppMetadata> iAppMetadata;
 
         //protected ExtensionNodeEventHandler CurrentExtensionNodeEventHandler;
 
@@ -68,6 +71,26 @@ namespace OpenHome.Os.AppManager.Tests
             iDeviceFactoryMock.Setup(x => x.CreateDeviceStandard(It.IsAny<string>(), It.IsAny<IResourceManager>())).Returns(iDevice);
             iDeviceMock.Setup(x => x.SetDisabled(It.IsAny<Action>())).Callback<Action>(aAction => aAction());
             iProviderConstructorMock.Setup(x => x.Create(It.IsAny<DvDevice>(), It.IsAny<IApp>())).Returns(iProvider);
+            iAppMetadataStoreMock.Setup(x => x.LoadAppsFromStore()).Returns(LoadAppsFromStore);
+            iAppMetadataStoreMock.Setup(x => x.GetApp(It.IsAny<string>())).Returns<string>(GetApp);
+            iAppMetadataStoreMock.Setup(x => x.PutApp(It.IsAny<AppMetadata>())).Callback<AppMetadata>(PutApp);
+        }
+        protected virtual IEnumerable<AppMetadata> LoadAppsFromStore()
+        {
+            yield break;
+        }
+        protected virtual AppMetadata GetApp(string aAppName)
+        {
+            AppMetadata appMetadata;
+            if (iAppMetadata.TryGetValue(aAppName, out appMetadata))
+            {
+                return appMetadata;
+            }
+            return null;
+        }
+        protected virtual void PutApp(AppMetadata aAppMetadata)
+        {
+            iAppMetadata[aAppMetadata.AppName] = aAppMetadata.Clone();
         }
         protected virtual string AppUdn { get { return "APP1"; } }
         protected virtual string AppName { get { return "My Test Application"; } }
@@ -88,10 +111,12 @@ namespace OpenHome.Os.AppManager.Tests
             MakeMock(out iDeviceMock, out iDevice);
             MakeMock(out iZipReaderMock, out iZipReader);
             MakeMock(out iProviderMock, out iProvider);
+            MakeMock(out iAppMetadataStoreMock, out iAppMetadataStore);
+            iAppMetadata = new Dictionary<string, AppMetadata>();
             iProviderConstructorMock = new Mock<IProviderConstructor>();
             iProviderConstructor = iProviderConstructorMock.Object.Create;
             PrepareMocks();
-            iManager = new Manager(iAppServices, iConfig, iAddinManager, iAppsDirectory, iStoreDirectory, iProviderConstructor, iZipReader, false);
+            iManager = new Manager(iAppServices, iConfig, iAddinManager, iAppsDirectory, iStoreDirectory, iProviderConstructor, iZipReader, iAppMetadataStore, new ZipVerifier(iZipReader), false);
             // When the App Manager calls AddExtensionNodeHandler, store the
             // handler so that we can call it back later.
             //AddinManagerMock.Setup(x=>x.AddExtensionNodeHandler(It.IsAny<string>(), It.IsAny<ExtensionNodeEventHandler>())).Callback(

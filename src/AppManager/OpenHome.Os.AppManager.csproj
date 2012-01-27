@@ -30,11 +30,13 @@
     <Reference Include="Mono.Addins.Setup, Version=0.6.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL" />
     <Reference Include="DvOpenhomeOrgApp1, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BadPluginException.cs" />
+    <Compile Include="AppMetadataStore.cs" />
     <Compile Include="DefaultAddinManager.cs" />
     <Compile Include="DefaultAppsDirectory.cs" />
     <Compile Include="DefaultStoreDirectory.cs" />

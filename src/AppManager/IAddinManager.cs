@@ -1,5 +1,5 @@
 ﻿using System;
-using Mono.Addins;
+//using Mono.Addins;
 
 namespace OpenHome.Os.AppManager
 {

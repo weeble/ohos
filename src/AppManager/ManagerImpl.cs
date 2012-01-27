@@ -5,12 +5,13 @@ using System.Reflection;
 using System.Threading;
 using System.Xml.Linq;
 using log4net;
-using Mono.Addins;
+//using Mono.Addins;
 using OpenHome.Net.Device;
 using ICSharpCode.SharpZipLib.Zip;
 using System.Collections.Generic;
 using OpenHome.Net.Device.Providers;
 using OpenHome.Os.Platform;
+using OpenHome.Widget.Nodes;
 
 // !!!! need IOsContext definition
 // !!!! which may include interface to proxy for InstallManager service
@@ -59,122 +60,14 @@ namespace OpenHome.Os.AppManager
         public DvDevice Device { get; set; }
     }
 
-    public class ManagerImpl : IDisposable
+
+    public class ZipVerifier : IZipVerifier
     {
-        static readonly ILog Logger = LogManager.GetLogger(typeof(ManagerImpl));
-        private class PublishedApp : IDisposable
-        {
-            public IApp App { get { return iApp; } }
-            private readonly IApp iApp;
-            private readonly IDvDevice iDevice;
-            private readonly IDvProviderOpenhomeOrgApp1 iProvider;
-
-            public PublishedApp(IApp aApp, IDvDevice aDevice, IDvProviderOpenhomeOrgApp1 aProvider)
-            {
-                iApp = aApp;
-                iDevice = aDevice;
-                iProvider = aProvider;
-            }
-            public void Dispose()
-            {
-                Semaphore disposeSemaphore = new Semaphore(0,1);
-                iDevice.SetDisabled(() => disposeSemaphore.Release());
-                disposeSemaphore.WaitOne();
-                ((IDisposable)disposeSemaphore).Dispose();
-                iApp.Stop(); // ???
-                iApp.Dispose();
-                iDevice.Dispose();
-                iProvider.Dispose();
-            }
-        }
-
-        private readonly Dictionary<string, PublishedApp> iApps;
-        private readonly List<HistoryItem> iHistory;
-        private bool iInitialising;
-        readonly IAppServices iFullPrivilegeAppServices;
-        private readonly IConfigFileCollection iConfiguration;
-        bool iAppsStarted;
-        readonly IAddinManager iAddinManager;
-        readonly IAppsDirectory iAppsDirectory;
-        readonly IStoreDirectory iStoreDirectory;
-        readonly Func<DvDevice, IApp, IDvProviderOpenhomeOrgApp1> iAppProviderConstructor;
         readonly IZipReader iZipReader;
-        private readonly Dictionary<string, string> iAppDirsToAppUdns = new Dictionary<string, string>();
 
-        public List<HistoryItem> History
+        public ZipVerifier(IZipReader aZipReader)
         {
-            get { return new List<HistoryItem>(iHistory); }
-        }
-
-        public ManagerImpl(
-            IAppServices aFullPrivilegeAppServices,
-            IConfigFileCollection aConfiguration,
-            IAddinManager aAddinManager,
-            IAppsDirectory aAppsDirectory,
-            IStoreDirectory aStoreDirectory,
-            Func<DvDevice, IApp, IDvProviderOpenhomeOrgApp1> aAppProviderConstructor,
-            IZipReader aZipReader,
-            bool aAutoStart)
-        {
-            iFullPrivilegeAppServices = aFullPrivilegeAppServices;
             iZipReader = aZipReader;
-            iConfiguration = aConfiguration;
-            iAddinManager = aAddinManager;
-            iAppsDirectory = aAppsDirectory;
-            iStoreDirectory = aStoreDirectory;
-            iAppProviderConstructor = aAppProviderConstructor;
-            iApps = new Dictionary<string, PublishedApp>();
-            iHistory = new List<HistoryItem>();
-            // !!!! restore previous history from disk
-            if (aAutoStart)
-            {
-                Start();
-            }
-        }
-        public void Start()
-        {
-            if (iAppsStarted) return;
-            iAppsStarted = true;
-            iInitialising = false;
-            UpdateAppList();
-            iInitialising = true;
-        }
-
-        /// <summary>
-        /// Install a plugin.
-        /// </summary>
-        /// <param name="aZipFile"></param>
-        /// <remarks>
-        /// The zip file should not be in a location writeable by anyone
-        /// untrusted - no attempt is made to ensure that the file isn't
-        /// modified while being read, meaning that malicious timing of
-        /// modifications could be used to circumvent some verification.
-        /// </remarks>
-        public void Install(string aZipFile)
-        {
-            //string target = System.IO.Path.Combine(iInstallBase, "Temp"); // hardcoding of 'Temp' not threadsafe
-            string appDirName = VerifyPluginZip(aZipFile);
-            if (iAppDirsToAppUdns.ContainsKey(appDirName))
-            {
-                string appUdn = iAppDirsToAppUdns[appDirName];
-                IApp app = iApps[appUdn].App;
-                Logger.InfoFormat("Updating app {0} (UDN={1}, directory={2}).", app.Name, app.Udn, appDirName);
-                // TODO: Stop all apps.
-                iAppsDirectory.DeleteSubdirectory(appDirName, true);
-            }
-            else if (iAppsDirectory.DoesSubdirectoryExist(appDirName))
-            {
-                Logger.InfoFormat("Overwriting app in directory {0}.", appDirName);
-                iAppsDirectory.DeleteSubdirectory(appDirName, true);
-            }
-            else
-            {
-                Logger.InfoFormat("Installing new app in directory {0}.", appDirName);
-            }
-            iAppsDirectory.InstallZipFile(aZipFile);
-            //var unzipper = new FastZip();
-            //unzipper.ExtractZip(aZipFile, target, "");
-            UpdateAppList();
         }
 
         /// <summary>
@@ -232,11 +125,348 @@ namespace OpenHome.Os.AppManager
             }
             return topLevelDirectories.First();
         }
+    }
 
-        public void Uninstall(string aUdn)
+    public interface IZipVerifier
+    {
+        /// <summary>
+        /// Verify that the plugin installs to a single subdirectory,
+        /// and return the name of that subdirectory.
+        /// </summary>
+        /// <param name="aZipFile"></param>
+        /// <returns></returns>
+        string VerifyPluginZip(string aZipFile);
+    }
+
+    public class ManagerImpl : IDisposable
+    {
+        static readonly ILog Logger = LogManager.GetLogger(typeof(ManagerImpl));
+        private class PublishedApp : IDisposable
         {
-            Uninstall(aUdn, true);
+            public IApp App { get { return iApp; } }
+            private readonly IApp iApp;
+            private readonly IDvDevice iDevice;
+            private readonly IDvProviderOpenhomeOrgApp1 iProvider;
+
+            public PublishedApp(IApp aApp, IDvDevice aDevice, IDvProviderOpenhomeOrgApp1 aProvider)
+            {
+                iApp = aApp;
+                iDevice = aDevice;
+                iProvider = aProvider;
+            }
+            public void Dispose()
+            {
+                Semaphore disposeSemaphore = new Semaphore(0,1);
+                iDevice.SetDisabled(() => disposeSemaphore.Release());
+                disposeSemaphore.WaitOne();
+                ((IDisposable)disposeSemaphore).Dispose();
+                iApp.Stop(); // ???
+                iApp.Dispose();
+                iDevice.Dispose();
+                iProvider.Dispose();
+            }
+        }
+
+        private class KnownApp
+        {
+            readonly IAppMetadataStore iMetadataStore;
+            readonly IAppsDirectory iAppsDirectory;
+            readonly IZipVerifier iZipVerifier;
+
+            public string AppName { get; private set; }
+
+            public void WriteAppMetadata(AppMetadata value)
+            {
+                if (value.AppName != AppName)
+                {
+                    throw new ArgumentException("AppMetadata has incorrect AppName");
+                }
+                iMetadataStore.PutApp(value);
+            }
+
+            public AppMetadata ReadAppMetadata()
+            {
+                return iMetadataStore.GetApp(AppName);
+            }
+
+            public KnownApp(string aAppName, IAppMetadataStore aMetadataStore, IAppsDirectory aAppsDirectory, IZipVerifier aZipVerifier)
+            {
+                AppName = aAppName;
+                iMetadataStore = aMetadataStore;
+                iZipVerifier = aZipVerifier;
+                iAppsDirectory = aAppsDirectory;
+            }
+
+            public PublishedApp PublishedApp { get; private set; }
+            public bool IsPublished { get { return PublishedApp != null; } }
+            public bool DirectoryExists { get { return iAppsDirectory.DoesSubdirectoryExist(AppName); } }
+            public bool HasCodeLoaded { get; private set; }
+
+            public void Publish(PublishedApp aPublishedApp)
+            {
+                // Regardless of whether we succeed to publish, record that we've
+                // loaded code for this app, because it will stop us from deleting
+                // it later, even if it is first unpublished.
+                HasCodeLoaded = true;
+                if (IsPublished)
+                {
+                    throw new InvalidOperationException("App is already published.");
+                }
+                if (aPublishedApp.App.Name != AppName)
+                {
+                    throw new ArgumentException(String.Format("IApp has incorrect Name. (Expected '{0}', got '{1}'.)", AppName, aPublishedApp.App.Name));
+                }
+                PublishedApp = aPublishedApp;
+            }
+
+            public void DeleteNow()
+            {
+                if (IsPublished)
+                {
+                    throw new InvalidOperationException("Cannot delete a published app.");
+                }
+                if (HasCodeLoaded)
+                {
+                    throw new InvalidOperationException("Cannot delete an app while it has code loaded.");
+                }
+                Logger.InfoFormat("Delete app {0}", AppName);
+                iAppsDirectory.DeleteSubdirectory(AppName, true);
+                iMetadataStore.DeleteApp(AppName);
+            }
+
+            void ScheduleDelete()
+            {
+                Logger.InfoFormat("Schedule delete on restart for {0}", AppName);
+                var metadata = ReadAppMetadata();
+                metadata.DeletePending = true;
+                WriteAppMetadata(metadata);
+            }
+
+            public void Delete()
+            {
+                if (HasCodeLoaded)
+                {
+                    ScheduleDelete();
+                }
+                else
+                {
+                    DeleteNow();
+                }
+            }
+
+            public void Unpublish()
+            {
+                if (!IsPublished)
+                {
+                    throw new InvalidOperationException("App is not published.");
+                }
+                PublishedApp.Dispose();
+                PublishedApp = null;
+            }
+
+            public void Upgrade(string aPersistentLocalPath)
+            {
+                ScheduleUpgrade(aPersistentLocalPath);
+                if (!HasCodeLoaded)
+                {
+                    UpgradeNow();
+                }
+            }
+
+            void ScheduleUpgrade(string aPersistentLocalPath)
+            {
+                Logger.InfoFormat("Schedule upgrade on restart for {0}", AppName);
+                var metadata = ReadAppMetadata();
+                metadata.LocalInstallLocation = aPersistentLocalPath;
+                metadata.InstallPending = true;
+                // If we previously scheduled a delete, the install supercedes it.
+                metadata.DeletePending = false;
+                WriteAppMetadata(metadata);
+            }
+
+            public void UpgradeNow()
+            {
+                Logger.InfoFormat("Install/upgrade app {0}", AppName);
+                if (HasCodeLoaded)
+                {
+                    throw new InvalidOperationException("Cannot upgrade an app while it has code loaded.");
+                }
+                var metadata = ReadAppMetadata();
+                string zipAppName = iZipVerifier.VerifyPluginZip(metadata.LocalInstallLocation);
+                if (zipAppName != AppName)
+                {
+                    metadata.InstallPending = false;
+                    WriteAppMetadata(metadata);
+                    Logger.WarnFormat(
+                        "App upgrade rejected because app name didn't match. Expected '{0}', but found '{1}' inside '{2}'.",
+                        AppName, zipAppName, metadata.LocalInstallLocation);
+                    return;
+                }
+                if (iAppsDirectory.DoesSubdirectoryExist(AppName))
+                {
+                    iAppsDirectory.DeleteSubdirectory(AppName, true);
+                }
+                iAppsDirectory.InstallZipFile(metadata.LocalInstallLocation);
+                metadata.InstallPending = false;
+                WriteAppMetadata(metadata);
+            }
+
+            public void ResolvePendingOperations()
+            {
+                if (HasCodeLoaded)
+                {
+                    throw new InvalidOperationException("Cannot resolve pending operations while app has code loaded.");
+                }
+                var metadata = ReadAppMetadata();
+                if (metadata.DeletePending)
+                {
+                    DeleteNow();
+                    return;
+                }
+                if (metadata.InstallPending)
+                {
+                    UpgradeNow();
+                }
+            }
+            
+        }
+
+        private readonly List<HistoryItem> iHistory;
+        readonly IAppServices iFullPrivilegeAppServices;
+        private readonly IConfigFileCollection iConfiguration;
+        bool iAppsStarted;
+        readonly IAddinManager iAddinManager;
+        readonly IAppsDirectory iAppsDirectory;
+        readonly IStoreDirectory iStoreDirectory;
+        readonly Func<DvDevice, IApp, IDvProviderOpenhomeOrgApp1> iAppProviderConstructor;
+        readonly IZipReader iZipReader;
+        readonly IAppMetadataStore iMetadataStore;
+        readonly IZipVerifier iZipVerifier;
+        readonly INodeRebooter iNodeRebooter;
+        private readonly Dictionary<string, string> iUdnsToAppNames = new Dictionary<string, string>();
+        private readonly Dictionary<string, string> iAppNamesToUdns = new Dictionary<string, string>();
+        Dictionary<string, KnownApp> iKnownApps = new Dictionary<string, KnownApp>();
+
+        public List<HistoryItem> History
+        {
+            get { return new List<HistoryItem>(iHistory); }
+        }
+
+        public ManagerImpl(
+            IAppServices aFullPrivilegeAppServices,
+            IConfigFileCollection aConfiguration,
+            IAddinManager aAddinManager,
+            IAppsDirectory aAppsDirectory,
+            IStoreDirectory aStoreDirectory,
+            Func<DvDevice, IApp, IDvProviderOpenhomeOrgApp1> aAppProviderConstructor,
+            IZipReader aZipReader,
+            IAppMetadataStore aMetadataStore,
+            IZipVerifier aZipVerifier,
+            bool aAutoStart)
+        {
+            iFullPrivilegeAppServices = aFullPrivilegeAppServices;
+            iZipVerifier = aZipVerifier;
+            iZipReader = aZipReader;
+            iMetadataStore = aMetadataStore;
+            iConfiguration = aConfiguration;
+            iAddinManager = aAddinManager;
+            iAppsDirectory = aAppsDirectory;
+            iStoreDirectory = aStoreDirectory;
+            iAppProviderConstructor = aAppProviderConstructor;
+            iNodeRebooter = iFullPrivilegeAppServices.NodeRebooter;
+            //iApps = new Dictionary<string, PublishedApp>();
+            iHistory = new List<HistoryItem>();
+            // !!!! restore previous history from disk
+            iKnownApps = new Dictionary<string, KnownApp>();
+            foreach (var app in iMetadataStore.LoadAppsFromStore())
+            {
+                GetOrCreateKnownApp(app.AppName);
+            }
+            foreach (string dirname in iAppsDirectory.GetAppSubdirectories())
+            {
+                GetOrCreateKnownApp(dirname);
+            }
+            if (aAutoStart)
+            {
+                Start();
+            }
+        }
+
+        KnownApp GetOrCreateKnownApp(string aAppName)
+        {
+            if (aAppName == null) throw new ArgumentNullException("aAppName");
+            KnownApp app;
+            if (iKnownApps.TryGetValue(aAppName, out app))
+            {
+                return app;
+            }
+            app = new KnownApp(aAppName, iMetadataStore, iAppsDirectory, iZipVerifier);
+            if (app.ReadAppMetadata() == null)
+            {
+                app.WriteAppMetadata(
+                    new AppMetadata
+                    {
+                        AppName = aAppName,
+                        DeletePending = false,
+                        GrantedPermissions = new List<string>(),
+                        InstallPending = false,
+                        LocalInstallLocation = null
+                    });
+            }
+            iKnownApps.Add(aAppName, app);
+            return app;
+        }
+
+        public void Start()
+        {
+            if (iAppsStarted) return;
+            iAppsStarted = true;
+            foreach (var knownApp in iKnownApps.Values)
+            {
+                knownApp.ResolvePendingOperations();
+            }
+            //iInitialising = false;
             UpdateAppList();
+            //iInitialising = true;
+        }
+
+        /// <summary>
+        /// Install a plugin.
+        /// </summary>
+        /// <param name="aPersistentZipFile"></param>
+        /// <remarks>
+        /// The zip file should not be in a location writeable by anyone
+        /// untrusted - no attempt is made to ensure that the file isn't
+        /// modified while being read, meaning that malicious timing of
+        /// modifications could be used to circumvent some verification.
+        /// </remarks>
+        public void Install(string aPersistentZipFile)
+        {
+            //string target = System.IO.Path.Combine(iInstallBase, "Temp"); // hardcoding of 'Temp' not threadsafe
+            string appDirName = iZipVerifier.VerifyPluginZip(aPersistentZipFile);
+            var knownApp = GetOrCreateKnownApp(appDirName);
+            knownApp.Upgrade(aPersistentZipFile);
+            if (knownApp.ReadAppMetadata().InstallPending)
+            {
+                iNodeRebooter.SoftRestartNode();
+            }
+            else
+            {
+                UpdateAppList();
+            }
+        }
+
+        
+
+        public void UninstallByUdn(string aUdn)
+        {
+            UninstallByUdn(aUdn, true);
+            UpdateAppList();
+        }
+
+        public void UninstallByAppName(string aAppName)
+        {
+            UninstallByAppName(aAppName, true);
         }
 
         public void UninstallAllApps()
@@ -244,35 +474,51 @@ namespace OpenHome.Os.AppManager
             throw new NotImplementedException();
         }
 
-        private bool Uninstall(string aUdn, bool aUpdateHistory)
+        private bool UninstallByUdn(string aUdn, bool aUpdateHistory)
         {
-            PublishedApp app;
-            if (!iApps.TryGetValue(aUdn, out app))
+            string appName;
+            if (!iUdnsToAppNames.TryGetValue(aUdn, out appName))
             {
                 return false;
             }
-            app.App.Stop();
-            if (aUpdateHistory)
+            return UninstallByAppName(appName, aUpdateHistory);
+        }
+
+        private bool UninstallByAppName(string aAppName, bool aUpdateHistory)
+        {
+            KnownApp app;
+            if (!iKnownApps.TryGetValue(aAppName, out app))
             {
-                iHistory.Add(new HistoryItem(app.App.Name, HistoryItem.ItemType.EUninstall, app.App.Udn));
+                return false;
             }
-            string appDir = iAppsDirectory.GetAssemblySubdirectory(app.App.GetType().Assembly);
-            app.App.Dispose();
-            iAppsDirectory.DeleteSubdirectory(appDir, true);
-            iApps.Remove(aUdn);
+            app.Unpublish();
+
+            string udn = iAppNamesToUdns[aAppName];
+
+            iAppNamesToUdns.Remove(aAppName);
+            iUdnsToAppNames.Remove(udn);
+
+            app.Delete();
+            if (!app.DirectoryExists)
+            {
+                iKnownApps.Remove(aAppName);
+            }
             return true;
         }
 
         public void Stop()
         {
             if (!iAppsStarted) return;
-            //iAddinManager.RemoveExtensionNodeHandler("/ohOs/App", AppListChanged);
             List<Exception> exceptions = new List<Exception>();
-            foreach (var app in iApps.Values)
+            foreach (var app in iKnownApps.Values)
             {
+                if (!app.IsPublished)
+                {
+                    continue;
+                }
                 try
                 {
-                    app.Dispose();
+                    app.Unpublish();
                 }
                 catch (Exception e)
                 {
@@ -283,7 +529,8 @@ namespace OpenHome.Os.AppManager
             {
                 throw new Exception(String.Format("{0} exceptions during Dispose().", exceptions.Count), exceptions[0]);
             }
-            iApps.Clear();
+            iUdnsToAppNames.Clear();
+            iAppNamesToUdns.Clear();
             // !!!! write history to disk (here or earlier)
         }
 
@@ -324,6 +571,18 @@ namespace OpenHome.Os.AppManager
                 return;
             }
 
+            KnownApp knownApp = GetOrCreateKnownApp(appDirName);
+            if (knownApp.IsPublished)
+            {
+                Logger.ErrorFormat("Bad app: multiple apps started from directory {0}.", appDirName);
+                return;
+            }
+            AppMetadata appMetadata = knownApp.ReadAppMetadata();
+            if (!appMetadata.GrantedPermissions.Contains("root"))
+            {
+                Logger.WarnFormat("App {0} is running with more permissions that it needs.", knownApp.AppName);
+            }
+
             AppContext appContext = new AppContext
             {
                 Configuration = appConfig,
@@ -338,18 +597,18 @@ namespace OpenHome.Os.AppManager
             app.Init(appContext);
 
             string udn = app.Udn;
-            iAppDirsToAppUdns[appDirName] = udn;
 
             IDvDevice device = CreateAppDevice(app, udn);
             appContext.Device = device.RawDevice;
 
             var provider = iAppProviderConstructor(device.RawDevice, app);
             var change = HistoryItem.ItemType.EInstall;
-            if (!iInitialising && Uninstall(udn, false))
-            {
-                change = HistoryItem.ItemType.EUpdate;
-            }
-            iApps.Add(udn, new PublishedApp(app, device, provider));
+
+            // TODO: Fix History. It no longer bears any relation to how apps actually work.
+            //if (!iInitialising && Uninstall(udn, false))
+            //{
+            //    change = HistoryItem.ItemType.EUpdate;
+            //}
 
             try
             {
@@ -363,6 +622,9 @@ namespace OpenHome.Os.AppManager
                 throw;
             }
             device.SetEnabled();
+            knownApp.Publish(new PublishedApp(app, device, provider));
+            iUdnsToAppNames[udn] = appDirName;
+            iAppNamesToUdns[appDirName] = udn;
             iHistory.Add(new HistoryItem(app.Name, change, udn));
         }
 

@@ -6,7 +6,7 @@ using System.IO.Pipes;
 using System.Linq;
 using System.Threading;
 using System.Xml.Linq;
-using Mono.Addins;
+//using Mono.Addins;
 using ohWidget.Utils;
 using OpenHome.Os.AppManager;
 using OpenHome.Os.Platform;
@@ -16,6 +16,7 @@ using OpenHome.Widget.Nodes.Logging;
 //using OpenHome.Widget.Protocols.SimpleUpnp;
 using OpenHome.Net.ControlPoint;
 using OpenHome.Net.Core;
+using OpenHome.Widget.Nodes.Threading;
 using OpenHome.Widget.Utils;
 using OpenHome.Net.Device;
 using log4net;
@@ -57,6 +58,28 @@ namespace Node
         public bool MultiNodeEnabled { get; set; }
     }
 
+    class NodeRebooter : INodeRebooter
+    {
+        readonly ConsoleInterface iConsole;
+        readonly Channel<int> iExitChannel;
+
+        public NodeRebooter(ConsoleInterface aConsole, Channel<int> aExitChannel)
+        {
+            iConsole = aConsole;
+            iExitChannel = aExitChannel;
+        }
+
+        public void RebootNode()
+        {
+            iConsole.Quit(10);
+            iExitChannel.Send(10);
+        }
+        public void SoftRestartNode()
+        {
+            iConsole.Quit(9);
+            iExitChannel.Send(9);
+        }
+    }
 
     public class Program
     {
@@ -82,14 +105,14 @@ namespace Node
             }
         }
         static ILog Logger = LogManager.GetLogger(typeof(Program));
-        static void Main(string[] aArgs)
+        static int Main(string[] aArgs)
         {
             Options options = new Options();
             OptionParser parser = options.Parse(aArgs);
             if (parser.HelpSpecified())
-                return;
+                return 0;
 
-            RunAsMainProcess(options);
+            return RunAsMainProcess(options);
 
             // Subprocess code doesn't work on Linux.
             //if (options.Subprocess.Value == null)
@@ -154,8 +177,10 @@ namespace Node
 
         }
 
-        static void RunAsMainProcess(Options aOptions)
+        static int RunAsMainProcess(Options aOptions)
         {
+            int exitCode = 0;
+            Channel<int> exitChannel = new Channel<int>(1);
             if (aOptions.Subprocess.Value != null && aOptions.Subprocess.Value != "no")
             {
                 string[] handleStrings = aOptions.Subprocess.Value.Split(new[] { ',' });
@@ -256,7 +281,8 @@ namespace Node
 
                     var commandDispatcher = new CommandDispatcher();
                     var consoleInterface = new ConsoleInterface(commandDispatcher);
-                    commandDispatcher.AddCommand("exit", aArguments => consoleInterface.Running = false, "Stop and close this OpenHome Node process.");
+                    var nodeRebooter = new NodeRebooter(consoleInterface, exitChannel);
+                    commandDispatcher.AddCommand("exit", aArguments => consoleInterface.Quit(0), "Stop and close this OpenHome Node process.");
                     commandDispatcher.AddCommand("help", aArguments => Console.WriteLine(commandDispatcher.DescribeAllCommands()), "Show a list of available commands.");
                     commandDispatcher.AddCommand("logdump", aArguments => Console.WriteLine(logSystem.LogReader.GetLogTail(10000)), "Dump the current contents of the logfile.");
                     commandDispatcher.AddCommand("log", aArguments => Logger.Debug(aArguments), "Add a message to the log.");
@@ -292,7 +318,7 @@ namespace Node
                                                    DeviceFactory = deviceFactory,
                                                    LogController = logSystem.LogController,
                                                    LogReader = logSystem.LogReader,
-                                                   NodeRebooter = null,
+                                                   NodeRebooter = nodeRebooter,
                                                    UpdateService = null
                                                };
 
@@ -317,6 +343,17 @@ namespace Node
                                                                                 Console.Error.WriteLine(e);
                                                                             }
                                                                         }, "Install an app from a file.");
+                            commandDispatcher.AddCommand("uninstall", arguments =>
+                                                                        {
+                                                                            try
+                                                                            {
+                                                                                appManager.UninstallByAppName(arguments);
+                                                                            }
+                                                                            catch (Exception e)
+                                                                            {
+                                                                                Console.Error.WriteLine(e);
+                                                                            }
+                                                                        }, "Uninstall an app by name.");
                             appManager.Start();
                             using (var appController = new AppController(nodeGuid))
                             {
@@ -325,11 +362,11 @@ namespace Node
                                 //appManager.Install(System.IO.Path.Combine(exePath, "ohOs.TestApp1.zip"));
                                 if (!(sysConfig.GetAttributeAsBoolean(e=>e.Elements("console").Attributes("enable").FirstOrDefault()) ?? true))
                                 {
-                                    WaitForever();
+                                    exitCode = WaitForExit(exitChannel);
                                 }
                                 else
                                 {
-                                    RunConsole(consoleInterface, sysConfig.GetAttributeAsBoolean(e=>e.Element("console").Attribute("prompt")) ?? true);
+                                    exitCode = RunConsole(consoleInterface, sysConfig.GetAttributeAsBoolean(e=>e.Element("console").Attribute("prompt")) ?? true, exitChannel);
                                 }
                                 Logger.Info("Shutting down node...");
                                 if (sysConfig.GetAttributeAsBoolean(e=>e.Elements("console").Attributes("enable").FirstOrDefault()) ?? true)
@@ -347,15 +384,16 @@ namespace Node
                 }
             }
             Logger.Info("Shutdown complete.");
+            return exitCode;
         }
 
-        private static void RunConsole(ConsoleInterface aConsoleInterface, bool aSilent)
+        private static int RunConsole(ConsoleInterface aConsoleInterface, bool aSilent, Channel<int> aExitChannel)
         {
             if (!aSilent)
             {
                 Console.WriteLine("Type exit to quit.");
             }
-            aConsoleInterface.RunConsole();
+            int exitCode = aConsoleInterface.RunConsole();
             if (aConsoleInterface.EndOfInput)
             {
                 Console.WriteLine();
@@ -367,16 +405,16 @@ namespace Node
                 // have a proper daemon mode, we should tolerate our input
                 // ending.
 
-                WaitForever();
+                exitCode = WaitForExit(aExitChannel);
 
                 // We will never exit the WaitOne.
             }
+            return exitCode;
         }
 
-        private static void WaitForever()
+        private static int WaitForExit(Channel<int> aExitChannel)
         {
-            System.Threading.Semaphore sem = new System.Threading.Semaphore(0, 1);
-            sem.WaitOne();
+            return aExitChannel.Receive();
         }
     }
 
