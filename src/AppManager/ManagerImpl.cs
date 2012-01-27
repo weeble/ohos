@@ -339,7 +339,7 @@ namespace OpenHome.Os.AppManager
         readonly IAppsDirectory iAppsDirectory;
         readonly IStoreDirectory iStoreDirectory;
         readonly Func<DvDevice, IApp, IDvProviderOpenhomeOrgApp1> iAppProviderConstructor;
-        readonly IZipReader iZipReader;
+        //readonly IZipReader iZipReader;
         readonly IAppMetadataStore iMetadataStore;
         readonly IZipVerifier iZipVerifier;
         readonly INodeRebooter iNodeRebooter;
@@ -366,7 +366,7 @@ namespace OpenHome.Os.AppManager
         {
             iFullPrivilegeAppServices = aFullPrivilegeAppServices;
             iZipVerifier = aZipVerifier;
-            iZipReader = aZipReader;
+            //iZipReader = aZipReader;
             iMetadataStore = aMetadataStore;
             iConfiguration = aConfiguration;
             iAddinManager = aAddinManager;
