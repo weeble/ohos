@@ -6,7 +6,7 @@
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{192EAE4A-07F8-4608-AC8C-3C07EDCDEF11}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>OpenHome.Os.Host</RootNamespace>
     <AssemblyName>OpenHome.Os.Host</AssemblyName>
