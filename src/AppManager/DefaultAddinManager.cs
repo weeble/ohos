@@ -48,6 +48,12 @@ namespace OpenHome.Os.AppManager
                     {
                         addin.Container.ComposeParts(addin);
                     }
+                    catch (ChangeRejectedException)
+                    {
+                        Logger.ErrorFormat("App is broken: {0}", dirname);
+                        continue;
+
+                    }
                     catch (System.Reflection.ReflectionTypeLoadException rtle)
                     {
                         Logger.ErrorFormat("ReflectionTypeLoadException while loading app {0}:\n{1}", dirname, rtle.LoaderExceptions[0]);

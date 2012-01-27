@@ -396,11 +396,11 @@ namespace OpenHome.Os.AppManager
         {
             if (aAppName == null) throw new ArgumentNullException("aAppName");
             KnownApp app;
-            if (iKnownApps.TryGetValue(aAppName, out app))
+            if (!iKnownApps.TryGetValue(aAppName, out app))
             {
-                return app;
+                app = new KnownApp(aAppName, iMetadataStore, iAppsDirectory, iZipVerifier);
+                iKnownApps[aAppName] = app;
             }
-            app = new KnownApp(aAppName, iMetadataStore, iAppsDirectory, iZipVerifier);
             if (app.ReadAppMetadata() == null)
             {
                 app.WriteAppMetadata(
@@ -413,7 +413,6 @@ namespace OpenHome.Os.AppManager
                         LocalInstallLocation = null
                     });
             }
-            iKnownApps.Add(aAppName, app);
             return app;
         }
 
