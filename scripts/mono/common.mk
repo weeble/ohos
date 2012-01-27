@@ -35,6 +35,7 @@ REQUIRED_ASSEMBLIES = CustomMarshalers               \
                       System.Transactions            \
                       System.Xml.Linq                \
                       System.Xml                     \
+                      System.ComponentModel.Composition \
                       System
 
 ifeq ($(DEB_HOST_ARCH),armel)
