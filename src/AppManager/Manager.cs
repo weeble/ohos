@@ -14,6 +14,7 @@ namespace OpenHome.Os.AppManager
         void UninstallByAppName(string aAppName);
         void UninstallAllApps();
         void Stop();
+        IEnumerable<AppInfo> GetApps();
     }
 
     public class Manager : IManager
@@ -112,6 +113,14 @@ namespace OpenHome.Os.AppManager
             lock (iLock)
             {
                 iImpl.Stop();
+            }
+        }
+
+        public IEnumerable<AppInfo> GetApps()
+        {
+            lock (iLock)
+            {
+                return iImpl.GetApps();
             }
         }
     }

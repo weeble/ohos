@@ -334,28 +334,8 @@ namespace Node
                         }
                         else
                         {
-                            commandDispatcher.AddCommand("install", arguments =>
-                                                                        {
-                                                                            try
-                                                                            {
-                                                                                appManager.Install(arguments);
-                                                                            }
-                                                                            catch (Exception e)
-                                                                            {
-                                                                                Console.Error.WriteLine(e);
-                                                                            }
-                                                                        }, "Install an app from a file.");
-                            commandDispatcher.AddCommand("uninstall", arguments =>
-                                                                        {
-                                                                            try
-                                                                            {
-                                                                                appManager.UninstallByAppName(arguments);
-                                                                            }
-                                                                            catch (Exception e)
-                                                                            {
-                                                                                Console.Error.WriteLine(e);
-                                                                            }
-                                                                        }, "Uninstall an app by name.");
+                            var appManagerConsoleCommands = new AppManagerConsoleCommands(appManager);
+                            appManagerConsoleCommands.Register(commandDispatcher);
                             appManager.Start();
                             using (var appController = new AppController(nodeGuid))
                             {
