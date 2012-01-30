@@ -410,7 +410,7 @@ csharp_projects = [
             references=[]
             ),
         CSharpProject(
-            name="ohOs.Remote", dir="Remote", type="exe",
+            name="ohOs.Remote", dir="Remote", type="library",
             categories=["core"],
             packages=['ohnet', 'log4net', 'systemxmllinq'],
             references=[

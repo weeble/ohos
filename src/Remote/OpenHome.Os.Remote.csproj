@@ -6,7 +6,7 @@
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{F0A29A4A-BB67-49DC-8E06-894484F72049}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>OpenHome.Os.Remote</RootNamespace>
     <AssemblyName>OpenHome.Os.Remote</AssemblyName>

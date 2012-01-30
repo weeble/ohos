@@ -42,10 +42,13 @@ namespace OpenHome.Os.Remote
             iHttpServer = new HttpServer(kNumServerThreads);
             iHttpServer.Start(kRemoteAccessPort, ProcessRequest);
         }
-        internal void Stop()
+        public void Stop()
         {
-            iHttpServer.Dispose();
-            iHttpServer = null;
+            if (iHttpServer != null)
+            {
+                iHttpServer.Dispose();
+                iHttpServer = null;
+            }
         }
         public void ClearAuthenticatedClients()
         {
@@ -111,7 +114,7 @@ namespace OpenHome.Os.Remote
                 lock (this)
                 {
                     iAuthenticatedClients.Add(guid, guid);
-                    // TODO: write clients to xml file
+                    // TODO: write clients to xml file (iff not using session cookies)
                 }
                 aResponse.AppendCookie(new Cookie(kAuthCookieName, guid));
                 aResponse.StatusCode = (int)HttpStatusCode.OK;
@@ -305,7 +308,7 @@ namespace OpenHome.Os.Remote
             while ((line = reader.ReadLine()) != null)
             {
                 if (line.StartsWith(wsPortDecl))
-                    line = String.Format("{0} {1};", wsPortDecl, 8080); // TODO: remove hard-coding of port
+                    line = String.Format("{0} {1};", wsPortDecl, kRemoteAccessPort);
                 line += "\r\n";
                 contentLength += line.Length;
                 byte[] buf = Encoding.UTF8.GetBytes(line);
