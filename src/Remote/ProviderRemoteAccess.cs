@@ -97,7 +97,10 @@ namespace OpenHome.Os.Remote
         }
         protected override void ClearAuthenticatedClients(IDvInvocation aInvocation)
         {
-            throw new NotImplementedException();
+            lock (this)
+            {
+                iProxyServer.ClearAuthenticatedClients();
+            }
         }
         private string UserDataFileName()
         {
