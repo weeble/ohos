@@ -54,8 +54,8 @@ namespace Node
     class NodeInformation : INodeInformation
     {
         public uint? WebSocketPort { get; set; }
-
         public bool MultiNodeEnabled { get; set; }
+        public uint DvServerPort { get; set; }
     }
 
     class NodeRebooter : INodeRebooter
@@ -247,6 +247,7 @@ namespace Node
             {
                 initParams.DvEnableBonjour = true;
             }
+            uint dvServerPort = initParams.DvUpnpWebServerPort;
             //UpdateServiceMode updateMode =
             //    (optionUpdateDir.Value==null) ?
             //        UpdateServiceMode.Disabled :
@@ -311,7 +312,8 @@ namespace Node
                                                    //StorePath = storeDirectory,
                                                    NodeInformation = new NodeInformation{
                                                        WebSocketPort = wsEnabled ? wsPort : (uint?)null,
-                                                       MultiNodeEnabled = sysConfig.GetAttributeAsBoolean(e=>e.Elements("multinode").Attributes("enable").FirstOrDefault()) ?? false
+                                                       MultiNodeEnabled = sysConfig.GetAttributeAsBoolean(e=>e.Elements("multinode").Attributes("enable").FirstOrDefault()) ?? false,
+                                                       DvServerPort = dvServerPort
                                                    },
                                                    CommandRegistry = commandDispatcher,
                                                    CpDeviceListFactory = deviceListFactory,

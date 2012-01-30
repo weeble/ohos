@@ -53,11 +53,20 @@ namespace OpenHome.Os.AppManager
 
     public class AppContext : IAppContext
     {
-        public IAppServices Services { get; set; }
-        public string StaticPath { get; set; }
-        public string StorePath { get; set; }
-        public IConfigFileCollection Configuration { get; set; }
+        public IAppServices Services { get; private set; }
+        public string StaticPath { get; private set; }
+        public string StorePath { get; private set; }
+        public IConfigFileCollection Configuration { get; private set; }
         public DvDevice Device { get; set; }
+
+        public AppContext(IAppServices aServices, string aStaticPath, string aStorePath, IConfigFileCollection aConfiguration, DvDevice aDevice)
+        {
+            Services = aServices;
+            StaticPath = aStaticPath;
+            StorePath = aStorePath;
+            Configuration = aConfiguration;
+            Device = aDevice;
+        }
     }
 
 
@@ -582,14 +591,11 @@ namespace OpenHome.Os.AppManager
                 Logger.WarnFormat("App {0} is running with more permissions that it needs.", knownApp.AppName);
             }
 
-            AppContext appContext = new AppContext
-            {
-                Configuration = appConfig,
-                Device = null,
-                Services = iFullPrivilegeAppServices,
-                StaticPath = iAppsDirectory.GetAbsolutePathForSubdirectory(appDirName),
-                StorePath = iStoreDirectory.GetAbsolutePathForAppDirectory(appDirName)
-            };
+            AppContext appContext = new AppContext(iFullPrivilegeAppServices,
+                iAppsDirectory.GetAbsolutePathForSubdirectory(appDirName),
+                iStoreDirectory.GetAbsolutePathForAppDirectory(appDirName), 
+                appConfig,
+                null);
 
             // Initialize the app to allow it to read its config files before we
             // query its Udn.

@@ -38,6 +38,11 @@ namespace OpenHome.Os.AppManager
         /// other nodes on the network.
         /// </summary>
         bool MultiNodeEnabled { get; }
+
+        /// <summary>
+        /// Port the device's web server is running on.
+        /// </summary>
+        uint DvServerPort { get; }
     }
 
     public interface IAppServices
