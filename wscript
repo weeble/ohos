@@ -1,5 +1,4 @@
 from os import path
-import shutil
 import os
 import zipfile
 import tarfile
@@ -7,6 +6,17 @@ import tarfile
 from wafmodules.configuration import (
     CSharpDependencyCollection,
     get_platform)
+
+from wafmodules.filetasks import (
+    copy_task,
+    #glob_files_src,
+    #glob_files_root,
+    #specify_files_src,
+    specify_files_bld,
+    #specify_files_root,
+    FileTransfer,
+    #combine_transfers,
+    find_resource_or_fail)
 
 from waflib import Build
 from waflib.Node import Node
@@ -217,13 +227,6 @@ def configure(conf):
 
 # == Build support ==
 
-def copy_task(task):
-    if not (len(task.inputs) == len(task.outputs)):
-        raise Exception("copy_task requires the same number of inputs and outputs.")
-    index = 0
-    for ignore in task.inputs:
-        shutil.copy2(task.inputs[index].abspath(), task.outputs[index].abspath())
-        index += 1
 
 def get_node(bld, node_or_filename):
     if isinstance(node_or_filename, Node):
@@ -274,13 +277,6 @@ class OhOsApp(object):
     def __init__(self, name, files):
         self.name = name
         self.files = files
-
-def find_resource_or_fail(bld, root, path):
-    node = root.find_resource(path)
-    if node is None:
-        bld.fatal("Could not find resource '%s' starting from root '%s'." % (path, root))
-    return node
-
 
 def create_csharp_tasks(bld, projects, csharp_dependencies):
     for project in projects:
@@ -517,12 +513,8 @@ def build(bld):
     create_csharp_tasks(bld, [prj for prj in csharp_projects if categories_to_build.intersection(prj.categories)], csharp_dependencies)
 
     for ohos_app in ohos_apps:
-        create_zip_task(
-            bld,
-            ohos_app.name + ".zip",
-            ".",
-            ".",
-            ohos_app.files)
+        app_zip_transfer = FileTransfer(specify_files_bld(bld, *ohos_app.files)).targets_flattened().targets_prefixed(ohos_app.name)
+        app_zip_transfer.create_zip_task(bld, ohos_app.name + '.zip')
 
     for service in upnp_services:
         for prefix in ['Dv', 'Cp']:

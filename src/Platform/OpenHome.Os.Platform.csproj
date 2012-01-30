@@ -30,6 +30,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Collections\Bimap.cs" />
     <Compile Include="Collections\DisposableList.cs" />
     <Compile Include="Collections\IdDictionary.cs" />
     <Compile Include="Collections\IDisposableContainer.cs" />
