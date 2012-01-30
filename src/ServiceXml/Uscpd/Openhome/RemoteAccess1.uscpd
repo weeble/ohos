@@ -3,13 +3,14 @@ var PublicUri : uri;
 var Enabled : boolean;
 var PasswordSet : boolean;
 
+type $Handle : ui4;
 type $UName : string;
 type $Success : boolean;
 type $SuggestedNames : string;
 type $Password : string;
 type $Enable : boolean;
 
-action SetUserName(UserName : in $UName, Succeeded : out $Success, AlternativeNames : out $SuggestedNames);
-action SetPassword(Password : in $Password);
+action SetUserName(Handle : in $Handle, UserName : in $UName, Succeeded : out $Success, AlternativeNames : out $SuggestedNames);
+action SetPassword(Handle : in $Handle, Password : in $Password);
 action Enable(Enable : in $Enable);
 action ClearAuthenticatedClients();

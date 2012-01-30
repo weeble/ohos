@@ -61,27 +61,31 @@ namespace OpenHome.Os.Remote
                 return (PropertyUserName() == aUserName && iPassword == aPassword);
             }
         }
-        protected override void SetUserName(IDvInvocation aInvocation, string aUserName, out bool aSucceeded, out string aAlternativeNames)
+        protected override void SetUserName(IDvInvocation aInvocation, uint aHandle, string aUserName, out bool aSucceeded, out string aAlternativeNames)
         {
             lock (this)
             {
                 // TODO: call web service to set new username (or clear account if aUserName.Length==0 ??)
 
-                SetPropertyUserName(aUserName);
+                if (SetPropertyUserName(aUserName))
+                    iProxyServer.ClearAuthenticatedClients();
                 if (aUserName.Length == 0)
                     Enable(false);
                 aSucceeded = true;
                 aAlternativeNames = "";
             }
-            throw (new ActionDisabledError());
         }
-        protected override void SetPassword(IDvInvocation aInvocation, string aPassword)
+        protected override void SetPassword(IDvInvocation aInvocation, uint aHandle, string aPassword)
         {
             lock (this)
             {
-                iPassword = aPassword;
-                SetPropertyPasswordSet((iPassword.Length > 0));
-                WriteUserData();
+                if (iPassword != aPassword)
+                {
+                    iPassword = aPassword;
+                    SetPropertyPasswordSet((iPassword.Length > 0));
+                    WriteUserData();
+                    iProxyServer.ClearAuthenticatedClients();
+                }
             }
         }
         protected override void Enable(IDvInvocation aInvocation, bool aEnable)
