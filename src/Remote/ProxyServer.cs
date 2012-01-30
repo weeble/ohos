@@ -23,7 +23,7 @@ namespace OpenHome.Os.Remote
 
         private const string kAuthCookieName = "remoteId";
         private const int kNumServerThreads = 8;
-        private const int kRemoteAccessPort = 8082; // TODO: hard-coded port.  Can we be sure no ohNet server will have been allocated this before we run?
+        private const int kRemoteAccessPort = 55170; // TODO: hard-coded port.  Can we be sure no ohNet server will have been allocated this before we run?
 
         public ProxyServer(uint aNetworkAdapter)
         {
