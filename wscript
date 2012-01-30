@@ -555,6 +555,7 @@ def build(bld):
                 "CpOpenhomeOrgApp1.dll",
                 "CpOpenhomeOrgAppManager1.js",
                 "CpOpenhomeOrgApp1.js",
+                "CpOpenhomeOrgRemoteAccess1.js",
             ] +
             get_dependency_files(ohnet) +
             get_dependency_files(sharpziplib) +
