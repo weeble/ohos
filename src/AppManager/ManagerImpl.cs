@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.IO;
 using System.Reflection;
@@ -11,6 +12,7 @@ using ICSharpCode.SharpZipLib.Zip;
 using System.Collections.Generic;
 using OpenHome.Net.Device.Providers;
 using OpenHome.Os.Platform;
+using OpenHome.Os.Platform.Collections;
 using OpenHome.Widget.Nodes;
 
 // !!!! need IOsContext definition
@@ -94,34 +96,14 @@ namespace OpenHome.Os.AppManager
                 foreach (ZipEntry entry in zf)
                 {
                     string fname = entry.Name;
+                    Debug.Assert(fname != null); // Zip library should assure this.
                     if (Path.IsPathRooted(fname))
                     {
                         throw new BadPluginException("Bad plugin: contains absolute paths.");
                     }
-                    string path = fname;
-                    string component;
-                    while (true)
-                    {
-                        component = Path.GetFileName(path);
-                        if (component==".." || component==".")
-                        {
-                            throw new BadPluginException("Bad plugin: contains special path components.");
-                        }
-                        string parent = Path.GetDirectoryName(path);
-                        if (parent=="")
-                        {
-                            if (component=="")
-                            {
-                                // Zip files use entries like "foo\" to indicate an empty
-                                // directory called foo. The top level directory should not
-                                // be empty.
-                                throw new BadPluginException("Bad plugin: empty directory entry.");
-                            }
-                            topLevelDirectories.Add(component);
-                            break;
-                        }
-                        path = parent;
-                    }
+
+                    string topLevelDirectory = VerifyPluginZipEntry(fname);
+                    topLevelDirectories.Add(topLevelDirectory);
                 }
             }
             catch (NotSupportedException)
@@ -133,6 +115,57 @@ namespace OpenHome.Os.AppManager
                 throw new BadPluginException("Bad plugin: doesn't have exactly 1 subdirectory.");
             }
             return topLevelDirectories.First();
+        }
+
+        /// <summary>
+        /// Verify that the given filename in a plugin zip-file:
+        ///     1. Isn't absolute.
+        ///     2. Contains no ".." segments.
+        ///     3. Is a file (not a directory).
+        ///     4. Isn't a file at the top-level.
+        /// </summary>
+        /// <param name="aFname"></param>
+        /// <returns>The top-level directory that contains the file.</returns>
+        static string VerifyPluginZipEntry(string aFname)
+        {
+            string path = aFname;
+            bool isTerminalComponent = true;
+            while (true)
+            {
+                string component = Path.GetFileName(path);
+                Debug.Assert(component != null);
+                // Path.GetFileName can only return null
+                // if path is null. (Which it's not.)
+
+                if (component==".." || component==".")
+                {
+                    throw new BadPluginException("Bad plugin: contains special path components.");
+                }
+
+                string parent = Path.GetDirectoryName(path);
+                Debug.Assert(parent != null);
+                // Path.GetDirectoryName can only return
+                // null if path is null or a root
+                // directory. (It's not.)
+
+                if (parent=="")
+                {
+                    if (component=="")
+                    {
+                        // Zip files use entries like "foo\" to indicate an empty
+                        // directory called foo. The top level directory should not
+                        // be empty.
+                        throw new BadPluginException("Bad plugin: empty directory entry.");
+                    }
+                    if (isTerminalComponent)
+                    {
+                        throw new BadPluginException("Bad plugin: contains file at top-level.");
+                    }
+                    return component;
+                }
+                path = parent;
+                isTerminalComponent = false;
+            }
         }
     }
 
@@ -147,21 +180,48 @@ namespace OpenHome.Os.AppManager
         string VerifyPluginZip(string aZipFile);
     }
 
+    public enum AppState
+    {
+        Running,
+        NotRunning,
+    }
+
+    public class AppInfo
+    {
+        public string Name { get; private set; }
+        public AppState State { get; private set; }
+        public bool PendingUpdate { get; private set; }
+        public bool PendingDelete { get; private set; }
+        public string Udn { get; private set; }
+
+        public AppInfo(string aName, AppState aState, bool aPendingUpdate, bool aPendingDelete, string aUdn)
+        {
+            Name = aName;
+            State = aState;
+            PendingUpdate = aPendingUpdate;
+            PendingDelete = aPendingDelete;
+            Udn = aUdn;
+        }
+    }
+
     public class ManagerImpl : IDisposable
     {
         static readonly ILog Logger = LogManager.GetLogger(typeof(ManagerImpl));
         private class PublishedApp : IDisposable
         {
             public IApp App { get { return iApp; } }
+            public string Udn { get { return iUdn; } }
             private readonly IApp iApp;
             private readonly IDvDevice iDevice;
             private readonly IDvProviderOpenhomeOrgApp1 iProvider;
+            readonly string iUdn;
 
             public PublishedApp(IApp aApp, IDvDevice aDevice, IDvProviderOpenhomeOrgApp1 aProvider)
             {
                 iApp = aApp;
                 iDevice = aDevice;
                 iProvider = aProvider;
+                iUdn = aDevice.Udn();
             }
             public void Dispose()
             {
@@ -239,7 +299,10 @@ namespace OpenHome.Os.AppManager
                     throw new InvalidOperationException("Cannot delete an app while it has code loaded.");
                 }
                 Logger.InfoFormat("Delete app {0}", AppName);
-                iAppsDirectory.DeleteSubdirectory(AppName, true);
+                if (iAppsDirectory.DoesSubdirectoryExist(AppName))
+                {
+                    iAppsDirectory.DeleteSubdirectory(AppName, true);
+                }
                 iMetadataStore.DeleteApp(AppName);
             }
 
@@ -352,9 +415,11 @@ namespace OpenHome.Os.AppManager
         readonly IAppMetadataStore iMetadataStore;
         readonly IZipVerifier iZipVerifier;
         readonly INodeRebooter iNodeRebooter;
-        private readonly Dictionary<string, string> iUdnsToAppNames = new Dictionary<string, string>();
-        private readonly Dictionary<string, string> iAppNamesToUdns = new Dictionary<string, string>();
-        Dictionary<string, KnownApp> iKnownApps = new Dictionary<string, KnownApp>();
+        readonly Bimap<string, string> iUdnsToAppNamesBimap = new Bimap<string, string>();
+
+        IDictionary<string, string> UdnsToAppNames { get { return iUdnsToAppNamesBimap.Forward; } }
+        IDictionary<string, string> AppNamesToUdns { get { return iUdnsToAppNamesBimap.Backward; } }
+        readonly Dictionary<string, KnownApp> iKnownApps = new Dictionary<string, KnownApp>();
 
         public List<HistoryItem> History
         {
@@ -401,6 +466,22 @@ namespace OpenHome.Os.AppManager
             }
         }
 
+        public IEnumerable<AppInfo> GetApps()
+        {
+            List<AppInfo> apps = new List<AppInfo>();
+            foreach (var app in iKnownApps.Values)
+            {
+                var metadata = app.ReadAppMetadata();
+                string udn = null;
+                if (app.IsPublished)
+                {
+                    udn = app.PublishedApp.Udn;
+                }
+                apps.Add(new AppInfo(app.AppName, app.IsPublished ? AppState.Running : AppState.NotRunning, metadata!=null && metadata.InstallPending, metadata!=null && metadata.DeletePending, udn));
+            }
+            return apps;
+        }
+
         KnownApp GetOrCreateKnownApp(string aAppName)
         {
             if (aAppName == null) throw new ArgumentNullException("aAppName");
@@ -429,9 +510,18 @@ namespace OpenHome.Os.AppManager
         {
             if (iAppsStarted) return;
             iAppsStarted = true;
+            List<string> deletedApps = new List<string>();
             foreach (var knownApp in iKnownApps.Values)
             {
                 knownApp.ResolvePendingOperations();
+                if (!knownApp.DirectoryExists && knownApp.ReadAppMetadata() == null)
+                {
+                    deletedApps.Add(knownApp.AppName);
+                }
+            }
+            foreach (string appName in deletedApps)
+            {
+                iKnownApps.Remove(appName);
             }
             //iInitialising = false;
             UpdateAppList();
@@ -485,7 +575,7 @@ namespace OpenHome.Os.AppManager
         private bool UninstallByUdn(string aUdn, bool aUpdateHistory)
         {
             string appName;
-            if (!iUdnsToAppNames.TryGetValue(aUdn, out appName))
+            if (!UdnsToAppNames.TryGetValue(aUdn, out appName))
             {
                 return false;
             }
@@ -499,12 +589,12 @@ namespace OpenHome.Os.AppManager
             {
                 return false;
             }
-            app.Unpublish();
+            if (app.IsPublished)
+            {
+                app.Unpublish();
+            }
 
-            string udn = iAppNamesToUdns[aAppName];
-
-            iAppNamesToUdns.Remove(aAppName);
-            iUdnsToAppNames.Remove(udn);
+            AppNamesToUdns.Remove(aAppName); // Bimap cleans up inverse udn-to-appname.
 
             app.Delete();
             if (!app.DirectoryExists)
@@ -537,8 +627,7 @@ namespace OpenHome.Os.AppManager
             {
                 throw new Exception(String.Format("{0} exceptions during Dispose().", exceptions.Count), exceptions[0]);
             }
-            iUdnsToAppNames.Clear();
-            iAppNamesToUdns.Clear();
+            AppNamesToUdns.Clear();
             // !!!! write history to disk (here or earlier)
         }
 
@@ -628,8 +717,7 @@ namespace OpenHome.Os.AppManager
             }
             device.SetEnabled();
             knownApp.Publish(new PublishedApp(app, device, provider));
-            iUdnsToAppNames[udn] = appDirName;
-            iAppNamesToUdns[appDirName] = udn;
+            UdnsToAppNames[udn] = appDirName;
             iHistory.Add(new HistoryItem(app.Name, change, udn));
         }
 
