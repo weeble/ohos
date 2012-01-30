@@ -122,7 +122,6 @@ namespace OpenHome.Os.Remote
         private void Enable(bool aEnable)
         {
             SetPropertyEnabled(aEnable);
-            // TODO: start/stop proxy depending on state of aEnable
             if (aEnable)
                 iProxyServer.Start(this);
             else
