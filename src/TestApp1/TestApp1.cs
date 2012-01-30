@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel.Composition;
 using Mono.Addins;
 using OpenHome.Os.AppManager;
 using OpenHome.Net.Device;
@@ -7,6 +8,7 @@ using OpenHome.Os.Platform;
 namespace OpenHome.Os.TestApps
 {
     [Extension("/ohOs/App")]
+    [Export]
     public class TestApp1 : IApp
     {
         public string Udn { get { return "TestApp1"; } }
