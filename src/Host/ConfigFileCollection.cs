@@ -74,6 +74,10 @@ namespace Node
                 }
             }
         }
+        public void AddFile(string aFilename, XElement aContent)
+        {
+            iConfigFiles.Add(new ConfigFile { Name = aFilename, XElement = aContent });
+        }
         private ConfigFileCollection(IEnumerable<ConfigFile> aConfigFiles)
         {
             iConfigFiles.AddRange(aConfigFiles);

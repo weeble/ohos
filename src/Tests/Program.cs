@@ -1,4 +1,6 @@
 using System;
+using System.IO;
+using System.Xml.Linq;
 using Node;
 using OpenHome.Os.AppManager;
 using OpenHome.Net.Core;
@@ -31,8 +33,21 @@ namespace OpenHome.Os
                 /*var combinedStack = */ library.StartCombined(subnet);
                 AppServices services = new AppServices();
                 services.NodeRebooter = new NullNodeRebooter();
-                string exePath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-                using (var installModule = new ManagerModule(services, new NullConfigFileCollection()))
+                string exePath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+                string storePath = Path.Combine(exePath, "test-store");
+                ConfigFileCollection config = new ConfigFileCollection(new string[] { });
+                config.AddFile("config.xml",
+                    new XElement("ohos",
+                        new XElement("system-settings",
+                            new XElement("store", storePath)
+                        )
+                    )
+                );
+                if (Directory.Exists(storePath))
+                {
+                    Directory.Delete(storePath, true);
+                }
+                using (var installModule = new ManagerModule(services, config))
                 {
                     installModule.Manager.Start();
 
