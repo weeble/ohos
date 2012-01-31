@@ -32,6 +32,7 @@ namespace OpenHome.Os.Remote
             EnableActionSetUserName();
             EnableActionSetPassword();
             EnableActionEnable();
+            EnableActionGetUserName();
             EnableActionClearAuthenticatedClients();
 
             string userDataFileName = UserDataFileName();
@@ -95,9 +96,19 @@ namespace OpenHome.Os.Remote
                 Enable(aEnable);
             }
         }
+        protected override void GetUserName(IDvInvocation aInvocation, uint aHandle, out string aUserName)
+        {
+            lock (this)
+            {
+                aUserName = PropertyUserName();
+            }
+        }
         protected override void ClearAuthenticatedClients(IDvInvocation aInvocation)
         {
-            throw new NotImplementedException();
+            lock (this)
+            {
+                iProxyServer.ClearAuthenticatedClients();
+            }
         }
         private string UserDataFileName()
         {
@@ -121,12 +132,14 @@ namespace OpenHome.Os.Remote
         }
         private void Enable(bool aEnable)
         {
-            SetPropertyEnabled(aEnable);
-            if (aEnable)
-                iProxyServer.Start(this);
-            else
-                iProxyServer.Stop();
-            WriteUserData();
+            if (SetPropertyEnabled(aEnable))
+            {
+                if (aEnable)
+                    iProxyServer.Start(this);
+                else
+                    iProxyServer.Stop();
+                WriteUserData();
+            }
         }
     }
 }

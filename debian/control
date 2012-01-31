@@ -10,6 +10,6 @@ Homepage: <insert the upstream URL, if relevant>
 
 Package: ohos
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}, ohmono (>= 2.10.6-2)
 Description: Operating system customisations for openhome use
 
