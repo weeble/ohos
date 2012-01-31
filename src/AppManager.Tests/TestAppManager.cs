@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -172,16 +173,16 @@ namespace OpenHome.Os.AppManager.Tests
         {
             InstallAnApp();
             // We haven't started any apps, so we don't want them loaded yet.
-            iAddinManagerMock.Verify(x => x.UpdateRegistry(It.IsAny<Action<IApp>>(), It.IsAny<Action<IApp>>()), Times.Never());
+            iAddinManagerMock.Verify(x => x.UpdateRegistry(It.IsAny<Action<DirectoryInfo, IApp>>(), It.IsAny<Action<DirectoryInfo, IApp>>()), Times.Never());
         }
 
         [Test]
         public void UpdateRegistryIsInvokedIfTheManagerIsAlreadyStarted()
         {
             iManager.Start();
-            iAddinManagerMock.Verify(x => x.UpdateRegistry(It.IsAny<Action<IApp>>(), It.IsAny<Action<IApp>>()), Times.Exactly(1));
+            iAddinManagerMock.Verify(x => x.UpdateRegistry(It.IsAny<Action<DirectoryInfo, IApp>>(), It.IsAny<Action<DirectoryInfo, IApp>>()), Times.Exactly(1));
             InstallAnApp();
-            iAddinManagerMock.Verify(x => x.UpdateRegistry(It.IsAny<Action<IApp>>(), It.IsAny<Action<IApp>>()), Times.Exactly(2));
+            iAddinManagerMock.Verify(x => x.UpdateRegistry(It.IsAny<Action<DirectoryInfo, IApp>>(), It.IsAny<Action<DirectoryInfo, IApp>>()), Times.Exactly(2));
         }
     }
 
@@ -213,7 +214,7 @@ namespace OpenHome.Os.AppManager.Tests
         public void UpdateRegistryIsNotInvoked()
         {
             try { InstallAnApp(); } catch (BadPluginException) { }
-            iAddinManagerMock.Verify(x => x.UpdateRegistry(It.IsAny<Action<IApp>>(), It.IsAny<Action<IApp>>()), Times.Never());
+            iAddinManagerMock.Verify(x => x.UpdateRegistry(It.IsAny<Action<DirectoryInfo, IApp>>(), It.IsAny<Action<DirectoryInfo, IApp>>()), Times.Never());
         }
     }
 
@@ -245,7 +246,7 @@ namespace OpenHome.Os.AppManager.Tests
         public void UpdateRegistryIsNotInvoked()
         {
             try { InstallAnApp(); } catch (BadPluginException) { }
-            iAddinManagerMock.Verify(x => x.UpdateRegistry(It.IsAny<Action<IApp>>(), It.IsAny<Action<IApp>>()), Times.Never());
+            iAddinManagerMock.Verify(x => x.UpdateRegistry(It.IsAny<Action<DirectoryInfo, IApp>>(), It.IsAny<Action<DirectoryInfo, IApp>>()), Times.Never());
         }
     }
 
@@ -255,8 +256,8 @@ namespace OpenHome.Os.AppManager.Tests
         public void StartAppManager()
         {
             iAddinManagerMock
-                .Setup(x=>x.UpdateRegistry(It.IsAny<Action<IApp>>(), It.IsAny<Action<IApp>>()))
-                .Callback((Action<IApp> aAddedAction, Action<IApp> aRemovedAction)=>aAddedAction(iApp));
+                .Setup(x=>x.UpdateRegistry(It.IsAny<Action<DirectoryInfo, IApp>>(), It.IsAny<Action<DirectoryInfo, IApp>>()))
+                .Callback((Action<DirectoryInfo, IApp> aAddedAction, Action<DirectoryInfo, IApp> aRemovedAction)=>aAddedAction(new DirectoryInfo(AppName),iApp));
             iManager.Start();
         }
     }
@@ -267,7 +268,7 @@ namespace OpenHome.Os.AppManager.Tests
         [Test]
         public void TheAddinManagerIsUpdatedOnce()
         {
-            iAddinManagerMock.Verify(x => x.UpdateRegistry(It.IsAny<Action<IApp>>(), It.IsAny<Action<IApp>>()), Times.Once());
+            iAddinManagerMock.Verify(x => x.UpdateRegistry(It.IsAny<Action<DirectoryInfo, IApp>>(), It.IsAny<Action<DirectoryInfo, IApp>>()), Times.Once());
         }
         [Test]
         public void TheAppIsInitializedOnce()

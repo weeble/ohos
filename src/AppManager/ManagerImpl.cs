@@ -636,22 +636,13 @@ namespace OpenHome.Os.AppManager
             Stop();
         }
 
-        private void AppAdded(IApp aApp)
+        private void AppAdded(DirectoryInfo aAppDirectoryInfo, IApp aApp)
         {
             if (!iAppsStarted) return;
 
             var app = aApp;
 
-            string appDirName;
-            try
-            {
-                appDirName = iAppsDirectory.GetAssemblySubdirectory(app.GetType().Assembly);
-            }
-            catch (PluginFoundInWrongDirectoryException)
-            {
-                Logger.WarnFormat("Ignoring app found in wrong directory: {0} in {1}", app.Name, app.GetType().Assembly.CodeBase);
-                return;
-            }
+            string appDirName = aAppDirectoryInfo.Name;
 
             // Take care here! We don't want an app peeking at other apps'
             // settings by injecting crazy XPath nonsense into its name.
@@ -747,7 +738,7 @@ namespace OpenHome.Os.AppManager
         private void UpdateAppList()
         {
             if (!iAppsStarted) return;
-            iAddinManager.UpdateRegistry(AppAdded, aApp => { });
+            iAddinManager.UpdateRegistry(AppAdded, (aAppDir, aApp) => { });
         }
     }
 }

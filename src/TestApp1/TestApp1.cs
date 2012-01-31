@@ -13,7 +13,7 @@ namespace OpenHome.Os.TestApps
     {
         public string Udn { get { return "ohOs.TestApp1"; } }
         public IResourceManager ResourceManager { get { return null; } }
-        public string Name { get { return "TestApp1"; } }
+        public string Name { get { return "ohOs.TestApp1"; } }
         public AppVersion Version { get { return iVersion; } }
         public string IconUri { get { return ""; } }
         public string DescriptionUri { get { return ""; } }

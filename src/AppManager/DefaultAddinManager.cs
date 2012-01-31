@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition.Primitives;
+using System.IO;
 using System.Linq;
 using log4net;
 using Mono.Addins;
@@ -31,7 +32,7 @@ namespace OpenHome.Os.AppManager
 
 
 
-        public void UpdateRegistry(Action<IApp> aAppAddedAction, Action<IApp> aAppRemovedAction)
+        public void UpdateRegistry(Action<DirectoryInfo, IApp> aAppAddedAction, Action<DirectoryInfo, IApp> aAppRemovedAction)
         {
             HashSet<string> missingAddins = new HashSet<string>(iAddins.Keys);
             foreach (string dirname in iAppsDirectory.GetAppSubdirectories())
@@ -40,10 +41,11 @@ namespace OpenHome.Os.AppManager
                 missingAddins.Remove(dirname);
                 if (!iAddins.TryGetValue(dirname, out addin))
                 {
-                    Logger.DebugFormat("Loading addin {0} from {1} using MEF...", dirname, iAppsDirectory.GetAbsolutePathForSubdirectory(dirname));
+                    DirectoryInfo appDirectoryInfo = new DirectoryInfo(iAppsDirectory.GetAbsolutePathForSubdirectory(dirname));
+                    Logger.DebugFormat("Loading addin {0} from {1} using MEF...", dirname, appDirectoryInfo.FullName);
                     addin = new MefAddin();
                     addin.Name = dirname;
-                    addin.Catalog = new DirectoryCatalog(iAppsDirectory.GetAbsolutePathForSubdirectory(dirname),"*.App.dll");
+                    addin.Catalog = new DirectoryCatalog(appDirectoryInfo.FullName, "*.App.dll");
                     addin.Container = new CompositionContainer(addin.Catalog);
                     List<IApp> apps;
                     try
@@ -67,7 +69,7 @@ namespace OpenHome.Os.AppManager
                         Logger.ErrorFormat("ReflectionTypeLoadException while loading app {0}:\n{1}", dirname, rtle.LoaderExceptions[0]);
                         continue;
                     }
-                    aAppAddedAction(apps.First());
+                    aAppAddedAction(appDirectoryInfo, apps.First());
                 }
             }
             foreach (string missingAddin in missingAddins)
@@ -76,6 +78,7 @@ namespace OpenHome.Os.AppManager
             }
         }
     }
+    /*
     public class DefaultAddinManager : IAddinManager
     {
         ILog Logger = LogManager.GetLogger(typeof(DefaultAddinManager));
@@ -117,5 +120,5 @@ namespace OpenHome.Os.AppManager
             AddinManager.Registry.Update();
             AddinManager.RemoveExtensionNodeHandler(AppAddinPath, handler);
         }
-    }
+    }*/
 }
