@@ -8,7 +8,7 @@ using OpenHome.Os.Platform;
 namespace OpenHome.Os.TestApps
 {
     [Extension("/ohOs/App")]
-    [Export]
+    [Export(typeof(IApp))]
     public class TestApp1 : IApp
     {
         public string Udn { get { return "TestApp1"; } }

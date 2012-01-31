@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition.Primitives;
+using System.Linq;
 using log4net;
 using Mono.Addins;
 using System.ComponentModel.Composition.Hosting;
@@ -17,8 +18,8 @@ namespace OpenHome.Os.AppManager
             public ComposablePartCatalog Catalog { get; set; }
             public CompositionContainer Container { get; set; }
             public List<Type> Types { get; set; }
-            [Import]
-            public IApp App { get; set; }
+            [ImportMany]
+            public IEnumerable<IApp> Apps { get; set; }
         }
         IAppsDirectory iAppsDirectory;
         Dictionary<string, MefAddin> iAddins = new Dictionary<string, MefAddin>();
@@ -44,9 +45,16 @@ namespace OpenHome.Os.AppManager
                     addin.Name = dirname;
                     addin.Catalog = new DirectoryCatalog(iAppsDirectory.GetAbsolutePathForSubdirectory(dirname),"*.App.dll");
                     addin.Container = new CompositionContainer(addin.Catalog);
+                    List<IApp> apps;
                     try
                     {
                         addin.Container.ComposeParts(addin);
+                        apps = new List<IApp>(addin.Apps);
+                        if (apps.Count != 1)
+                        {
+                            Logger.ErrorFormat("App {0} is broken. Expected 1 export of IApp, found {1}.", dirname, apps.Count);
+                            continue;
+                        }
                     }
                     catch (ChangeRejectedException)
                     {
@@ -59,7 +67,7 @@ namespace OpenHome.Os.AppManager
                         Logger.ErrorFormat("ReflectionTypeLoadException while loading app {0}:\n{1}", dirname, rtle.LoaderExceptions[0]);
                         continue;
                     }
-                    aAppAddedAction(addin.App);
+                    aAppAddedAction(apps.First());
                 }
             }
             foreach (string missingAddin in missingAddins)
