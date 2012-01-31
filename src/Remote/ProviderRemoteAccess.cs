@@ -69,9 +69,11 @@ namespace OpenHome.Os.Remote
                 // TODO: call web service to set new username (or clear account if aUserName.Length==0 ??)
 
                 if (SetPropertyUserName(aUserName))
+                {
                     iProxyServer.ClearAuthenticatedClients();
-                if (aUserName.Length == 0)
-                    Enable(false);
+                    if (aUserName.Length == 0)
+                        Enable(false);
+                }
                 aSucceeded = true;
                 aAlternativeNames = "";
             }
