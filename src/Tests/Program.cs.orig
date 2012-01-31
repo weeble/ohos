@@ -1,8 +1,11 @@
 using System;
+<<<<<<< HEAD
 using System.Collections.Generic;
 using System.Linq;
+=======
 using System.IO;
 using System.Xml.Linq;
+>>>>>>> 716164510706dcf5297d9e7d436c50f485c42663
 using Node;
 using OpenHome.Os.AppManager;
 using OpenHome.Net.Core;
@@ -61,7 +64,7 @@ namespace OpenHome.Os
                 {
                     installModule.Manager.Start();
 
-                    installModule.Manager.Install(System.IO.Path.Combine(exePath, "ohOs.TestApp1.zip"));
+                    installModule.Manager.Install(System.IO.Path.Combine(exePath, "ohOs.TestApp1.App.zip"));
 
                     List<AppInfo> apps = installModule.Manager.GetApps().ToList();
                     if (apps.Count!=1)

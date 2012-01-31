@@ -40,7 +40,7 @@ namespace OpenHome.Os.AppManager
                 missingAddins.Remove(dirname);
                 if (!iAddins.TryGetValue(dirname, out addin))
                 {
-                    Logger.DebugFormat("Loading addin {0} using MEF...", dirname);
+                    Logger.DebugFormat("Loading addin {0} from {1} using MEF...", dirname, iAppsDirectory.GetAbsolutePathForSubdirectory(dirname));
                     addin = new MefAddin();
                     addin.Name = dirname;
                     addin.Catalog = new DirectoryCatalog(iAppsDirectory.GetAbsolutePathForSubdirectory(dirname),"*.App.dll");

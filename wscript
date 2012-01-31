@@ -372,7 +372,7 @@ csharp_projects = [
         CSharpProject(
             name="ohOs.Tests", dir="Tests", type="exe",
             categories=["core"],
-            packages=['ohnet', 'mono-addins', 'log4net'],
+            packages=['ohnet', 'mono-addins', 'log4net', 'systemxmllinq'],
             references=[
                 'DvOpenhomeOrgApp1',
                 'ohOs.AppManager',
@@ -435,7 +435,7 @@ files_to_copy = [
 
 ohos_apps = [
         OhOsApp(
-            name="ohOs.TestApp1.App",
+            name="ohOs.TestApp1",
             files=[
                 'ohOs.TestApp1.App.dll'
             ]),
