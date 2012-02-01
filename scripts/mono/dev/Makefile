@@ -3,16 +3,18 @@ prefix = /usr
 
 include ../common.mk  
 
-REQUIRED_ASSEMBLIES += Mono.Cairo              \
-                       System.Windows.Forms    \
-                       System.Data             \
-                       System.Drawing          \
-                       System.Runtime.Remoting \
-                       System.Web         
+DEV_ASSEMBLIES = Mono.Cairo              \
+                 System.Windows.Forms    \
+                 System.Data             \
+                 System.Drawing          \
+                 System.Runtime.Remoting \
+                 System.Web         
                           
 install: 
-	@$(call common_install)
 	@$(call clr_install,2.0,$(GACUTIL2))
+	@$(call assemblies_install,2.0,$(GACUTIL2),$(RUNTIME_ASSEMBLIES))
+	@$(call assemblies_install,2.0,$(GACUTIL2),$(DEV_ASSEMBLIES))
+	@$(call assemblies_install,4.0,$(GACUTIL4),$(DEV_ASSEMBLIES))
 	@for f in mcs gmcs dmcs al al2; do \
              install -D $(TMP_INSTALL_DIR)-x86$(prefix)/bin/$${f} $(DESTDIR)$(prefix)/bin/$${f} ; \
          done ; \
