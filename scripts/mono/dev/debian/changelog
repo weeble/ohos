@@ -1,20 +1,26 @@
+ohmono-dev (2.10.6-5) nightly; urgency=low
+
+  * Reorganisation of ohmono and ohmono-dev packages
+
+ -- Openhome <admin@openhome.org>  Wed, 01 Feb 2012 09:59:54 +0000
+
 ohmono-dev (2.10.6-4) nightly; urgency=low
 
   * Added the System.ComponentModel.Composition assembly 
 
- -- Stathis Voukelatos <stathisv@StathisVM.linn.co.uk>  Thu, 26 Jan 2012 16:24:01 +0000
+ -- Openhome <admin@openhome.org>  Thu, 26 Jan 2012 16:24:01 +0000
 
 ohmono-dev (2.10.6-3) nightly; urgency=low
 
   * Added missing Mono linker executables 
 
- -- Stathis Voukelatos <stathisv@StathisVM.linn.co.uk>  Fri, 09 Dec 2011 15:11:17 +0000
+ -- Openhome <admin@openhome.org>  Fri, 09 Dec 2011 15:11:17 +0000
 
 ohmono-dev (2.10.6-2) nightly; urgency=low
 
   * Added some more assemblies 
 
- -- Stathis Voukelatos <stathisv@StathisVM.linn.co.uk>  Fri, 09 Dec 2011 11:49:58 +0000
+ -- Openhome <admin@openhome.org>  Fri, 09 Dec 2011 11:49:58 +0000
 
 ohmono-dev (2.10.6-1) nightly; urgency=low
 
