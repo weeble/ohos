@@ -52,14 +52,18 @@ namespace OpenHome.Os.Host.Guardians
         }
         IPipedProcessChild iPipeChild;
         StreamWriter iParentWriter;
+        Thread iThread;
         public void Start(string aToken)
         {
             iPipeChild = PipedSubprocess.ConnectPipedChild(aToken);
-            byte[] buffer = new byte[1];
-            iPipeChild.FromParent.BeginRead(buffer, 0, 1,
-                aAsyncResult =>
+            // Mono's FileStream.BeginRead method is, inexplicably, synchronous.
+            // Thus we need to spin up our own thread here.
+            iThread = new Thread(()=>
                 {
-                    int bytesRead = iPipeChild.FromParent.EndRead(aAsyncResult);
+                    using (StreamReader reader = new StreamReader(iPipeChild.FromParent))
+                    {
+                        reader.ReadToEnd();
+                    }
                     EventHandler callback;
                     lock (iLock)
                     {
@@ -70,7 +74,15 @@ namespace OpenHome.Os.Host.Guardians
                     {
                         callback(this, EventArgs.Empty);
                     }
-                }, null);
+                });
+            iThread.IsBackground = true;
+            iThread.Start();
+            // Note that we never join the thread. We can't guarantee that it
+            // will finish, because its synchronous read from the parent pipe
+            // may never finish. Instead we set it to be a background thread
+            // and rely on it getting cleaned up when the process exits.
+            // TODO: Investigate whether we can safely close the FileStream
+            // from the main thread to get the background thread to unblock.
             iParentWriter = new StreamWriter(iPipeChild.ToParent);
         }
         public void ReportFatalError(string aMessage)
