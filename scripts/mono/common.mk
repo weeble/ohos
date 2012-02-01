@@ -22,7 +22,7 @@ MONO_CONFIG_OPTS  = --prefix=$(prefix)                \
                     --without-mcs-docs                \
                     --without-sgen
 
-REQUIRED_ASSEMBLIES = CustomMarshalers               \
+RUNTIME_ASSEMBLIES =  CustomMarshalers               \
                       Mono.Posix                     \
                       Mono.Security                  \
                       System.Configuration.Install   \
@@ -38,6 +38,7 @@ REQUIRED_ASSEMBLIES = CustomMarshalers               \
                       System.ComponentModel.Composition \
                       System
 
+
 ifeq ($(DEB_HOST_ARCH),armel)
     BIN_ARCH=arm
 else
@@ -47,26 +48,16 @@ endif
 ETC_PREFIX=$(prefix)/etc/mono
 LIB_PREFIX=$(prefix)/lib/mono
 
-clr_install = cp -a $(TMP_INSTALL_DIR)-$(BIN_ARCH)$(prefix)/etc/mono/$(1)       $(DESTDIR)$(prefix)/etc/mono ; \
+assemblies_install = for f in $(3) ; do  \
+                         $(2) -i $(TMP_INSTALL_DIR)-x86$(LIB_PREFIX)/$(1)/$${f}.dll -root $(DESTDIR)$(prefix)/lib -package $(1) ; \
+                     done
+
+
+clr_install = install -d $(DESTDIR)$(ETC_PREFIX) ; \
+              cp -a $(TMP_INSTALL_DIR)-$(BIN_ARCH)$(prefix)/etc/mono/$(1)       $(DESTDIR)$(ETC_PREFIX) ; \
 	      install -D $(TMP_INSTALL_DIR)-x86$(LIB_PREFIX)/$(1)/mscorlib.dll  $(DESTDIR)$(LIB_PREFIX)/$(1)/mscorlib.dll ; \
               install -D $(TMP_INSTALL_DIR)-x86$(LIB_PREFIX)/$(1)/gacutil.exe   $(DESTDIR)$(LIB_PREFIX)/$(1)/gacutil.exe ; \
-              install $(TMP_INSTALL_DIR)-$(BIN_ARCH)$(prefix)/bin/$(2)          $(DESTDIR)$(prefix)/bin ; \
-              for f in $(REQUIRED_ASSEMBLIES) ; do  \
-                  $(2) -i $(TMP_INSTALL_DIR)-x86$(LIB_PREFIX)/$(1)/$${f}.dll -root $(DESTDIR)$(prefix)/lib -package $(1) ; \
-              done ; 
-
-
-common_install = install -D $(TMP_INSTALL_DIR)-$(BIN_ARCH)$(prefix)/bin/mono $(DESTDIR)$(prefix)/bin/mono ; \
-	         for f in `ls $(TMP_INSTALL_DIR)-$(BIN_ARCH)$(ETC_PREFIX)` ; do   \
-                     [ -f "$(TMP_INSTALL_DIR)-$(BIN_ARCH)$(ETC_PREFIX)/$${f}" ] && \
-                     install -D $(TMP_INSTALL_DIR)-$(BIN_ARCH)$(ETC_PREFIX)/$${f} $(DESTDIR)$(ETC_PREFIX)/$${f} ; \
-                 done ; \
-                 for f in SupportW PosixHelper ; do \
-                     install -D $(TMP_INSTALL_DIR)-$(BIN_ARCH)$(prefix)/lib/libMono$${f}.so $(DESTDIR)$(prefix)/lib/libMono$${f}.so ;  \
-                 done ; \
-	         install -d $(DESTDIR)$(LIB_PREFIX)/gac ; \
-                 $(call clr_install,4.0,$(GACUTIL4))
-
+              install -D $(TMP_INSTALL_DIR)-$(BIN_ARCH)$(prefix)/bin/$(2)       $(DESTDIR)$(prefix)/bin/$(2)
 
 builder:
 	@if ! [ -d $(MONO_SRC_DIR) ]; then  \
@@ -85,5 +76,4 @@ builder:
             $(SBOX2) make install-strip DESTDIR=$(TMP_INSTALL_DIR)-arm ; \
             $(SBOX2) make distclean ;  \
          fi
-
 

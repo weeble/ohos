@@ -372,7 +372,7 @@ csharp_projects = [
         CSharpProject(
             name="ohOs.Tests", dir="Tests", type="exe",
             categories=["core"],
-            packages=['ohnet', 'mono-addins'],
+            packages=['ohnet', 'mono-addins', 'log4net', 'systemxmllinq'],
             references=[
                 'DvOpenhomeOrgApp1',
                 'ohOs.AppManager',
@@ -380,7 +380,7 @@ csharp_projects = [
                 'ohOs.Host',
             ]),
         CSharpProject(
-            name="ohOs.TestApp1", dir="TestApp1", type="library",
+            name="ohOs.TestApp1.App", dir="TestApp1", type="library",
             categories=["core"],
             packages=['ohnet', 'mono-addins', 'mef'],
             references=[
@@ -437,7 +437,7 @@ ohos_apps = [
         OhOsApp(
             name="ohOs.TestApp1",
             files=[
-                'ohOs.TestApp1.dll'
+                'ohOs.TestApp1.App.dll'
             ]),
     ]
 

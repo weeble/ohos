@@ -50,7 +50,7 @@ namespace OpenHome.Os.AppManager
             DefaultZipReader zipReader = new DefaultZipReader();
             //DefaultAddinManager addinManager = new DefaultAddinManager(installBase, installBase, installBase);
             var addinManager = new MefAddinManager(appsDirectory);
-            AppMetadataStore appMetadataStore = new AppMetadataStore(new DirectoryInfo(Path.Combine(storePath, "store", "_installed")));
+            AppMetadataStore appMetadataStore = new AppMetadataStore(new DirectoryInfo(Path.Combine(storePath, "_installed")));
             ZipVerifier zipVerifier = new ZipVerifier(zipReader);
             Manager = new Manager(
                 aFullPrivilegeAppServices,

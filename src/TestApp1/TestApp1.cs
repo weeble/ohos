@@ -8,12 +8,12 @@ using OpenHome.Os.Platform;
 namespace OpenHome.Os.TestApps
 {
     [Extension("/ohOs/App")]
-    [Export]
+    [Export(typeof(IApp))]
     public class TestApp1 : IApp
     {
-        public string Udn { get { return "TestApp1"; } }
+        public string Udn { get { return "ohOs.TestApp1"; } }
         public IResourceManager ResourceManager { get { return null; } }
-        public string Name { get { return "TestApp1"; } }
+        public string Name { get { return "ohOs.TestApp1"; } }
         public AppVersion Version { get { return iVersion; } }
         public string IconUri { get { return ""; } }
         public string DescriptionUri { get { return ""; } }
