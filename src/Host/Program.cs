@@ -130,15 +130,6 @@ namespace Node
                 return RunAsMainProcess(options);
             }
             return RunAsGuardianProcess(aArgs, options);
-            // Subprocess code doesn't work on Linux.
-            //if (options.Subprocess.Value == null)
-            //{
-            //    RunAsGuardianProcess(aArgs);
-            //}
-            //else
-            //{
-            //    RunAsMainProcess(options);
-            //}
         }
 
         static int RunAsGuardianProcess(string[] aArgs, Options aOptions)
@@ -149,10 +140,10 @@ namespace Node
             ConfigFileCollection config;
             LoadConfig(aOptions, out config, out sysConfig);
             string storeDirectory = SetupStore(sysConfig);
-            LogSystem logSystem = SetupLogging(storeDirectory, config);
+            /* LogSystem logSystem = */ SetupLogging(storeDirectory, config);
             Logger.Info("Guardian process starting.");
 
-            Guardian guardian = new Guardian()
+            Guardian guardian = new Guardian(Path.Combine(storeDirectory, "fifos"))
             {
                 FailureWindow = TimeSpan.FromSeconds(60),
                 MaxFailures = 3,
@@ -181,102 +172,24 @@ namespace Node
                         }
                     );
                 });
-
-            /*
-            const int maxFailures = 3;
-            TimeSpan failureWindow = TimeSpan.FromSeconds(60);
-            Queue<DateTime> crashTimes = new Queue<DateTime>(10);
-            for (; ; )
-            {
-                int exitCode = RunChildProcess(aArgs);
-                if (exitCode == (int)ExitCodes.SoftRestart)
-                {
-                    continue;
-                }
-                if (exitCode == (int)ExitCodes.NormalExit)
-                {
-                    return exitCode;
-                }
-                if (exitCode == (int)ExitCodes.HardReboot)
-                {
-                    return exitCode;
-                }
-                Logger.FatalFormat("Node terminated with exit code {0}.", exitCode);
-                DateTime now = DateTime.UtcNow;
-                crashTimes.Enqueue(now);
-                if (crashTimes.Count == maxFailures)
-                {
-                    DateTime timeOfNthLastCrash = crashTimes.Dequeue();
-                    if (now - timeOfNthLastCrash <= failureWindow)
-                    {
-                        Logger.Fatal("Node crashed too often. Abandoning.");
-                        return exitCode;
-                    }
-                }
-                Thread.Sleep(5000);
-            }*/
         }
-
-        /*static int RunChildProcess(string[] aArgs)
-        {
-            //var guardianToChildStream = new System.IO.Pipes.AnonymousPipeServerStream(PipeDirection.Out, HandleInheritability.Inheritable);
-            //var childToGuardianStream = new System.IO.Pipes.AnonymousPipeServerStream(PipeDirection.In, HandleInheritability.Inheritable);
-            //string handle1 = guardianToChildStream.GetClientHandleAsString();
-            //string handle2 = childToGuardianStream.GetClientHandleAsString();
-            List<string> childArgs = new List<string> { "--subprocess", "nopipe" }; //, handle1 + "," + handle2 };
-            childArgs.AddRange(aArgs);
-            var startInfo = new ProcessStartInfo(
-                System.Reflection.Assembly.GetExecutingAssembly().Location,
-                string.Join(" ", childArgs.ToArray()))
-                {
-                    UseShellExecute = false,
-                    
-                };
-            Process childProcess = Process.Start(startInfo);
-            //guardianToChildStream.DisposeLocalCopyOfClientHandle();
-            //childToGuardianStream.DisposeLocalCopyOfClientHandle();
-            //Console.In.Close();
-            //Console.Out.Close();
-            //Console.Error.Close();
-            //using (var reader = new StreamReader(childToGuardianStream))
-            //{
-            //    //childToGuardianStream.
-            //    string output = reader.ReadToEnd();
-            //    Console.WriteLine("Guardian received output ({0} chars):", output.Length);
-            //    Console.WriteLine(output);
-            //    Console.WriteLine("Guardian waiting for child to exit...");
-                childProcess.WaitForExit();
-            //    Console.WriteLine("Guardian saw child exit with code {0}.", childProcess.ExitCode);
-            //    guardianToChildStream.Close();
-                return childProcess.ExitCode;
-            //}
-
-        }*/
 
         static int RunAsMainProcess(Options aOptions)
         {
             int exitCode = 0;
             Channel<int> exitChannel = new Channel<int>(1);
             GuardianChild guardianChild = null;
-            if (aOptions.Subprocess.Value != null && aOptions.Subprocess.Value != "nopipe")
-            {
-
-                guardianChild = new GuardianChild();
-                guardianChild.Start(aOptions.Subprocess.Value);
-                //string[] handleStrings = aOptions.Subprocess.Value.Split(new[] { ',' });
-                //if (handleStrings.Length != 2)
-                //{
-                //    throw new Exception("Bad --subprocess value");
-                //}
-                // /* var pipeFromGuardian = */ new System.IO.Pipes.AnonymousPipeClientStream(PipeDirection.In, handleStrings[0]);
-                // /* var pipeToGuardian = */ new System.IO.Pipes.AnonymousPipeClientStream(PipeDirection.Out, handleStrings[1]);
-                //throw new NotImplementedException();
-            }
             IConfigFileCollection sysConfig;
             ConfigFileCollection config;
             LoadConfig(aOptions, out config, out sysConfig);
 
             string storeDirectory = SetupStore(sysConfig);
+
+            if (aOptions.Subprocess.Value != null && aOptions.Subprocess.Value != "nopipe")
+            {
+                guardianChild = new GuardianChild(Path.Combine(storeDirectory, "fifos"));
+                guardianChild.Start(aOptions.Subprocess.Value);
+            }
 
             LogSystem logSystem = SetupLogging(storeDirectory, config);
             Logger.Info("Node starting.");
