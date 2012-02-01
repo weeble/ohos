@@ -270,7 +270,24 @@ namespace Node
                                 exitChannel.NonBlockingSend((int)ExitCodes.GuardianDied);
                             };
                     }
-                    commandDispatcher.AddCommand("exit", aArguments => consoleInterface.Quit(0), "Stop and close this OpenHome Node process.");
+                    commandDispatcher.AddCommand("exit", aArguments =>
+                        {
+                            if (aArguments == "")
+                            {
+                                consoleInterface.Quit((int)ExitCodes.NormalExit);
+                            }
+                            else
+                            {
+                                int exitCodeArg;
+                                if (!int.TryParse(aArguments, out exitCodeArg))
+                                {
+                                    Console.WriteLine("Unrecognized exit code.");
+                                    return;
+                                }
+                                consoleInterface.Quit(exitCodeArg);
+                            }
+                        }, "Stop and close this OpenHome Node process.");
+                    commandDispatcher.AddCommand("restart", aArguments => consoleInterface.Quit((int)ExitCodes.SoftRestart), "Restart ohOs process.");
                     commandDispatcher.AddCommand("help", aArguments => Console.WriteLine(commandDispatcher.DescribeAllCommands()), "Show a list of available commands.");
                     commandDispatcher.AddCommand("logdump", aArguments => Console.WriteLine(logSystem.LogReader.GetLogTail(10000)), "Dump the current contents of the logfile.");
                     commandDispatcher.AddCommand("log", aArguments => Logger.Debug(aArguments), "Add a message to the log.");
