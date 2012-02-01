@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -9,6 +10,7 @@ using System.Xml.Linq;
 //using Mono.Addins;
 using ohWidget.Utils;
 using OpenHome.Os.AppManager;
+using OpenHome.Os.Host.Guardians;
 using OpenHome.Os.Platform;
 using OpenHome.Widget.Nodes;
 //using OpenHome.Widget.Nodes.Combined;
@@ -81,6 +83,14 @@ namespace Node
         }
     }
 
+    public enum ExitCodes
+    {
+        NormalExit = 0,
+        SoftRestart = 9,
+        HardReboot = 10,
+        GuardianDied = 7,
+    }
+
     public class Program
     {
         private class Options
@@ -88,11 +98,13 @@ namespace Node
             public OptionParser.OptionString ConfigFile { get; private set; }
             public OptionParser.OptionString InstallFile { get; private set; }
             public OptionParser.OptionString Subprocess { get; private set; }
+            public OptionParser.OptionBool SingleProcess { get; private set; }
             public Options()
             {
                 ConfigFile = new OptionParser.OptionString("-c", "--config", null, "Configuration file location.", "CONFIG");
                 InstallFile = new OptionParser.OptionString("-i", "--install", null, "Install the given app and exit.", "APPFILE");
                 Subprocess = new OptionParser.OptionString(null, "--subprocess", null, "Reserved.", "SUBPROCESSDATA");
+                SingleProcess = new OptionParser.OptionBool(null, "--single-process", "Run as a single process. Disables soft restarts.");
             }
             public OptionParser Parse(string[] aArgs)
             {
@@ -100,6 +112,7 @@ namespace Node
                 parser.AddOption(ConfigFile);
                 parser.AddOption(InstallFile);
                 parser.AddOption(Subprocess);
+                parser.AddOption(SingleProcess);
                 parser.Parse();
                 return parser;
             }
@@ -110,10 +123,13 @@ namespace Node
             Options options = new Options();
             OptionParser parser = options.Parse(aArgs);
             if (parser.HelpSpecified())
-                return 0;
+                return (int)ExitCodes.NormalExit;
 
-            return RunAsMainProcess(options);
-
+            if (options.SingleProcess.Value || options.Subprocess.Value != null)
+            {
+                return RunAsMainProcess(options);
+            }
+            return RunAsGuardianProcess(aArgs, options);
             // Subprocess code doesn't work on Linux.
             //if (options.Subprocess.Value == null)
             //{
@@ -125,29 +141,89 @@ namespace Node
             //}
         }
 
-        static void RunAsGuardianProcess(string[] aArgs)
+        static int RunAsGuardianProcess(string[] aArgs, Options aOptions)
         {
-            // Guardian process is responsible for starting the main process,
-            // monitoring crashes and restarting it when necessary.
+            // Guardian process is responsible for starting the main process
+            // and restarting it when necessary.
+            IConfigFileCollection sysConfig;
+            ConfigFileCollection config;
+            LoadConfig(aOptions, out config, out sysConfig);
+            string storeDirectory = SetupStore(sysConfig);
+            LogSystem logSystem = SetupLogging(storeDirectory, config);
+            Logger.Info("Guardian process starting.");
+
+            Guardian guardian = new Guardian()
+            {
+                FailureWindow = TimeSpan.FromSeconds(60),
+                MaxFailures = 3,
+                Logger = Logger,
+                RetryPause = TimeSpan.FromSeconds(5),
+                WhenChildExitsWithCode = aExitCode =>
+                    {
+                        if (aExitCode == (int)ExitCodes.SoftRestart) return ExitBehaviour.Repeat;
+                        if (aExitCode == (int)ExitCodes.NormalExit) return ExitBehaviour.Exit;
+                        if (aExitCode == (int)ExitCodes.HardReboot) return ExitBehaviour.Exit;
+                        return ExitBehaviour.Retry;
+                    }
+            };
+            return guardian.Run(
+                aToken =>
+                {
+                    List<string> childArgs = new List<string> { "--subprocess", aToken }; //, handle1 + "," + handle2 };
+                    childArgs.AddRange(aArgs);
+                    return Process.Start(
+                        new ProcessStartInfo(
+                            System.Reflection.Assembly.GetExecutingAssembly().Location,
+                            string.Join(" ", childArgs.ToArray())
+                        )
+                        {
+                            UseShellExecute = false
+                        }
+                    );
+                });
+
+            /*
+            const int maxFailures = 3;
+            TimeSpan failureWindow = TimeSpan.FromSeconds(60);
+            Queue<DateTime> crashTimes = new Queue<DateTime>(10);
             for (; ; )
             {
                 int exitCode = RunChildProcess(aArgs);
-                if (exitCode == 0)
+                if (exitCode == (int)ExitCodes.SoftRestart)
                 {
-                    return;
+                    continue;
                 }
-                Console.WriteLine("Restarting child process in 5s...");
+                if (exitCode == (int)ExitCodes.NormalExit)
+                {
+                    return exitCode;
+                }
+                if (exitCode == (int)ExitCodes.HardReboot)
+                {
+                    return exitCode;
+                }
+                Logger.FatalFormat("Node terminated with exit code {0}.", exitCode);
+                DateTime now = DateTime.UtcNow;
+                crashTimes.Enqueue(now);
+                if (crashTimes.Count == maxFailures)
+                {
+                    DateTime timeOfNthLastCrash = crashTimes.Dequeue();
+                    if (now - timeOfNthLastCrash <= failureWindow)
+                    {
+                        Logger.Fatal("Node crashed too often. Abandoning.");
+                        return exitCode;
+                    }
+                }
                 Thread.Sleep(5000);
-            }
+            }*/
         }
 
-        static int RunChildProcess(string[] aArgs)
+        /*static int RunChildProcess(string[] aArgs)
         {
-            var guardianToChildStream = new System.IO.Pipes.AnonymousPipeServerStream(PipeDirection.Out, HandleInheritability.Inheritable);
-            var childToGuardianStream = new System.IO.Pipes.AnonymousPipeServerStream(PipeDirection.In, HandleInheritability.Inheritable);
-            string handle1 = guardianToChildStream.GetClientHandleAsString();
-            string handle2 = childToGuardianStream.GetClientHandleAsString();
-            List<string> childArgs = new List<string> { "--subprocess", handle1 + "," + handle2 };
+            //var guardianToChildStream = new System.IO.Pipes.AnonymousPipeServerStream(PipeDirection.Out, HandleInheritability.Inheritable);
+            //var childToGuardianStream = new System.IO.Pipes.AnonymousPipeServerStream(PipeDirection.In, HandleInheritability.Inheritable);
+            //string handle1 = guardianToChildStream.GetClientHandleAsString();
+            //string handle2 = childToGuardianStream.GetClientHandleAsString();
+            List<string> childArgs = new List<string> { "--subprocess", "nopipe" }; //, handle1 + "," + handle2 };
             childArgs.AddRange(aArgs);
             var startInfo = new ProcessStartInfo(
                 System.Reflection.Assembly.GetExecutingAssembly().Location,
@@ -157,64 +233,53 @@ namespace Node
                     
                 };
             Process childProcess = Process.Start(startInfo);
-            guardianToChildStream.DisposeLocalCopyOfClientHandle();
-            childToGuardianStream.DisposeLocalCopyOfClientHandle();
+            //guardianToChildStream.DisposeLocalCopyOfClientHandle();
+            //childToGuardianStream.DisposeLocalCopyOfClientHandle();
             //Console.In.Close();
             //Console.Out.Close();
             //Console.Error.Close();
-            using (var reader = new StreamReader(childToGuardianStream))
-            {
-                //childToGuardianStream.
-                string output = reader.ReadToEnd();
-                Console.WriteLine("Guardian received output ({0} chars):", output.Length);
-                Console.WriteLine(output);
-                Console.WriteLine("Guardian waiting for child to exit...");
+            //using (var reader = new StreamReader(childToGuardianStream))
+            //{
+            //    //childToGuardianStream.
+            //    string output = reader.ReadToEnd();
+            //    Console.WriteLine("Guardian received output ({0} chars):", output.Length);
+            //    Console.WriteLine(output);
+            //    Console.WriteLine("Guardian waiting for child to exit...");
                 childProcess.WaitForExit();
-                Console.WriteLine("Guardian saw child exit with code {0}.", childProcess.ExitCode);
-                guardianToChildStream.Close();
+            //    Console.WriteLine("Guardian saw child exit with code {0}.", childProcess.ExitCode);
+            //    guardianToChildStream.Close();
                 return childProcess.ExitCode;
-            }
+            //}
 
-        }
+        }*/
 
         static int RunAsMainProcess(Options aOptions)
         {
             int exitCode = 0;
             Channel<int> exitChannel = new Channel<int>(1);
-            if (aOptions.Subprocess.Value != null && aOptions.Subprocess.Value != "no")
+            GuardianChild guardianChild = null;
+            if (aOptions.Subprocess.Value != null && aOptions.Subprocess.Value != "nopipe")
             {
-                string[] handleStrings = aOptions.Subprocess.Value.Split(new[] { ',' });
-                if (handleStrings.Length != 2)
-                {
-                    throw new Exception("Bad --subprocess value");
-                }
-                /* var pipeFromGuardian = */ new System.IO.Pipes.AnonymousPipeClientStream(PipeDirection.In, handleStrings[0]);
-                /* var pipeToGuardian = */ new System.IO.Pipes.AnonymousPipeClientStream(PipeDirection.Out, handleStrings[1]);
-                throw new NotImplementedException();
+
+                guardianChild = new GuardianChild();
+                guardianChild.Start(aOptions.Subprocess.Value);
+                //string[] handleStrings = aOptions.Subprocess.Value.Split(new[] { ',' });
+                //if (handleStrings.Length != 2)
+                //{
+                //    throw new Exception("Bad --subprocess value");
+                //}
+                // /* var pipeFromGuardian = */ new System.IO.Pipes.AnonymousPipeClientStream(PipeDirection.In, handleStrings[0]);
+                // /* var pipeToGuardian = */ new System.IO.Pipes.AnonymousPipeClientStream(PipeDirection.Out, handleStrings[1]);
+                //throw new NotImplementedException();
             }
-            string configFilename = aOptions.ConfigFile.Value ?? Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + Path.DirectorySeparatorChar + "ohOs" + Path.DirectorySeparatorChar + "ohos.config.xml";
-            ConfigFileCollection config = new ConfigFileCollection(new[] { configFilename });
-            IConfigFileCollection sysConfig = config.GetSubcollection(e=>e.Element("system-settings"));
+            IConfigFileCollection sysConfig;
+            ConfigFileCollection config;
+            LoadConfig(aOptions, out config, out sysConfig);
 
-            string storeDirectory =
-                sysConfig.GetElementValueAsFilepath(e=>e.Element("store")) ??
-                    (Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + Path.DirectorySeparatorChar + "ohOs");
-            //DirectoryInfo storeDirectory = Directory.CreateDirectory(path);
+            string storeDirectory = SetupStore(sysConfig);
 
-            string exeDirectory = Path.GetDirectoryName(
-                System.Reflection.Assembly.GetExecutingAssembly().Location);
-            string logConfigFile = Path.Combine(exeDirectory, "Log4Net.config");
-            var logSystem = OpenHome.Widget.Nodes.Logging.Log4Net.SetupLog4NetLogging(
-                logConfigFile,
-                Path.Combine(Path.Combine(storeDirectory, "logging"), "ohos.log"),
-                Path.Combine(Path.Combine(storeDirectory, "logging"), "loglevels.xml"));
-            //if (optionLogLevel.Value != null)
-            //{
-            //    logSystem.LogController.SetLogLevel("ROOT", optionLogLevel.Value);
-            //}
-
-            Logger.Info("Node started.");
-            config.LogErrors(Logger);
+            LogSystem logSystem = SetupLogging(storeDirectory, config);
+            Logger.Info("Node starting.");
 
             string noErrorDialogs = Environment.GetEnvironmentVariable("OPENHOME_NO_ERROR_DIALOGS");
             if (sysConfig.GetAttributeAsBoolean(e=>e.Elements("errors").Elements("native").Attributes("dialog").FirstOrDefault()) ?? 
@@ -283,6 +348,15 @@ namespace Node
                     var commandDispatcher = new CommandDispatcher();
                     var consoleInterface = new ConsoleInterface(commandDispatcher);
                     var nodeRebooter = new NodeRebooter(consoleInterface, exitChannel);
+                    if (guardianChild != null)
+                    {
+                        guardianChild.WhenGuardianTerminates +=
+                            (aSender, aEvent) =>
+                            {
+                                consoleInterface.Quit((int)ExitCodes.GuardianDied);
+                                exitChannel.NonBlockingSend((int)ExitCodes.GuardianDied);
+                            };
+                    }
                     commandDispatcher.AddCommand("exit", aArguments => consoleInterface.Quit(0), "Stop and close this OpenHome Node process.");
                     commandDispatcher.AddCommand("help", aArguments => Console.WriteLine(commandDispatcher.DescribeAllCommands()), "Show a list of available commands.");
                     commandDispatcher.AddCommand("logdump", aArguments => Console.WriteLine(logSystem.LogReader.GetLogTail(10000)), "Dump the current contents of the logfile.");
@@ -367,6 +441,38 @@ namespace Node
             }
             Logger.Info("Shutdown complete.");
             return exitCode;
+        }
+
+        static LogSystem SetupLogging(string storeDirectory, ConfigFileCollection config)
+        {
+            string exeDirectory = Path.GetDirectoryName(
+                System.Reflection.Assembly.GetExecutingAssembly().Location);
+            string logConfigFile = Path.Combine(exeDirectory, "Log4Net.config");
+            var logSystem = OpenHome.Widget.Nodes.Logging.Log4Net.SetupLog4NetLogging(
+                logConfigFile,
+                Path.Combine(Path.Combine(storeDirectory, "logging"), "ohos.log"),
+                Path.Combine(Path.Combine(storeDirectory, "logging"), "loglevels.xml"));
+            //if (optionLogLevel.Value != null)
+            //{
+            //    logSystem.LogController.SetLogLevel("ROOT", optionLogLevel.Value);
+            //}
+
+            config.LogErrors(Logger);
+            return logSystem;
+        }
+
+        static string SetupStore(IConfigFileCollection sysConfig)
+        {
+            return sysConfig.GetElementValueAsFilepath(e=>e.Element("store")) ??
+                (Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + Path.DirectorySeparatorChar + "ohOs");
+            //DirectoryInfo storeDirectory = Directory.CreateDirectory(path);
+        }
+
+        static void LoadConfig(Options aOptions, out ConfigFileCollection aConfig, out IConfigFileCollection aSysConfig)
+        {
+            string configFilename = aOptions.ConfigFile.Value ?? Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + Path.DirectorySeparatorChar + "ohOs" + Path.DirectorySeparatorChar + "ohos.config.xml";
+            aConfig = new ConfigFileCollection(new[] { configFilename });
+            aSysConfig = aConfig.GetSubcollection(e=>e.Element("system-settings"));
         }
 
         private static int RunConsole(ConsoleInterface aConsoleInterface, bool aSilent, Channel<int> aExitChannel)

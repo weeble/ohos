@@ -31,6 +31,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConfigFileCollection.cs" />
+    <Compile Include="Guardians\Fifo.cs" />
+    <Compile Include="Guardians\Guardian.cs" />
     <Compile Include="Program.cs" />
   </ItemGroup>
   <ItemGroup>
