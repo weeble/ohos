@@ -361,7 +361,7 @@ upnp_services = [
 csharp_projects = [
         # Core node libraries:
         CSharpProject(
-            name="ohOs.AppManager", dir="AppManager", type="library",
+            name="ohOs.Apps", dir="Apps", type="library",
             categories=["core"],
             packages=['ohnet', 'mono-addins', 'sharpziplib', 'log4net', 'systemxmllinq', 'mef'],
             references=[
@@ -370,12 +370,12 @@ csharp_projects = [
                 'ohOs.Platform',
             ]),
         CSharpProject(
-            name="ohOs.Tests", dir="Tests", type="exe",
+            name="ohOs.IntegrationTests", dir="IntegrationTests", type="exe",
             categories=["core"],
             packages=['ohnet', 'mono-addins', 'log4net', 'systemxmllinq'],
             references=[
                 'DvOpenhomeOrgApp1',
-                'ohOs.AppManager',
+                'ohOs.Apps',
                 'ohOs.Platform',
                 'ohOs.Host',
             ]),
@@ -384,7 +384,7 @@ csharp_projects = [
             categories=["core"],
             packages=['ohnet', 'mono-addins', 'mef'],
             references=[
-                'ohOs.AppManager',
+                'ohOs.Apps',
                 'ohOs.Platform',
             ]),
         CSharpProject(
@@ -397,7 +397,7 @@ csharp_projects = [
             name="ohOs.Host", dir="Host", type="exe",
             categories=["core"],
             packages=['ohnet', 'mono-addins', 'log4net', 'systemxmllinq'],
-            references=['ohOs.Platform', 'ohOs.AppManager']
+            references=['ohOs.Platform', 'ohOs.Apps']
             ),
         CSharpProject(
             name="ohOs.Network", dir="Network", type="library",
@@ -414,22 +414,22 @@ csharp_projects = [
             ]
             ),
         CSharpProject(
-            name="ohOs.AppManager.Tests", dir="AppManager.Tests", type="library",
+            name="ohOs.Tests", dir="Tests", type="library",
             categories=["test"],
             packages=['ohnet', 'mono-addins', 'nunit', 'moq', 'sharpziplib'],
             references=[
                 'DvOpenhomeOrgApp1',
-                'ohOs.AppManager',
+                'ohOs.Apps',
                 'ohOs.Platform',
             ]),
     ]
 
 files_to_copy = [
         CopyFile(
-            source='src/AppManager/App.addins',
+            source='src/Apps/App.addins',
             target='App.addins'),
         CopyFile(
-            source='src/AppManager/ohos.config.xml',
+            source='src/Apps/ohos.config.xml',
             target='ohos.config.xml'),
     ]
 
@@ -442,7 +442,7 @@ ohos_apps = [
     ]
 
 integration_tests = [
-        '${INVOKECLR} ohOs.Tests.exe'
+        '${INVOKECLR} ohOs.IntegrationTests.exe'
     ]
 
 
@@ -536,7 +536,7 @@ def build(bld):
             "ohos",
             [
                 "ohOs.Host.exe",
-                "ohOs.AppManager.dll",
+                "ohOs.Apps.dll",
                 "ohOs.Platform.dll",
                 "ohOs.Remote.dll",
                 "App.addins",
@@ -559,7 +559,7 @@ def do_install(bld):
     bld.install_files(
         '${PREFIX}/lib/ohos/',
         [
-            'OhOs.AppManager.dll'
+            'ohOs.Apps.dll'
         ])
     bld.install_files(
         '${PREFIX}/lib/ohos/',
