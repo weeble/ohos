@@ -6,7 +6,7 @@ using OpenHome.Os.Platform;
 
 namespace OpenHome.Os.AppManager
 {
-    public interface IManager : IDisposable
+    public interface IAppShell : IDisposable
     {
         void Start();
         void Install(string aZipFile);
@@ -17,7 +17,7 @@ namespace OpenHome.Os.AppManager
         IEnumerable<AppInfo> GetApps();
     }
 
-    public class Manager : IManager
+    public class AppShell : IAppShell
     {
         private readonly object iLock = new object();
         private readonly ManagerImpl iImpl;
@@ -33,7 +33,7 @@ namespace OpenHome.Os.AppManager
             }
         }
 
-        public Manager(
+        public AppShell(
             IAppServices aFullPrivilegeAppServices,
             IConfigFileCollection aConfiguration,
             IAddinManager aAddinManager,

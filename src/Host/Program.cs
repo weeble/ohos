@@ -331,7 +331,7 @@ namespace Node
                     Console.WriteLine(storeDirectory);
                     using (var appModule = new ManagerModule(services, config))
                     {
-                        var appManager = appModule.Manager;
+                        var appManager = appModule.AppShell;
                         if (aOptions.InstallFile.Value != null)
                         {
                             appManager.Install(aOptions.InstallFile.Value);

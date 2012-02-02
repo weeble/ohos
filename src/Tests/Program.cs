@@ -61,11 +61,11 @@ namespace OpenHome.Os
                 }
                 using (var installModule = new ManagerModule(services, config))
                 {
-                    installModule.Manager.Start();
+                    installModule.AppShell.Start();
 
-                    installModule.Manager.Install(System.IO.Path.Combine(exePath, "ohOs.TestApp1.zip"));
+                    installModule.AppShell.Install(System.IO.Path.Combine(exePath, "ohOs.TestApp1.zip"));
 
-                    List<AppInfo> apps = installModule.Manager.GetApps().ToList();
+                    List<AppInfo> apps = installModule.AppShell.GetApps().ToList();
                     if (apps.Count!=1)
                     {
                         Console.Error.WriteLine("There should be one app installed. (Found {0}.)", apps.Count);

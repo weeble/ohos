@@ -48,7 +48,7 @@ namespace OpenHome.Os.AppManager.Tests
         protected IDvProviderOpenhomeOrgApp1 iProvider;
         protected IAppMetadataStore iAppMetadataStore;
 
-        protected Manager iManager;
+        protected AppShell iAppShell;
         protected Dictionary<string, AppMetadata> iAppMetadata;
 
         //protected ExtensionNodeEventHandler CurrentExtensionNodeEventHandler;
@@ -117,8 +117,8 @@ namespace OpenHome.Os.AppManager.Tests
             iProviderConstructorMock = new Mock<IProviderConstructor>();
             iProviderConstructor = iProviderConstructorMock.Object.Create;
             PrepareMocks();
-            iManager = new Manager(iAppServices, iConfig, iAddinManager, iAppsDirectory, iStoreDirectory, iProviderConstructor, iZipReader, iAppMetadataStore, new ZipVerifier(iZipReader), false);
-            // When the App Manager calls AddExtensionNodeHandler, store the
+            iAppShell = new AppShell(iAppServices, iConfig, iAddinManager, iAppsDirectory, iStoreDirectory, iProviderConstructor, iZipReader, iAppMetadataStore, new ZipVerifier(iZipReader), false);
+            // When the App AppShell calls AddExtensionNodeHandler, store the
             // handler so that we can call it back later.
             //AddinManagerMock.Setup(x=>x.AddExtensionNodeHandler(It.IsAny<string>(), It.IsAny<ExtensionNodeEventHandler>())).Callback(
             //    (string aExtensionPoint, ExtensionNodeEventHandler aHandler) => AddExtensionNodeHandler(aExtensionPoint, aHandler));
@@ -144,7 +144,7 @@ namespace OpenHome.Os.AppManager.Tests
         }
         public void InstallAnApp()
         {
-            iManager.Install("path/to/zip/file.zip");
+            iAppShell.Install("path/to/zip/file.zip");
         }
     }
 
@@ -179,7 +179,7 @@ namespace OpenHome.Os.AppManager.Tests
         [Test]
         public void UpdateRegistryIsInvokedIfTheManagerIsAlreadyStarted()
         {
-            iManager.Start();
+            iAppShell.Start();
             iAddinManagerMock.Verify(x => x.UpdateRegistry(It.IsAny<Action<DirectoryInfo, IApp>>(), It.IsAny<Action<DirectoryInfo, IApp>>()), Times.Exactly(1));
             InstallAnApp();
             iAddinManagerMock.Verify(x => x.UpdateRegistry(It.IsAny<Action<DirectoryInfo, IApp>>(), It.IsAny<Action<DirectoryInfo, IApp>>()), Times.Exactly(2));
@@ -258,7 +258,7 @@ namespace OpenHome.Os.AppManager.Tests
             iAddinManagerMock
                 .Setup(x=>x.UpdateRegistry(It.IsAny<Action<DirectoryInfo, IApp>>(), It.IsAny<Action<DirectoryInfo, IApp>>()))
                 .Callback((Action<DirectoryInfo, IApp> aAddedAction, Action<DirectoryInfo, IApp> aRemovedAction)=>aAddedAction(new DirectoryInfo(AppName),iApp));
-            iManager.Start();
+            iAppShell.Start();
         }
     }
 
@@ -336,25 +336,25 @@ namespace OpenHome.Os.AppManager.Tests
         [Test]
         public void StoppingTheManagerStopsTheApp()
         {
-            iManager.Stop();
+            iAppShell.Stop();
             iAppMock.Verify(x => x.Stop(), Times.Once());
         }
         [Test]
         public void StoppingTheManagerDisposesTheProvider()
         {
-            iManager.Stop();
+            iAppShell.Stop();
             iProviderMock.Verify(x => x.Dispose(), Times.Once());
         }
         [Test]
         public void StoppingTheManagerDisablesTheDevice()
         {
-            iManager.Stop();
+            iAppShell.Stop();
             iDeviceMock.Verify(x => x.SetDisabled(It.IsAny<Action>()), Times.Once());
         }
         [Test]
         public void StoppingTheManagerDisposesTheDevice()
         {
-            iManager.Stop();
+            iAppShell.Stop();
             iDeviceMock.Verify(x => x.Dispose(), Times.Once());
         }
     }

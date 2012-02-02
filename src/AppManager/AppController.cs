@@ -136,9 +136,9 @@ namespace OpenHome.Os.AppManager
             iDevice.SetAttribute("Upnp.Domain", "openhome.org");
             iDevice.SetAttribute("Upnp.Type", "AppManager");
             iDevice.SetAttribute("Upnp.Version", "1");
-            iDevice.SetAttribute("Upnp.FriendlyName", "OpenHome App Manager");
+            iDevice.SetAttribute("Upnp.FriendlyName", "OpenHome App AppShell");
             iDevice.SetAttribute("Upnp.Manufacturer", "N/A");
-            iDevice.SetAttribute("Upnp.ModelName", "OpenHome App Manager");
+            iDevice.SetAttribute("Upnp.ModelName", "OpenHome App AppShell");
             iProvider = new AppManagerProvider(iDevice);
             iDevice.SetEnabled();
         }

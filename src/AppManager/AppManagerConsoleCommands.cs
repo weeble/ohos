@@ -8,18 +8,18 @@ namespace OpenHome.Os.AppManager
 {
     public class AppManagerConsoleCommands
     {
-        readonly IManager iAppManager;
+        readonly IAppShell iAppAppShell;
 
-        public AppManagerConsoleCommands(IManager aAppManager)
+        public AppManagerConsoleCommands(IAppShell aAppAppShell)
         {
-            iAppManager = aAppManager;
+            iAppAppShell = aAppAppShell;
         }
 
         void Install(string aArgs)
         {
             try
             {
-                iAppManager.Install(aArgs);
+                iAppAppShell.Install(aArgs);
             }
             catch (Exception e)
             {
@@ -31,7 +31,7 @@ namespace OpenHome.Os.AppManager
         {
             try
             {
-                iAppManager.UninstallByAppName(aArgs);
+                iAppAppShell.UninstallByAppName(aArgs);
             }
             catch (Exception e)
             {
@@ -41,7 +41,7 @@ namespace OpenHome.Os.AppManager
 
         void ListApps(string aArgs)
         {
-            var apps = iAppManager.GetApps();
+            var apps = iAppAppShell.GetApps();
             Console.WriteLine("Installed apps:");
             bool any = false;
             foreach (var app in apps)

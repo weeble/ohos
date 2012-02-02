@@ -44,7 +44,7 @@
     <Compile Include="IAddinManager.cs" />
     <Compile Include="IAppsDirectory.cs" />
     <Compile Include="IStoreDirectory.cs" />
-    <Compile Include="Manager.cs" />
+    <Compile Include="AppShell.cs" />
     <Compile Include="ManagerImpl.cs" />
     <Compile Include="./ProviderApp.cs" />
     <Compile Include="AppController.cs" />

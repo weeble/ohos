@@ -30,7 +30,7 @@ namespace OpenHome.Os.AppManager
     public class ManagerModule : IDisposable
     {
         private const string DefaultAppsDirectory = "InstalledApps";
-        public IManager Manager { get; private set; }
+        public IAppShell AppShell { get; private set; }
         public ManagerModule(
             IAppServices aFullPrivilegeAppServices,
             IConfigFileCollection aConfiguration)
@@ -52,7 +52,7 @@ namespace OpenHome.Os.AppManager
             var addinManager = new MefAddinManager(appsDirectory);
             AppMetadataStore appMetadataStore = new AppMetadataStore(new DirectoryInfo(Path.Combine(storePath, "_installed")));
             ZipVerifier zipVerifier = new ZipVerifier(zipReader);
-            Manager = new Manager(
+            AppShell = new AppShell(
                 aFullPrivilegeAppServices,
                 aConfiguration,
                 addinManager,
@@ -67,8 +67,8 @@ namespace OpenHome.Os.AppManager
 
         public void Dispose()
         {
-            Manager.Dispose();
-            Manager = null;
+            AppShell.Dispose();
+            AppShell = null;
         }
     }
 }
