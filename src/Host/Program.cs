@@ -162,7 +162,7 @@ namespace Node
                 {
                     List<string> childArgs = new List<string> { "--subprocess", aToken }; //, handle1 + "," + handle2 };
                     childArgs.AddRange(aArgs);
-                    return Process.Start(
+                    var p = Process.Start(
                         new ProcessStartInfo(
                             System.Reflection.Assembly.GetExecutingAssembly().Location,
                             string.Join(" ", childArgs.ToArray())
@@ -171,6 +171,7 @@ namespace Node
                             UseShellExecute = false
                         }
                     );
+                    return p;
                 });
         }
 

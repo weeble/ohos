@@ -21,8 +21,10 @@ namespace OpenHome.Os.Host.Guardians
         private bool iGuardianTerminated;
         private EventHandler iWhenGuardianTerminates;
         string iFifoDirectory;
+        public TimeSpan ConnectionTimeout { get; set; }
         public GuardianChild(string aFifoDirectory)
         {
+            ConnectionTimeout = TimeSpan.FromSeconds(5);
             iFifoDirectory = aFifoDirectory;
         }
         public event EventHandler WhenGuardianTerminates
@@ -60,7 +62,7 @@ namespace OpenHome.Os.Host.Guardians
         Thread iThread;
         public void Start(string aToken)
         {
-            iPipeChild = PipedSubprocess.ConnectPipedChild(aToken, iFifoDirectory);
+            iPipeChild = PipedSubprocess.ConnectPipedChild(aToken, iFifoDirectory, (int)ConnectionTimeout.TotalMilliseconds);
             // Mono's FileStream.BeginRead method is, inexplicably, synchronous.
             // Thus we need to spin up our own thread here.
             iThread = new Thread(()=>
@@ -106,6 +108,7 @@ namespace OpenHome.Os.Host.Guardians
         public TimeSpan FailureWindow { get; set; }
         public TimeSpan RetryPause { get; set; }
         public Func<int, ExitBehaviour> WhenChildExitsWithCode { get; set; }
+        public TimeSpan ConnectionTimeout { get; set; }
         string iFifoDirectory;
 
         public Guardian(string aFifoDirectory)
@@ -114,6 +117,7 @@ namespace OpenHome.Os.Host.Guardians
             MaxFailures = 0;
             FailureWindow = TimeSpan.FromSeconds(60);
             RetryPause = TimeSpan.FromSeconds(5);
+            ConnectionTimeout = TimeSpan.FromSeconds(5);
             WhenChildExitsWithCode = aExitCode => aExitCode == 0 ? ExitBehaviour.Exit : ExitBehaviour.Retry;
         }
 
@@ -170,7 +174,7 @@ namespace OpenHome.Os.Host.Guardians
 
         int RunChildProcess(Func<string, Process> aSpawnFunc)
         {
-            IPipedProcessParent pipeParent = PipedSubprocess.SpawnPipedSubprocess(aSpawnFunc, iFifoDirectory);
+            IPipedProcessParent pipeParent = PipedSubprocess.SpawnPipedSubprocess(aSpawnFunc, iFifoDirectory, (int)ConnectionTimeout.TotalMilliseconds);
             int exitCode;
             using (var reader = new StreamReader(pipeParent.FromChild))
             {
