@@ -17,10 +17,13 @@ namespace OpenHome.Os.Apps
         IEnumerable<AppInfo> GetApps();
     }
 
+    /// <summary>
+    /// Hosts apps in a process.
+    /// </summary>
     public class AppShell : IAppShell
     {
         private readonly object iLock = new object();
-        private readonly ManagerImpl iImpl;
+        private readonly AppShellImpl iImpl;
 
         public List<HistoryItem> History
         {
@@ -33,6 +36,52 @@ namespace OpenHome.Os.Apps
             }
         }
 
+        /// <summary>
+        /// Create an app shell. Hosted apps are not automatically started.
+        /// </summary>
+        /// <param name="aFullPrivilegeAppServices">
+        /// Services that will be provided to apps granted permissions.
+        /// (If we implement restricted permissions, such apps would
+        /// receive only a subset of these services.)
+        /// </param>
+        /// <param name="aConfiguration">
+        /// Parsed config files. Some pre-installed apps need to read
+        /// configuration  information (such as location of serial devices)
+        /// from these files.
+        /// </param>
+        /// <param name="aAddinManager">
+        /// Interface to the addin manager that handles actual loading of
+        /// plugins. (Currently we use MEF.)
+        /// </param>
+        /// <param name="aAppsDirectory">
+        /// Interface to inspect and manipulate the apps directory, where
+        /// we put app binaries and their static data.
+        /// </param>
+        /// <param name="aStoreDirectory">
+        /// Interface to inspect and manipulate the store directory, where
+        /// apps store their dynamic, persistent data.
+        /// </param>
+        /// <param name="aAppProviderConstructor">
+        /// Constructor to create an AppProvider. The AppShell is responsible
+        /// for creating a device for each app and publishing the app service
+        /// on that device on behalf of the app, and it uses this to construct
+        /// such a provider. (Unit tests need to be able to pass in a
+        /// substitute here.
+        /// </param>
+        /// <param name="aZipReader">
+        /// Reads entries from a zip file.
+        /// </param>
+        /// <param name="aAppMetadataStore">
+        /// Stores persistent data about apps, such as deferred deletions or
+        /// upgrades.
+        /// </param>
+        /// <param name="aZipVerifier">
+        /// Verifies that a zip file contains a valid OpenHome app.
+        /// </param>
+        /// <param name="aAutoStart">
+        /// If true, start the AppShell immediately. Otherwise, caller needs
+        /// to call Start() when they want to start apps.
+        /// </param>
         public AppShell(
             IAppServices aFullPrivilegeAppServices,
             IConfigFileCollection aConfiguration,
@@ -46,7 +95,7 @@ namespace OpenHome.Os.Apps
         {
             lock (iLock)
             {
-                iImpl = new ManagerImpl(
+                iImpl = new AppShellImpl(
                     aFullPrivilegeAppServices,
                     aConfiguration,
                     aAddinManager,
@@ -68,6 +117,9 @@ namespace OpenHome.Os.Apps
             }
         }
 
+        /// <summary>
+        /// Performs any deferred operations, then starts all apps.
+        /// </summary>
         public void Start()
         {
             lock (iLock)
@@ -76,6 +128,12 @@ namespace OpenHome.Os.Apps
             }
         }
 
+        /// <summary>
+        /// Install an app from a local file. If an old version of the app is
+        /// currently running, defer installation until restart and then schedule
+        /// a restart.
+        /// </summary>
+        /// <param name="aZipFile"></param>
         public void Install(string aZipFile)
         {
             lock (iLock)
@@ -84,6 +142,10 @@ namespace OpenHome.Os.Apps
             }
         }
 
+        /// <summary>
+        /// Stop a running app and schedule it for deletion on restart.
+        /// </summary>
+        /// <param name="aUdn"></param>
         public void UninstallByUdn(string aUdn)
         {
             lock (iLock)
@@ -92,6 +154,9 @@ namespace OpenHome.Os.Apps
             }
         }
 
+        /// <summary>
+        /// Stop a running app and schedule it for deletion on restart.
+        /// </summary>
         public void UninstallByAppName(string aAppName)
         {
             lock (iLock)
@@ -108,6 +173,9 @@ namespace OpenHome.Os.Apps
             }
         }
 
+        /// <summary>
+        /// Stop all apps.
+        /// </summary>
         public void Stop()
         {
             lock (iLock)
@@ -116,6 +184,11 @@ namespace OpenHome.Os.Apps
             }
         }
 
+        /// <summary>
+        /// Get information about all apps, including those pending deletion
+        /// or currently unable to run.
+        /// </summary>
+        /// <returns></returns>
         public IEnumerable<AppInfo> GetApps()
         {
             lock (iLock)

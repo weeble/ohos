@@ -21,17 +21,17 @@ namespace OpenHome.Os.Apps
     }
 
     /// <summary>
-    /// Assembles and configures the components to make an app manager.
+    /// Assembles and configures the components to make an app shell.
     /// Whereas unit tests want to test each component separately,
     /// applications just want all the components sensibly configured,
     /// connected and ready to use. That's what the module is
     /// responsible for.
     /// </summary>
-    public class ManagerModule : IDisposable
+    public class AppShellModule : IDisposable
     {
         private const string DefaultAppsDirectory = "InstalledApps";
         public IAppShell AppShell { get; private set; }
-        public ManagerModule(
+        public AppShellModule(
             IAppServices aFullPrivilegeAppServices,
             IConfigFileCollection aConfiguration)
         {

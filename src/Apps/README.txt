@@ -6,3 +6,4 @@ Notable classes:
 
 AppShell - thread-safe app hosting
 AppShellImpl - thread-unsafe app hosting
+AppShellModule - configures and initializes an AppShell and its dependencies.

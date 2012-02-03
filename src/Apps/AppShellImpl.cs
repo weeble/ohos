@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using System.Linq;
 using System.IO;
 using System.Reflection;
@@ -8,7 +7,6 @@ using System.Xml.Linq;
 using log4net;
 //using Mono.Addins;
 using OpenHome.Net.Device;
-using ICSharpCode.SharpZipLib.Zip;
 using System.Collections.Generic;
 using OpenHome.Net.Device.Providers;
 using OpenHome.Os.Platform;
@@ -20,166 +18,6 @@ using OpenHome.Widget.Nodes;
 
 namespace OpenHome.Os.Apps
 {
-    public interface IZipReader
-    {
-        IEnumerable<ZipEntry> Open(string aZipName);
-        //void ExtractAll(string aDestination);
-    }
-
-    public class HistoryItem
-    {
-        public enum ItemType
-        {
-            EInstall,
-            EUninstall,
-            EUpdate
-        }
-        public string Name { get { return iName; } }
-        public ItemType Type { get { return iType; } }
-        public DateTime Time { get { return iTime; } }
-        public string Udn { get { return iUdn; } }
-
-        private readonly string iName;
-        private readonly ItemType iType;
-        private readonly DateTime iTime;
-        private readonly string iUdn;
-
-        public HistoryItem(string aName, ItemType aType, string aUdn)
-        {
-            iName = aName;
-            iType = aType;
-            iTime = DateTime.Now;
-            iUdn = aUdn;
-        }
-    }
-
-    public class AppContext : IAppContext
-    {
-        public IAppServices Services { get; private set; }
-        public string StaticPath { get; private set; }
-        public string StorePath { get; private set; }
-        public IConfigFileCollection Configuration { get; private set; }
-        public DvDevice Device { get; set; }
-
-        public AppContext(IAppServices aServices, string aStaticPath, string aStorePath, IConfigFileCollection aConfiguration, DvDevice aDevice)
-        {
-            Services = aServices;
-            StaticPath = aStaticPath;
-            StorePath = aStorePath;
-            Configuration = aConfiguration;
-            Device = aDevice;
-        }
-    }
-
-
-    public class ZipVerifier : IZipVerifier
-    {
-        readonly IZipReader iZipReader;
-
-        public ZipVerifier(IZipReader aZipReader)
-        {
-            iZipReader = aZipReader;
-        }
-
-        /// <summary>
-        /// Verify that the plugin installs to a single subdirectory,
-        /// and return the name of that subdirectory.
-        /// </summary>
-        /// <param name="aZipFile"></param>
-        /// <returns></returns>
-        public string VerifyPluginZip(string aZipFile)
-        {
-            var zf = iZipReader.Open(aZipFile);
-            HashSet<string> topLevelDirectories = new HashSet<string>();
-            try
-            {
-                foreach (ZipEntry entry in zf)
-                {
-                    string fname = entry.Name;
-                    Debug.Assert(fname != null); // Zip library should assure this.
-                    if (Path.IsPathRooted(fname))
-                    {
-                        throw new BadPluginException("Bad plugin: contains absolute paths.");
-                    }
-
-                    string topLevelDirectory = VerifyPluginZipEntry(fname);
-                    topLevelDirectories.Add(topLevelDirectory);
-                }
-            }
-            catch (NotSupportedException)
-            {
-                throw new BadPluginException("Bad plugin: filenames contain illegal characters.");
-            }
-            if (topLevelDirectories.Count != 1)
-            {
-                throw new BadPluginException("Bad plugin: doesn't have exactly 1 subdirectory.");
-            }
-            return topLevelDirectories.First();
-        }
-
-        /// <summary>
-        /// Verify that the given filename in a plugin zip-file:
-        ///     1. Isn't absolute.
-        ///     2. Contains no ".." segments.
-        ///     3. Is a file (not a directory).
-        ///     4. Isn't a file at the top-level.
-        /// </summary>
-        /// <param name="aFname"></param>
-        /// <returns>The top-level directory that contains the file.</returns>
-        static string VerifyPluginZipEntry(string aFname)
-        {
-            string path = aFname;
-            bool isTerminalComponent = true;
-            while (true)
-            {
-                string component = Path.GetFileName(path);
-                Debug.Assert(component != null);
-                // Path.GetFileName can only return null
-                // if path is null. (Which it's not.)
-
-                if (component==".." || component==".")
-                {
-                    throw new BadPluginException("Bad plugin: contains special path components.");
-                }
-
-                string parent = Path.GetDirectoryName(path);
-                Debug.Assert(parent != null);
-                // Path.GetDirectoryName can only return
-                // null if path is null or a root
-                // directory. (It's not.)
-
-                if (parent=="")
-                {
-                    if (component=="")
-                    {
-                        // Zip files use entries like "foo\" to indicate an empty
-                        // directory called foo. The top level directory should not
-                        // be empty.
-                        throw new BadPluginException("Bad plugin: empty directory entry.");
-                    }
-                    if (isTerminalComponent)
-                    {
-                        throw new BadPluginException("Bad plugin: contains file at top-level.");
-                    }
-                    return component;
-                }
-                path = parent;
-                isTerminalComponent = false;
-            }
-        }
-    }
-
-    public interface IZipVerifier
-    {
-        /// <summary>
-        /// Verify that the plugin installs to a single subdirectory,
-        /// and return the name of that subdirectory.
-        /// </summary>
-        /// <param name="aZipFile"></param>
-        /// <returns></returns>
-        string VerifyPluginZip(string aZipFile);
-    }
-
     public enum AppState
     {
         Running,
@@ -204,9 +42,13 @@ namespace OpenHome.Os.Apps
         }
     }
 
-    public class ManagerImpl : IDisposable
+    /// <summary>
+    /// Hosts apps in a process.
+    /// Not thread-safe: do not invoke methods from multiple threads simultaneously.
+    /// </summary>
+    public class AppShellImpl : IDisposable
     {
-        static readonly ILog Logger = LogManager.GetLogger(typeof(ManagerImpl));
+        static readonly ILog Logger = LogManager.GetLogger(typeof(AppShellImpl));
         private class PublishedApp : IDisposable
         {
             public IApp App { get { return iApp; } }
@@ -426,7 +268,7 @@ namespace OpenHome.Os.Apps
             get { return new List<HistoryItem>(iHistory); }
         }
 
-        public ManagerImpl(
+        public AppShellImpl(
             IAppServices aFullPrivilegeAppServices,
             IConfigFileCollection aConfiguration,
             IAddinManager aAddinManager,

@@ -329,7 +329,7 @@ namespace Node
                                                };
 
                     Console.WriteLine(storeDirectory);
-                    using (var appModule = new ManagerModule(services, config))
+                    using (var appModule = new AppShellModule(services, config))
                     {
                         var appManager = appModule.AppShell;
                         if (aOptions.InstallFile.Value != null)

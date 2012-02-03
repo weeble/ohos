@@ -57,7 +57,7 @@ namespace OpenHome.Os.IntegrationTests
                 {
                     Directory.Delete(storePath, true);
                 }
-                using (var installModule = new ManagerModule(services, config))
+                using (var installModule = new AppShellModule(services, config))
                 {
                     installModule.AppShell.Start();
 
