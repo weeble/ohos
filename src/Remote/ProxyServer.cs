@@ -75,7 +75,7 @@ namespace OpenHome.Os.Remote
             HttpWebRequest forwardedReq = (HttpWebRequest)WebRequest.Create(targetUrl);
             bool connectionClose;
             bool connectionKeepAlive;
-            WriteForwardedRequestHeaders(clientReq, forwardedReq, out connectionKeepAlive, out connectionClose);
+            WriteForwardedRequest(clientReq, forwardedReq, out connectionKeepAlive, out connectionClose);
             HttpWebResponse resp;
             try
             {
@@ -188,7 +188,7 @@ namespace OpenHome.Os.Remote
             }
             return url;
         }
-        private static void WriteForwardedRequestHeaders(HttpListenerRequest aClientReq, HttpWebRequest aForwardedReq, out bool aConnectionKeepAlive, out bool aConnectionClose)
+        private static void WriteForwardedRequest(HttpListenerRequest aClientReq, HttpWebRequest aForwardedReq, out bool aConnectionKeepAlive, out bool aConnectionClose)
         {
             aConnectionKeepAlive = aConnectionClose = false;
             aForwardedReq.Method = aClientReq.HttpMethod;
