@@ -19,14 +19,22 @@ namespace OpenHome.Os.Apps
         <version>1.2.3</version>
         <url>http://www.openhome.org/dummyapp.zip</url>
         <description>This is a dummy app to stub out the AppManager API.</description>
-        <running />
-        <downloading progressBytes=""7700"" progressPercent=""77%"" totalBytes=""10000"" />
+        <status>running</status>
+        <updateStatus>downloading</updateStatus>
     </app>
 </appList>";
         const string DummyAppDownloadXml =
-@"<appDownloadStatus id=""dummyApp"" url=""http://www.openhome.org/dummyapp.zip"">
-    <downloading progressBytes=""7700"" progressPercent=""77%"" totalBytes=""10000"" />
-</appList>";
+@"<downloadList>
+    <download>
+         <status>downloading</status>
+         <url>http://www.openhome.org/dummyapp.zip</url>
+         <appId>dummyApp</appId>
+         <appHandle>1</appHandle>
+         <progressPercent>77</progressPercent>
+         <progressBytes>7700</progressBytes>
+         <totalBytes>10000</totalBytes>
+    </download>
+</downloadList>";
 
 
         const string EmptyAppListXml = "<appList/>";
@@ -35,25 +43,22 @@ namespace OpenHome.Os.Apps
         private static readonly ILog iLog = LogManager.GetLogger(typeof(AppManagerProvider));
 
         private uint iDummySequenceNumber;
-        private uint iDummyDownloadSequenceNumber;
-        private object iDummySeqNoLock = new object();
+        private readonly object iDummySeqNoLock = new object();
 
         public AppManagerProvider(DvDevice aDevice) : base(aDevice)
         {
             EnablePropertyAppHandleArray();
             EnablePropertyAppSequenceNumberArray();
-            EnablePropertyAppDownloadSequenceNumberArray();
             // TODO: Initialize handle array.
             // TODO: Initialize seqno array.
 
             EnableActionGetAppStatus();
             EnableActionGetMultipleAppsStatus();
-            EnableActionGetAppPermissions();
+            EnableActionGetAllDownloadsStatus();
             EnableActionInstallAppFromUrl();
             EnableActionRemoveApp();
-            EnableActionSetAppGrantedPermissions();
             EnableActionCancelDownload();
-            EnableActionGetAppDownloadStatus();
+            EnableActionUpdateApp();
             SetPropertyAppHandleArray(Platform.Converter.ConvertUintListToNetworkOrderByteArray(new List<uint> { DummyAppId }));
             BumpDummySequenceNumber();
         }
@@ -69,32 +74,19 @@ namespace OpenHome.Os.Apps
             }
         }
 
-        public void BumpDummyDownloadSequenceNumber()
-        {
-            lock (iDummySeqNoLock)
-            {
-                iLog.InfoFormat("Bumping the AppManager dummy sequence number up to {0}.", iDummySequenceNumber + 1);
-                iDummyDownloadSequenceNumber += 1;
-                uint value = iDummyDownloadSequenceNumber;
-                SetPropertyAppDownloadSequenceNumberArray(Platform.Converter.ConvertUintListToNetworkOrderByteArray(new List<uint> { value }));
-            }
-        }
-
         protected override void GetAppStatus(IDvInvocation aInvocation, uint aAppHandle, out string aAppListXml)
         {
             iLog.ErrorFormat("GetAppStatus(\"{0}\") - not implemented.", aAppHandle);
             aAppListXml = (aAppHandle == DummyAppId) ? DummyAppListXml : EmptyAppListXml;
         }
-        protected override void CancelDownload(IDvInvocation aInvocation, uint aAppHandle)
+        protected override void CancelDownload(IDvInvocation aInvocation, string aAppURL)
         {
-            iLog.ErrorFormat("CancelDownload(\"{0}\") - not implemented", aAppHandle);
+            iLog.ErrorFormat("CancelDownload(\"{0}\") - not implemented", aAppURL);
         }
-        protected override void GetAppDownloadStatus(IDvInvocation aInvocation, uint aAppHandle, out string aAppDownloadXml)
+        protected override void GetAllDownloadsStatus(IDvInvocation aInvocation, out string aDownloadStatusXml)
         {
-            iLog.ErrorFormat("GetAppDownloadStatus(\"{0}\") - not implemented", aAppHandle);
-            if (aAppHandle != DummyAppId)
-                throw new ActionError(String.Format("App handle not recognized: {0}", aAppHandle), NoSuchAppError);
-            aAppDownloadXml = DummyAppDownloadXml;
+            iLog.Error("GetAllDownloadsStatus(\"{0}\") - not implemented");
+            aDownloadStatusXml = DummyAppDownloadXml;
         }
         protected override void GetMultipleAppsStatus(IDvInvocation aInvocation, byte[] aAppHandles, out string aAppListXml)
         {
@@ -102,12 +94,9 @@ namespace OpenHome.Os.Apps
             iLog.ErrorFormat("GetMultipleAppsStatus(\"{0}\") - not implemented.", String.Join(", ", handles.Select(h=>h.ToString()).ToArray()));
             aAppListXml = (handles.Contains(DummyAppId)) ? DummyAppListXml : EmptyAppListXml;
         }
-        protected override void GetAppPermissions(IDvInvocation aInvocation, uint aAppHandle, out string aAppPermissionsXml)
+        protected override void UpdateApp(IDvInvocation aInvocation, uint aAppHandle)
         {
-            iLog.ErrorFormat("GetAppPermissions(\"{0}\") - not implemented.", aAppHandle);
-            aAppPermissionsXml = String.Format(
-                "<appPermissions id=\"{0}\"><required></required><granted></granted></appPermissions>",
-                aAppHandle);
+            iLog.ErrorFormat("UpdateApp(\"{0}\") - not implemented.", aAppHandle);
         }
         protected override void InstallAppFromUrl(IDvInvocation aInvocation, string aAppUrl)
         {
@@ -116,10 +105,6 @@ namespace OpenHome.Os.Apps
         protected override void RemoveApp(IDvInvocation aInvocation, uint aAppHandle)
         {
             iLog.ErrorFormat("RemoveApp(\"{0}\") - not implemented.", aAppHandle);
-        }
-        protected override void SetAppGrantedPermissions(IDvInvocation aInvocation, uint aAppHandle, string aAppPermissionsXml)
-        {
-            iLog.ErrorFormat("SetAppGrantedPermissions(\"{0}\", \"{1}\") - not implemented.", aAppHandle, aAppPermissionsXml);
         }
     }
 
