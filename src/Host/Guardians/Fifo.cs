@@ -45,11 +45,11 @@ namespace OpenHome.Os.Host.Guardians
                 return (p == newUnix) || (p == oldUnix) || (p == macOsx);
             }
         }
-        public static IPipedProcessParent SpawnPipedSubprocess(Func<string, Process> aSpawnFunc, string aFifoDirectory)
+        public static IPipedProcessParent SpawnPipedSubprocess(Func<string, Process> aSpawnFunc, string aFifoDirectory, int aTimeoutMilliseconds)
         {
-            return SpawnPipedSubprocess(aSpawnFunc, PipeStrategy.Auto, aFifoDirectory);
+            return SpawnPipedSubprocess(aSpawnFunc, PipeStrategy.Auto, aFifoDirectory, aTimeoutMilliseconds);
         }
-        public static IPipedProcessParent SpawnPipedSubprocess(Func<string, Process> aSpawnFunc, PipeStrategy aStrategy, string aFifoDirectory)
+        public static IPipedProcessParent SpawnPipedSubprocess(Func<string, Process> aSpawnFunc, PipeStrategy aStrategy, string aFifoDirectory, int aTimeoutMilliseconds)
         {
             if (aStrategy == PipeStrategy.Auto)
             {
@@ -57,7 +57,7 @@ namespace OpenHome.Os.Host.Guardians
             }
             if (aStrategy == PipeStrategy.PosixFifo)
             {
-                return new FifoParent(aToken => aSpawnFunc("fifo," + aToken), aFifoDirectory);
+                return new FifoParent(aToken => aSpawnFunc("fifo," + aToken), aFifoDirectory, aTimeoutMilliseconds);
             }
             if (aStrategy == PipeStrategy.AnonymousPipe)
             {
@@ -65,11 +65,11 @@ namespace OpenHome.Os.Host.Guardians
             }
             throw new ArgumentException("Invalid pipe strategy.");
         }
-        public static IPipedProcessChild ConnectPipedChild(string aToken, string aFifoDirectory)
+        public static IPipedProcessChild ConnectPipedChild(string aToken, string aFifoDirectory, int aTimeoutMilliseconds)
         {
             if (aToken.StartsWith("fifo,"))
             {
-                return new FifoChild(aToken.Substring(5), aFifoDirectory);
+                return new FifoChild(aToken.Substring(5), aFifoDirectory, aTimeoutMilliseconds);
             }
             if (aToken.StartsWith("anon,"))
             {
@@ -133,7 +133,7 @@ namespace OpenHome.Os.Host.Guardians
             public Stream FromChild { get; private set; }
             string Token { get; set; }
             public Process Child { get; private set; }
-            public FifoParent(Func<string, Process> aSpawnFunc, string aFifoDirectory)
+            public FifoParent(Func<string, Process> aSpawnFunc, string aFifoDirectory, int aTimeoutMilliseconds)
             {
                 Token = Process.GetCurrentProcess().Id.ToString() + "." + iRng.Next(1000000000).ToString().PadLeft(9,'0');
                 string downFifoName = Path.Combine(aFifoDirectory, Token + ".down");
@@ -145,8 +145,8 @@ namespace OpenHome.Os.Host.Guardians
                 MkFifo(downFifoName);
                 MkFifo(upFifoName);
                 Child = aSpawnFunc(Token);
-                ToChild = WaitForFifo(downFifoName, FifoDirection.Write, 1000);
-                FromChild = WaitForFifo(upFifoName, FifoDirection.Read, 1000);
+                ToChild = WaitForFifo(downFifoName, FifoDirection.Write, aTimeoutMilliseconds);
+                FromChild = WaitForFifo(upFifoName, FifoDirection.Read, aTimeoutMilliseconds);
             }
 
             public void Dispose()
@@ -161,12 +161,12 @@ namespace OpenHome.Os.Host.Guardians
         {
             public Stream FromParent { get; private set; }
             public Stream ToParent { get; private set; }
-            public FifoChild(string aToken, string aFifoDirectory)
+            public FifoChild(string aToken, string aFifoDirectory, int aTimeoutMilliseconds)
             {
                 string downFifoName = Path.Combine(aFifoDirectory, aToken + ".down");
                 string upFifoName = Path.Combine(aFifoDirectory, aToken + ".up");
-                FromParent = WaitForFifo(downFifoName, FifoDirection.Read, 1000);
-                ToParent = WaitForFifo(upFifoName, FifoDirection.Write, 1000);
+                FromParent = WaitForFifo(downFifoName, FifoDirection.Read, aTimeoutMilliseconds);
+                ToParent = WaitForFifo(upFifoName, FifoDirection.Write, aTimeoutMilliseconds);
             }
 
             public void Dispose()
@@ -202,6 +202,7 @@ namespace OpenHome.Os.Host.Guardians
                         filestream = null;
                     }
                 });
+            t.IsBackground = true;
             t.Start();
             bool joined = t.Join(aTimeoutMilliseconds);
             try
@@ -216,6 +217,10 @@ namespace OpenHome.Os.Host.Guardians
             {
                 t.Join();
             }
+            if (filestream==null)
+            {
+                throw new FileNotFoundException();
+            } 
             return filestream;
         }
     }
