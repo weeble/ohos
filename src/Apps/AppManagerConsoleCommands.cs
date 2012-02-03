@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using OpenHome.Os.Platform;
 
-namespace OpenHome.Os.AppManager
+namespace OpenHome.Os.Apps
 {
     public class AppManagerConsoleCommands
     {

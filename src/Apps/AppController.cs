@@ -5,7 +5,7 @@ using System.Threading;
 using log4net;
 using OpenHome.Net.Device;
 
-namespace OpenHome.Os.AppManager
+namespace OpenHome.Os.Apps
 {
     class AppManagerProvider : Net.Device.Providers.DvProviderOpenhomeOrgAppManager1
     {

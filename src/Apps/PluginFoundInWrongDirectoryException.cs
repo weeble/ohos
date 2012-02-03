@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace OpenHome.Os.AppManager
+namespace OpenHome.Os.Apps
 {
     [Serializable]
     public class PluginFoundInWrongDirectoryException : Exception

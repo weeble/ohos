@@ -6,7 +6,7 @@ using System.Reflection;
 using ICSharpCode.SharpZipLib.Zip;
 using OpenHome.Os.Platform;
 
-namespace OpenHome.Os.AppManager
+namespace OpenHome.Os.Apps
 {
     public class DefaultAppsDirectory : IAppsDirectory
     {

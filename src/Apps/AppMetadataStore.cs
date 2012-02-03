@@ -10,7 +10,7 @@ using log4net;
 using OpenHome.Widget.Nodes.IO;
 using OpenHome.Widget.Nodes.Logging;
 
-namespace OpenHome.Os.AppManager
+namespace OpenHome.Os.Apps
 {
     public class AppMetadata
     {

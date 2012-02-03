@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace OpenHome.Os.AppManager
+namespace OpenHome.Os.Apps
 {
     public class DefaultStoreDirectory : IStoreDirectory
     {

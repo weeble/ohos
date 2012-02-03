@@ -1,7 +1,8 @@
 using OpenHome.Net.Device;
 using OpenHome.Net.Device.Providers;
+using OpenHome.Os.Platform;
 
-namespace OpenHome.Os.AppManager
+namespace OpenHome.Os.Apps
 {
     public class ProviderApp : DvProviderOpenhomeOrgApp1
     {

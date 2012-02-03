@@ -3,16 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using System.Xml.Linq;
+using log4net.Config;
 using Node;
 using OpenHome.Net.Device;
-using OpenHome.Os.AppManager;
+using OpenHome.Os.Apps;
 using OpenHome.Net.Core;
-using OpenHome.Os.Platform;
 using OpenHome.Widget.Nodes;
-using log4net.Config;
 
-
-namespace OpenHome.Os
+namespace OpenHome.Os.IntegrationTests
 {
     class NullNodeRebooter : INodeRebooter
     {

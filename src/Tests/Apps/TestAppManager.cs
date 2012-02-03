@@ -1,18 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Text;
 using ICSharpCode.SharpZipLib.Zip;
-using Mono.Addins;
 using Moq;
 using NUnit.Framework;
 using OpenHome.Net.Device;
 using OpenHome.Net.Device.Providers;
 using OpenHome.Os.Platform;
 
-namespace OpenHome.Os.AppManager.Tests
+namespace OpenHome.Os.Apps
 {
 
     public class AppManagerTestContext

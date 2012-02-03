@@ -1,4 +1,4 @@
-﻿namespace OpenHome.Os.AppManager
+﻿namespace OpenHome.Os.Apps
 {
     /// <summary>
     /// Manages the ohOs store directory.

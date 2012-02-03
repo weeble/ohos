@@ -1,15 +1,13 @@
 using System;
-using System.Collections.Generic;
 using Mono.Addins;
 using OpenHome.Net.ControlPoint;
 using OpenHome.Net.Device;
-using OpenHome.Os.Platform;
 using OpenHome.Widget.Nodes;
 using OpenHome.Widget.Nodes.Logging;
 
 [assembly: AddinRoot("ohOs", "1.4")]
 
-namespace OpenHome.Os.AppManager
+namespace OpenHome.Os.Platform
 {
     public class AppVersion
     {

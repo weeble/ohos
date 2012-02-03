@@ -7,8 +7,9 @@ using log4net;
 using Mono.Addins;
 using System.ComponentModel.Composition.Hosting;
 using System.ComponentModel.Composition;
+using OpenHome.Os.Platform;
 
-namespace OpenHome.Os.AppManager
+namespace OpenHome.Os.Apps
 {
     public class MefAddinManager : IAddinManager
     {

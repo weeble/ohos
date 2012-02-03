@@ -9,7 +9,7 @@ using System.Threading;
 using System.Xml.Linq;
 //using Mono.Addins;
 using ohWidget.Utils;
-using OpenHome.Os.AppManager;
+using OpenHome.Os.Apps;
 using OpenHome.Os.Host.Guardians;
 using OpenHome.Os.Platform;
 using OpenHome.Widget.Nodes;

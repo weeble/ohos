@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace OpenHome.Os.AppManager
+namespace OpenHome.Os.Apps
 {
     /// <summary>
     /// Manages the directory where ohOs stores installed apps.

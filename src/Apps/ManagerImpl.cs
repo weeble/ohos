@@ -18,7 +18,7 @@ using OpenHome.Widget.Nodes;
 // !!!! need IOsContext definition
 // !!!! which may include interface to proxy for InstallManager service
 
-namespace OpenHome.Os.AppManager
+namespace OpenHome.Os.Apps
 {
     public interface IZipReader
     {
