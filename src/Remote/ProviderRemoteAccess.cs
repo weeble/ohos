@@ -180,7 +180,10 @@ namespace OpenHome.Os.Remote
                 Logger.ErrorFormat("Remote access method {0} failed with error {1}.", "getaddress", error.Value);
                 return;
             }
-            Console.WriteLine("Remote access method {0} returned address {1}:{2}.", "getaddress", tree.Element("address").Value, tree.Element("port").Value);
+            XElement successElement = tree.Element("success");
+            XElement address = successElement.Element("address");
+            XElement port = successElement.Element("port");
+            Console.WriteLine("Remote access method {0} returned address {1}:{2}.", "getaddress", address.Value, port.Value);
         }
         private bool TryRemoveUserName()
         {
