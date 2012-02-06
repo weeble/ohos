@@ -438,7 +438,8 @@ namespace OpenHome.Os.Remote
         }
         public void Dispose()
         {
-            iKey.Dispose();
+            iKey.Clear(); // we'd like to call Dispose() here but mono doesn't implement it.
+                          // Clear() is documented as calling Dispose() so is an acceptable alternative
         }
     }
 }
