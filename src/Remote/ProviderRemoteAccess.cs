@@ -8,10 +8,11 @@ using System.Collections.Generic;
 using OpenHome.Net.Device;
 using OpenHome.Net.Device.Providers;
 using log4net;
+//using Renci.SshNet;
 
 namespace OpenHome.Os.Remote
 {
-    public class ProviderRemoteAccess : DvProviderOpenhomeOrgRemoteAccess1, ILoginValidator
+    public class ProviderRemoteAccess : DvProviderOpenhomeOrgRemoteAccess1, ILoginValidator, IDisposable
     {
         private const string kFileUserData = "UserData.xml";
         private const string kFilePublicKey = "key.pub";
@@ -24,8 +25,14 @@ namespace OpenHome.Os.Remote
         private static readonly ILog Logger = LogManager.GetLogger(typeof(ProviderRemoteAccess));
         private readonly string iDeviceUdn;
         private readonly string iStoreDir;
-        private readonly ProxyServer iProxyServer;
         private string iPassword;
+        private ProxyServer iProxyServer;
+        /*private SshClient iSshClient;
+        private ForwardedPortRemote iForwardedPortRemote;*/
+        private string iSshServerHost;
+        private int iSshServerPort;
+        private string iPortForwardAddress;
+        private int iPortForwardPort;
 
         public ProviderRemoteAccess(DvDevice aDevice, string aStoreDir, ProxyServer aProxyServer)
             : base(aDevice)
@@ -40,11 +47,11 @@ namespace OpenHome.Os.Remote
             EnablePropertyPasswordSet();
             EnableActionSetUserName();
             EnableActionSetPassword();
+            EnableActionReset();
             EnableActionEnable();
-            EnableActionGetUserName();
             EnableActionClearAuthenticatedClients();
 
-            string userDataFileName = RemoteAccessFileName(kFileUserData);
+            string userDataFileName = FileFullName(kFileUserData);
             if (!File.Exists(userDataFileName))
                 WriteUserData(false, "", "", "");
             string xml = File.ReadAllText(userDataFileName, Encoding.UTF8);
@@ -73,32 +80,25 @@ namespace OpenHome.Os.Remote
         {
             lock (this)
             {
-                string privateKeyFileName = RemoteAccessFileName(kFilePrivateKey);
+                string privateKeyFileName = FileFullName(kFilePrivateKey);
                 if (!File.Exists(privateKeyFileName))
                 {
                     using (var key = new RsaKey())
                     {
-                        key.WritePublicKey(RemoteAccessFileName(kFilePublicKey));
+                        key.WritePublicKey(FileFullName(kFilePublicKey));
                         key.WritePrivateKey(privateKeyFileName);
                     }
                 }
-                if (aUserName.Length == 0)
-                {
-                    aAlternativeNames = "";
-                    aSucceeded = TryRemoveUserName();
-                }
-                else
-                {
-                    aSucceeded = TrySetUserName(aUserName, out aAlternativeNames);
-                }
+                string publicUri;
+                aSucceeded = TrySetUserName(aUserName, out publicUri, out aAlternativeNames);
                 if (!aSucceeded)
                     return;
+                PropertiesLock();
+                SetPropertyPublicUri(publicUri);
                 if (SetPropertyUserName(aUserName))
-                {
                     iProxyServer.ClearAuthenticatedClients();
-                    if (aUserName.Length == 0)
-                        Enable(false);
-                }
+                PropertiesUnlock();
+                WriteUserData();
             }
         }
         protected override void SetPassword(IDvInvocation aInvocation, uint aHandle, string aPassword)
@@ -114,18 +114,27 @@ namespace OpenHome.Os.Remote
                 }
             }
         }
+        protected override void Reset(IDvInvocation aInvocation, uint aHandle)
+        {
+            lock (this)
+            {
+                if (!TryRemoveUserName())
+                    throw new ActionError("Failed to remove username from remote server");
+                PropertiesLock();
+                SetPropertyUserName("");
+                SetPropertyPublicUri("");
+                SetPropertyPasswordSet(false);
+                PropertiesUnlock();
+                iPassword = "";
+                Enable(false);
+                iProxyServer.ClearAuthenticatedClients();
+            }
+        }
         protected override void Enable(IDvInvocation aInvocation, bool aEnable)
         {
             lock (this)
             {
                 Enable(aEnable);
-            }
-        }
-        protected override void GetUserName(IDvInvocation aInvocation, uint aHandle, out string aUserName)
-        {
-            lock (this)
-            {
-                aUserName = PropertyUserName();
             }
         }
         protected override void ClearAuthenticatedClients(IDvInvocation aInvocation)
@@ -135,7 +144,7 @@ namespace OpenHome.Os.Remote
                 iProxyServer.ClearAuthenticatedClients();
             }
         }
-        private string RemoteAccessFileName(string aName)
+        private string FileFullName(string aName)
         {
             return iStoreDir + Path.DirectorySeparatorChar + aName;
         }
@@ -151,19 +160,20 @@ namespace OpenHome.Os.Remote
             defaultXml.Add(new XElement(kTagPassword, aPassword));
             defaultXml.Add(new XElement(kTagPublicUrl, aPublicUri));
 
-            XmlWriter writer = XmlWriter.Create(RemoteAccessFileName(kFileUserData));
+            XmlWriter writer = XmlWriter.Create(FileFullName(kFileUserData));
             defaultXml.WriteTo(writer);
             writer.Close();
         }
         private void Enable(bool aEnable)
         {
-            if (SetPropertyEnabled(aEnable))
+            if (PropertyEnabled() != aEnable)
             {
                 WriteUserData();
                 if (aEnable)
                     Start();
                 else
-                    iProxyServer.Stop();
+                    Stop();
+                SetPropertyEnabled(aEnable);
             }
         }
         private void Start()
@@ -180,10 +190,39 @@ namespace OpenHome.Os.Remote
                 Logger.ErrorFormat("Remote access method {0} failed with error {1}.", "getaddress", error.Value);
                 return;
             }
+
             XElement successElement = tree.Element("success");
-            XElement address = successElement.Element("address");
-            XElement port = successElement.Element("port");
-            Console.WriteLine("Remote access method {0} returned address {1}:{2}.", "getaddress", address.Value, port.Value);
+            XElement sshServerElement = successElement.Element("sshserver");
+            iSshServerHost = sshServerElement.Element("address").Value;
+            iSshServerPort = Convert.ToInt32(sshServerElement.Element("port").Value);
+            XElement portForwardElement = successElement.Element("portforward");
+            iPortForwardAddress = portForwardElement.Element("address").Value;
+            iPortForwardPort = Convert.ToInt32(portForwardElement.Element("port").Value);
+            Console.WriteLine("Remote access method {0} returned address {1}:{2}, {3}:{4}.", "getaddress", iSshServerHost, iSshServerPort, iPortForwardAddress, iPortForwardPort);
+            /*PrivateKeyFile pkf = new PrivateKeyFile(FileFullName(kFilePrivateKey));
+            iSshClient = new SshClient(iSshServerHost, iSshServerPort, "root", pkf);
+            iForwardedPortRemote = new ForwardedPortRemote("127.0.0.1", 8082, "host to be forwarded", 80);
+            iSshClient.AddForwardedPort(iForwardedPortRemote);
+            iForwardedPortRemote.Start();*/
+        }
+        private void Stop()
+        {
+            if (iProxyServer != null)
+            {
+                iProxyServer.Stop();
+                iProxyServer = null;
+            }
+            /*if (iSshClient != null)
+            {
+                if (iForwardedPortRemote != null)
+                {
+                    iForwardedPortRemote.Stop();
+                    iForwardedPortRemote.Dispose();
+                    iForwardedPortRemote = null;
+                }
+                iSshClient.Dispose();
+                iSshClient = null;
+            }*/
         }
         private bool TryRemoveUserName()
         {
@@ -200,13 +239,14 @@ namespace OpenHome.Os.Remote
             }
             return true;
         }
-        private bool TrySetUserName(string aUserName, out string aSuggestedNames)
+        private bool TrySetUserName(string aUserName, out string aPublicUri, out string aSuggestedNames)
         {
+            aPublicUri = "";
             aSuggestedNames = "";
             XElement body = new XElement("register");
             body.Add(new XElement("username", aUserName));
             body.Add(new XElement("uidnode", iDeviceUdn));
-            string publicKey = Encoding.ASCII.GetString(File.ReadAllBytes(RemoteAccessFileName(kFilePublicKey)));
+            string publicKey = Encoding.ASCII.GetString(File.ReadAllBytes(FileFullName(kFilePublicKey)));
             body.Add(new XElement("sshkey", publicKey));
             XElement tree = CallWebService("register", body.ToString());
             if (tree == null)
@@ -223,6 +263,7 @@ namespace OpenHome.Os.Remote
                 return false;
             }
 
+            aPublicUri = tree.Element("success").Element("url").Value;
             return true;
         }
         private static XElement CallWebService(string aRequestMethod, string aRequestBody)
@@ -250,6 +291,11 @@ namespace OpenHome.Os.Remote
             respStream.CopyTo(memStream);
             byte[] bytes = memStream.ToArray();
             return XElement.Parse(Encoding.UTF8.GetString(bytes));
+        }
+        public new void Dispose()
+        {
+            Stop();
+            base.Dispose();
         }
     }
 

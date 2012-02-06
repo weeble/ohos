@@ -12,6 +12,6 @@ type $Enable : boolean;
 
 action SetUserName(Handle : in $Handle, UserName : in $UName, Succeeded : out $Success, AlternativeNames : out $SuggestedNames);
 action SetPassword(Handle : in $Handle, Password : in $Password);
+action Reset(Handle : in $Handle);
 action Enable(Enable : in $Enable);
-action GetUserName(Handle : in $Handle, UserName : out $UName);
 action ClearAuthenticatedClients();
