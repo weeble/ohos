@@ -169,7 +169,11 @@ namespace OpenHome.Os.Remote
         private void Start()
         {
             iProxyServer.Start(this);
-            XElement tree = CallWebService("getaddress", null);
+            XElement body = new XElement("getaddress");
+            body.Add(new XElement("uidnode", iDeviceUdn));
+            XElement tree = CallWebService("getaddress", body.ToString());
+            if (tree == null)
+                return;
             XElement error = tree.Element("error");
             if (error != null)
             {
@@ -183,6 +187,8 @@ namespace OpenHome.Os.Remote
             XElement body = new XElement("remove");
             body.Add(new XElement("uidnode", iDeviceUdn));
             XElement tree = CallWebService("remove", body.ToString());
+            if (tree == null)
+                return false;
             XElement error = tree.Element("error");
             if (error != null)
             {
@@ -193,11 +199,15 @@ namespace OpenHome.Os.Remote
         }
         private bool TrySetUserName(string aUserName, out string aSuggestedNames)
         {
+            aSuggestedNames = "";
             XElement body = new XElement("register");
             body.Add(new XElement("username", aUserName));
             body.Add(new XElement("uidnode", iDeviceUdn));
-            body.Add(new XElement("sshkey", File.ReadAllBytes(RemoteAccessFileName(kFilePublicKey))));
+            string publicKey = Encoding.ASCII.GetString(File.ReadAllBytes(RemoteAccessFileName(kFilePublicKey)));
+            body.Add(new XElement("sshkey", publicKey));
             XElement tree = CallWebService("register", body.ToString());
+            if (tree == null)
+                return false;
             XElement error = tree.Element("error");
             if (error != null)
             {
@@ -210,7 +220,6 @@ namespace OpenHome.Os.Remote
                 return false;
             }
 
-            aSuggestedNames = "";
             return true;
         }
         private static XElement CallWebService(string aRequestMethod, string aRequestBody)
