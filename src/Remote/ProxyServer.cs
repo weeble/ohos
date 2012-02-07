@@ -15,7 +15,9 @@ namespace OpenHome.Os.Remote
     
     public class ProxyServer : IDisposable
     {
-        private HttpServer iHttpServer;
+        public uint Port { get { return kRemoteAccessPort; } }
+
+            private HttpServer iHttpServer;
         private readonly string iForwardAddress;
         private uint iForwardPort;
         private string iForwardUdn;
@@ -27,9 +29,9 @@ namespace OpenHome.Os.Remote
         private const int kNumServerThreads = 8;
         private const int kRemoteAccessPort = 55170; // TODO: hard-coded port.  Can we be sure no ohNet server will have been allocated this before we run?
 
-        public ProxyServer(uint aNetworkAdapter)
+        public ProxyServer(string aNetworkAdapter)
         {
-            iForwardAddress = String.Format("{0}.{1}.{2}.{3}", aNetworkAdapter & 0xff, (aNetworkAdapter >> 8) & 0xff, (aNetworkAdapter >> 16) & 0xff, (aNetworkAdapter >> 24) & 0xff); // assumes little endian
+            iForwardAddress = aNetworkAdapter;
             iAuthenticatedClients = new Dictionary<string, string>();
         }
         public void AddApp(uint aPort, string aUdn)

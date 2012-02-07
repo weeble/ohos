@@ -25,6 +25,7 @@ namespace OpenHome.Os.Remote
         private static readonly ILog Logger = LogManager.GetLogger(typeof(ProviderRemoteAccess));
         private readonly string iDeviceUdn;
         private readonly string iStoreDir;
+        private readonly string iNetworkAdapter;
         private string iPassword;
         private ProxyServer iProxyServer;
         private SshClient iSshClient;
@@ -34,12 +35,13 @@ namespace OpenHome.Os.Remote
         private string iPortForwardAddress;
         private uint iPortForwardPort;
 
-        public ProviderRemoteAccess(DvDevice aDevice, string aStoreDir, ProxyServer aProxyServer)
+        public ProviderRemoteAccess(DvDevice aDevice, string aStoreDir, ProxyServer aProxyServer, string aNetworkAdapter)
             : base(aDevice)
         {
             iDeviceUdn = aDevice.Udn();
             iStoreDir = aStoreDir;
             iProxyServer = aProxyServer;
+            iNetworkAdapter = aNetworkAdapter;
 
             EnablePropertyUserName();
             EnablePropertyPublicUri();
@@ -207,10 +209,10 @@ namespace OpenHome.Os.Remote
             iSshClient = new SshClient(iSshServerHost, iSshServerPort, "root", pkf);
             iSshClient.Connect();
             Logger.InfoFormat("Connected to ssh server at {0}:{1}", iSshServerHost, iSshServerPort);
-            iForwardedPortRemote = new ForwardedPortRemote(iPortForwardAddress, iPortForwardPort, "127.0.0.1", 55170); // TODO: duplicated hard-coding of port number
+            iForwardedPortRemote = new ForwardedPortRemote(iPortForwardAddress, iPortForwardPort, iNetworkAdapter, iProxyServer.Port);
             iSshClient.AddForwardedPort(iForwardedPortRemote);
             iForwardedPortRemote.Start();
-            Logger.InfoFormat("Forwarded remote port {0}:{1} to {2}:{3}", iPortForwardAddress, iPortForwardPort, "127.0.0.1", 55170);
+            Logger.InfoFormat("Forwarded remote port {0}:{1} to {2}:{3}", iPortForwardAddress, iPortForwardPort, iNetworkAdapter, iProxyServer.Port);
         }
         private void Stop()
         {
