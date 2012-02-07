@@ -164,6 +164,17 @@ moqdlldir.add_assemblies(
     'Moq.dll',
     reference=True, copy=True)
 
+# SshNet is a ssh client
+sshnet = csharp_dependencies.add_package('sshnet')
+sshnetdir = sshnet.add_directory(
+        unique_id = 'sshnet-dir',
+        as_option = '--sshnet-dir',
+        option_help = 'Location of Ssh.Net DLL',
+        in_dependencies = 'AnyPlatform/Renci.SshNet-*/')
+sshnetdir.add_assemblies(
+        'Renci.SshNet.dll',
+        reference=True, copy=True)
+
 # == Command-line options ==
 
 def options(opt):
@@ -318,7 +329,7 @@ def create_zip_task(bld, zipfile, sourceroot, ziproot, sourcefiles):
 
 
 def get_active_dependencies(env):
-    active_dependency_names = set(['ohnet', 'yui-compressor','mono-addins','mono-addins-setup', 'sharpziplib', 'log4net', 'systemxmllinq', 'mef'])
+    active_dependency_names = set(['ohnet', 'yui-compressor','mono-addins','mono-addins-setup', 'sharpziplib', 'log4net', 'systemxmllinq', 'mef', 'sshnet'])
     if env.BUILDTESTS:
         active_dependency_names |= set(['nunit', 'ndeskoptions', 'moq'])
     return csharp_dependencies.get_subset(active_dependency_names)
@@ -408,7 +419,7 @@ csharp_projects = [
         CSharpProject(
             name="ohOs.Remote", dir="Remote", type="library",
             categories=["core"],
-            packages=['ohnet', 'log4net', 'systemxmllinq'],
+            packages=['ohnet', 'log4net', 'systemxmllinq', 'sshnet'],
             references=[
                 'DvOpenhomeOrgRemoteAccess1',
             ]
@@ -552,7 +563,8 @@ def build(bld):
             get_dependency_files(ohnet) +
             get_dependency_files(sharpziplib) +
             get_dependency_files(monoaddins) +
-            get_dependency_files(log4net)
+            get_dependency_files(log4net) +
+            get_dependency_files(sshnet)
             )
 
 def do_install(bld):

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Xml.Linq;
 using System.Text;
+using log4net;
 
 namespace OpenHome.Os.Remote
 {
@@ -20,6 +21,7 @@ namespace OpenHome.Os.Remote
         private string iForwardUdn;
         private readonly Dictionary<string, string> iAuthenticatedClients;
         private ILoginValidator iLoginValidator;
+        private static readonly ILog Logger = LogManager.GetLogger(typeof(ProxyServer));
 
         private const string kAuthCookieName = "remoteId";
         private const int kNumServerThreads = 8;
@@ -41,6 +43,7 @@ namespace OpenHome.Os.Remote
             iLoginValidator = aLoginValidator;
             iHttpServer = new HttpServer(kNumServerThreads);
             iHttpServer.Start(kRemoteAccessPort, ProcessRequest);
+            Logger.InfoFormat("Started proxy server on port {0}", kRemoteAccessPort);
         }
         public void Stop()
         {
@@ -71,7 +74,7 @@ namespace OpenHome.Os.Remote
                 clientResp.Close();
                 return;
             }
-            Console.WriteLine("Method: {0}, url: {1}", clientReq.HttpMethod, targetUrl);
+            Logger.InfoFormat("Method: {0}, url: {1}", clientReq.HttpMethod, targetUrl);
             HttpWebRequest forwardedReq = (HttpWebRequest)WebRequest.Create(targetUrl);
             bool connectionClose;
             bool connectionKeepAlive;
@@ -84,7 +87,7 @@ namespace OpenHome.Os.Remote
             catch (WebException e)
             {
                 resp = (HttpWebResponse)e.Response;
-                Console.WriteLine("ERROR: {0} for {1}", (int)resp.StatusCode, targetUrl);
+                Logger.ErrorFormat("ERROR: {0} for {1}", (int)resp.StatusCode, targetUrl);
             }
             WriteResponse(resp, clientResp);
             // docs suggest following is unnecessary - we only have to close one from clientRespStream / clientResp
@@ -124,7 +127,7 @@ namespace OpenHome.Os.Remote
                 aResponse.ContentLength64 = location.Length + 2;
                 byte[] buf = Encoding.UTF8.GetBytes(location + "\r\n");
                 aResponse.OutputStream.Write(buf, 0, buf.Length);
-                Console.WriteLine("Redirecting: {0} to {1}", pathAndQuery, location);
+                Logger.InfoFormat("Authenticated! Redirecting: {0} to {1}", pathAndQuery, location);
                 // just completed authentication.  Redirect client to (assumed) original url
                 return true;
             }
@@ -132,7 +135,7 @@ namespace OpenHome.Os.Remote
             foreach (Cookie cookie in aRequest.Cookies)
             {
                 if (cookie.Name == kAuthCookieName && !iAuthenticatedClients.ContainsKey(cookie.Value))
-                    Console.WriteLine("WARNING: received old cookie. May need to clear cookies on browser to log in");
+                    Logger.Info("WARNING: received old cookie. May need to clear cookies on browser to log in");
                 if (cookie.Name == kAuthCookieName && iAuthenticatedClients.ContainsKey(cookie.Value))
                     // already authenticated
                     return false;
@@ -151,7 +154,7 @@ namespace OpenHome.Os.Remote
             location += "login.html";
             aResponse.Redirect(location);
             aResponse.Close();
-            Console.WriteLine("Redirecting: {0} to {1}", pathAndQuery, location);
+            Logger.InfoFormat("Redirecting: {0} to {1}", pathAndQuery, location);
             return true;
         }
         private string RewriteUrl(HttpListenerRequest aRequest)
@@ -183,7 +186,7 @@ namespace OpenHome.Os.Remote
                     //url = forwardAddress + pathAndQuery;
                     break;
                 default:
-                    Console.WriteLine("Unexpected method - {0}", method);
+                    Logger.InfoFormat("Unexpected method - {0}", method);
                     break;
             }
             return url;
@@ -220,7 +223,7 @@ namespace OpenHome.Os.Remote
                             aConnectionClose = true;
                         else
                             aForwardedReq.Connection = aClientReq.Headers.GetValues(key)[0];
-                        //Console.WriteLine("Unhandled CONNECTION header in request: {0}", clientReq.Headers.GetValues(key)[0]);
+                        //Logger.InfoFormat("Unhandled CONNECTION header in request: {0}", clientReq.Headers.GetValues(key)[0]);
                         aForwardedReq.KeepAlive = aConnectionKeepAlive;
                         break;
                     case "ACCEPT":
@@ -241,7 +244,7 @@ namespace OpenHome.Os.Remote
                         // we deliberately don't pass these on
                         break;
                     default:
-                        Console.WriteLine("Ignored header in request: {0}", key);
+                        Logger.InfoFormat("Ignored header in request: {0}", key);
                         break;
                 }
             }
@@ -275,7 +278,7 @@ namespace OpenHome.Os.Remote
                         aResponse.Headers.Add(key, aProxiedResponse.Headers.GetValues(key)[0]);
                         break;
                     default:
-                        Console.WriteLine("Ignored header in response: {0}", key);
+                        Logger.InfoFormat("Ignored header in response: {0}", key);
                         break;
                 }
             }

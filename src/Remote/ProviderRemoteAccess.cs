@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using OpenHome.Net.Device;
 using OpenHome.Net.Device.Providers;
 using log4net;
-//using Renci.SshNet;
+using Renci.SshNet;
 
 namespace OpenHome.Os.Remote
 {
@@ -27,12 +27,12 @@ namespace OpenHome.Os.Remote
         private readonly string iStoreDir;
         private string iPassword;
         private ProxyServer iProxyServer;
-        /*private SshClient iSshClient;
-        private ForwardedPortRemote iForwardedPortRemote;*/
+        private SshClient iSshClient;
+        private ForwardedPortRemote iForwardedPortRemote;
         private string iSshServerHost;
         private int iSshServerPort;
         private string iPortForwardAddress;
-        private int iPortForwardPort;
+        private uint iPortForwardPort;
 
         public ProviderRemoteAccess(DvDevice aDevice, string aStoreDir, ProxyServer aProxyServer)
             : base(aDevice)
@@ -83,11 +83,16 @@ namespace OpenHome.Os.Remote
                 string privateKeyFileName = FileFullName(kFilePrivateKey);
                 if (!File.Exists(privateKeyFileName))
                 {
-                    using (var key = new RsaKey())
+                    Console.WriteLine("No ssh key pair found.  Currently have to create these ourselves.");
+                    Console.WriteLine("You can generate a key from the Linux command line using");
+                    Console.WriteLine("\tssh-keygen -t rsa -f key -C\"\"");
+                    Console.WriteLine("...then copy to ohWidget's 'remote' dir, renaming key to key.priv");
+                    throw new ActionError();
+                    /*using (var key = new RsaKey())
                     {
                         key.WritePublicKey(FileFullName(kFilePublicKey));
                         key.WritePrivateKey(privateKeyFileName);
-                    }
+                    }*/
                 }
                 string publicUri;
                 aSucceeded = TrySetUserName(aUserName, out publicUri, out aAlternativeNames);
@@ -197,13 +202,15 @@ namespace OpenHome.Os.Remote
             iSshServerPort = Convert.ToInt32(sshServerElement.Element("port").Value);
             XElement portForwardElement = successElement.Element("portforward");
             iPortForwardAddress = portForwardElement.Element("address").Value;
-            iPortForwardPort = Convert.ToInt32(portForwardElement.Element("port").Value);
-            Console.WriteLine("Remote access method {0} returned address {1}:{2}, {3}:{4}.", "getaddress", iSshServerHost, iSshServerPort, iPortForwardAddress, iPortForwardPort);
-            /*PrivateKeyFile pkf = new PrivateKeyFile(FileFullName(kFilePrivateKey));
+            iPortForwardPort = (uint)Convert.ToInt32(portForwardElement.Element("port").Value);
+            PrivateKeyFile pkf = new PrivateKeyFile(FileFullName(kFilePrivateKey));
             iSshClient = new SshClient(iSshServerHost, iSshServerPort, "root", pkf);
-            iForwardedPortRemote = new ForwardedPortRemote("127.0.0.1", 8082, "host to be forwarded", 80);
+            iSshClient.Connect();
+            Logger.InfoFormat("Connected to ssh server at {0}:{1}", iSshServerHost, iSshServerPort);
+            iForwardedPortRemote = new ForwardedPortRemote(iPortForwardAddress, iPortForwardPort, "127.0.0.1", 55170); // TODO: duplicated hard-coding of port number
             iSshClient.AddForwardedPort(iForwardedPortRemote);
-            iForwardedPortRemote.Start();*/
+            iForwardedPortRemote.Start();
+            Logger.InfoFormat("Forwarded remote port {0}:{1} to {2}:{3}", iPortForwardAddress, iPortForwardPort, "127.0.0.1", 55170);
         }
         private void Stop()
         {
@@ -212,7 +219,7 @@ namespace OpenHome.Os.Remote
                 iProxyServer.Stop();
                 iProxyServer = null;
             }
-            /*if (iSshClient != null)
+            if (iSshClient != null)
             {
                 if (iForwardedPortRemote != null)
                 {
@@ -222,7 +229,7 @@ namespace OpenHome.Os.Remote
                 }
                 iSshClient.Dispose();
                 iSshClient = null;
-            }*/
+            }
         }
         private bool TryRemoveUserName()
         {
@@ -301,7 +308,7 @@ namespace OpenHome.Os.Remote
 
     class RsaKey : IDisposable
     {
-        private const int kKeySizeBits = 2048;
+        private const int kKeySizeBits = 1024;
         private readonly System.Security.Cryptography.RSACryptoServiceProvider iKey;
         private readonly System.Security.Cryptography.RSAParameters iKeyInfo;
 
@@ -359,7 +366,6 @@ namespace OpenHome.Os.Remote
             AppendBytesPrivate(plain, ref index, iKeyInfo.DP);
             AppendBytesPrivate(plain, ref index, iKeyInfo.DQ);
             AppendBytesPrivate(plain, ref index, iKeyInfo.InverseQ);
-
 
             // base-64 encode data and write private key (OpenSSH format)
             byte[] prv = Encoding.ASCII.GetBytes(Convert.ToBase64String(plain)); // TODO: validate this gives same as Util.toBase64(plain, 0, plain.Length);

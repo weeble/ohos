@@ -79,7 +79,8 @@ ALL_DEPENDENCIES = [
     "moq",
     "yui-compressor",
     "mono-addins",
-    "log4net"]
+    "log4net",
+    "sshnet"]
 
 @build_step()
 def choose_optional_steps(context):
