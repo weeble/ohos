@@ -176,11 +176,18 @@ namespace OpenHome.Os.Remote
             if (PropertyEnabled() != aEnable)
             {
                 WriteUserData(true, PropertyUserName(), iPassword, PropertyPublicUri());
-                if (aEnable)
-                    Start();
-                else
-                    Stop();
-                SetPropertyEnabled(aEnable);
+                try
+                {
+                    if (aEnable)
+                        Start();
+                    else
+                        Stop();
+                    SetPropertyEnabled(aEnable);
+                }
+                catch (Exception e)
+                {
+                    Logger.ErrorFormat("Enable({0}) failed: {1}", aEnable, e.Message);
+                }
             }
         }
         private void Start()
