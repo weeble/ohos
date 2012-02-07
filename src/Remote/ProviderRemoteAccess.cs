@@ -175,7 +175,7 @@ namespace OpenHome.Os.Remote
         {
             if (PropertyEnabled() != aEnable)
             {
-                WriteUserData();
+                WriteUserData(true, PropertyUserName(), iPassword, PropertyPublicUri());
                 if (aEnable)
                     Start();
                 else
