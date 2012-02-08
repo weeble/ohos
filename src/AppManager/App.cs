@@ -90,6 +90,7 @@ namespace OpenHome.Os.AppManager
 
         public void Stop()
         {
+            iAppManager.Dispose();
         }
     }
 }

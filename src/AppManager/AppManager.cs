@@ -10,7 +10,7 @@ using OpenHome.Os.Platform.Collections;
 
 namespace OpenHome.Os.AppManager
 {
-    class AppManager : IAppManagerActionHandler
+    class AppManager : IAppManagerActionHandler, IDisposable
     {
         class ManagedApp
         {
@@ -38,6 +38,11 @@ namespace OpenHome.Os.AppManager
             iProvider = aProviderConstructor(aDevice, this);
             iAppShell.AppStatusChanged += OnAppStatusChanged;
             RefreshApps();
+        }
+
+        public void Dispose()
+        {
+            iProvider.Dispose();
         }
 
         void RefreshApps()
@@ -160,5 +165,6 @@ namespace OpenHome.Os.AppManager
         {
             throw new NotImplementedException();
         }
+
     }
 }
