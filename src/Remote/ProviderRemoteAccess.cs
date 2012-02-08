@@ -223,11 +223,7 @@ namespace OpenHome.Os.Remote
         }
         private void Stop()
         {
-            if (iProxyServer != null)
-            {
-                iProxyServer.Stop();
-                iProxyServer = null;
-            }
+            iProxyServer.Stop();
             if (iSshClient != null)
             {
                 if (iForwardedPortRemote != null)
