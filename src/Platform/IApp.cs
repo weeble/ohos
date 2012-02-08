@@ -55,7 +55,7 @@ namespace OpenHome.Os.Platform
         ILogReader LogReader { get; }
         ILogController LogController { get; }
 
-        object ResolveService<T>();
+        T ResolveService<T>();
     }
 
     public interface IAppContext

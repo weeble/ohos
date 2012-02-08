@@ -1,7 +1,6 @@
 using System;
 using System.ComponentModel.Composition;
 using Mono.Addins;
-using OpenHome.Os.Apps;
 using OpenHome.Net.Device;
 using OpenHome.Os.Platform;
 

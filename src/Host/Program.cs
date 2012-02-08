@@ -39,16 +39,28 @@ namespace Node
         public ICommandRegistry CommandRegistry { get; set; }
         public ILogReader LogReader { get; set; }
         public ILogController LogController { get; set; }
-        public object ResolveService<T>()
+
+        readonly Dictionary<Type, object> iAdditionalServices = new Dictionary<Type, object>();
+        public void RegisterService<T>(T aService)
         {
-            if (typeof(T).IsAssignableFrom(typeof(INodeInformation))) { return NodeInformation; }
-            if (typeof(T).IsAssignableFrom(typeof(IDvDeviceFactory))) { return DeviceFactory; }
-            if (typeof(T).IsAssignableFrom(typeof(ICpUpnpDeviceListFactory))) { return CpDeviceListFactory; }
-            if (typeof(T).IsAssignableFrom(typeof(INodeRebooter))) { return NodeRebooter; }
-            if (typeof(T).IsAssignableFrom(typeof(IUpdateService))) { return UpdateService; }
-            if (typeof(T).IsAssignableFrom(typeof(ICommandRegistry))) { return CommandRegistry; }
-            if (typeof(T).IsAssignableFrom(typeof(ILogReader))) { return LogReader; }
-            if (typeof(T).IsAssignableFrom(typeof(ILogController))) { return LogController; }
+            iAdditionalServices.Add(typeof(T), aService);
+        }
+
+        public T ResolveService<T>()
+        {
+            object service;
+            if (iAdditionalServices.TryGetValue(typeof(T), out service))
+            {
+                return (T)service;
+            }
+            if (typeof(T).IsAssignableFrom(typeof(INodeInformation))) { return (T)NodeInformation; }
+            if (typeof(T).IsAssignableFrom(typeof(IDvDeviceFactory))) { return (T)DeviceFactory; }
+            if (typeof(T).IsAssignableFrom(typeof(ICpUpnpDeviceListFactory))) { return (T)CpDeviceListFactory; }
+            if (typeof(T).IsAssignableFrom(typeof(INodeRebooter))) { return (T)NodeRebooter; }
+            if (typeof(T).IsAssignableFrom(typeof(IUpdateService))) { return (T)UpdateService; }
+            if (typeof(T).IsAssignableFrom(typeof(ICommandRegistry))) { return (T)CommandRegistry; }
+            if (typeof(T).IsAssignableFrom(typeof(ILogReader))) { return (T)LogReader; }
+            if (typeof(T).IsAssignableFrom(typeof(ILogController))) { return (T)LogController; }
             throw new ArgumentException(String.Format("No service registered for type {0}.", typeof(T)));
         }
     }
@@ -208,11 +220,6 @@ namespace Node
             InitParams initParams = new InitParams();
             if (sysConfig.GetAttributeAsBoolean(e=>e.Elements("network").Attributes("loopback").FirstOrDefault()) ?? true)
             {
-                if (sysConfig.GetAttributeAsBoolean(e=>e.Elements("mdns").Attributes("enable").FirstOrDefault()) ?? true)
-                {
-                    Console.WriteLine("ERROR: cannot usefully enable mdns with loopback");
-                    throw new Exception();
-                }
                 initParams.UseLoopbackNetworkAdapter = true;
             }
             bool wsEnabled = sysConfig.GetAttributeAsBoolean(e=>e.Elements("websockets").Attributes("enable").FirstOrDefault()) ?? true;
@@ -222,7 +229,7 @@ namespace Node
             initParams.NumActionInvokerThreads = 8;
             initParams.DvNumServerThreads = 8;
             initParams.TcpConnectTimeoutMs = 1000; // NOTE: Defaults to 500ms. At that value, we miss a lot of nodes during soak and stress tests.
-            if (sysConfig.GetAttributeAsBoolean(e=>e.Elements("mdns").Attributes("enable").FirstOrDefault()) ?? true)
+            if (sysConfig.GetAttributeAsBoolean(e=>e.Elements("mdns").Attributes("enable").FirstOrDefault()) ?? (!initParams.UseLoopbackNetworkAdapter))
             {
                 initParams.DvEnableBonjour = true;
             }
@@ -249,15 +256,6 @@ namespace Node
                     {
                         nodeGuid = Guid.NewGuid().ToString();
                     }
-                    //string uiDir = optionUiDir.Value;
-                    //if (optionNoGui.Value)
-                    //{
-                    //    uiDir = "";
-                    //}
-                    //else if (uiDir.Length == 0)
-                    //{
-                    //    uiDir = Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "WebUi");
-                    //}
 
                     var commandDispatcher = new CommandDispatcher();
                     var consoleInterface = new ConsoleInterface(commandDispatcher);
@@ -332,6 +330,7 @@ namespace Node
                     Console.WriteLine(storeDirectory);
                     using (var appModule = new AppShellModule(services, config))
                     {
+                        services.RegisterService<IAppShell>(appModule.AppShell);
                         var appManager = appModule.AppShell;
                         if (aOptions.InstallFile.Value != null)
                         {

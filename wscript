@@ -395,8 +395,16 @@ csharp_projects = [
             categories=["core"],
             packages=['ohnet', 'mono-addins', 'mef'],
             references=[
+                'ohOs.Platform',
+            ]),
+        CSharpProject(
+            name="ohOs.AppManager.App", dir="AppManager", type="library",
+            categories=["core"],
+            packages=['ohnet', 'mono-addins', 'mef'],
+            references=[
                 'ohOs.Apps',
                 'ohOs.Platform',
+                'DvOpenhomeOrgAppManager1',
             ]),
         CSharpProject(
             name="ohOs.Platform", dir="Platform", type="library",
@@ -449,6 +457,11 @@ ohos_apps = [
             name="ohOs.TestApp1",
             files=[
                 'ohOs.TestApp1.App.dll'
+            ]),
+        OhOsApp(
+            name="ohOs.AppManager",
+            files=[
+                'ohOs.AppManager.App.dll'
             ]),
     ]
 

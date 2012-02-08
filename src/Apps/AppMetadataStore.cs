@@ -21,6 +21,7 @@ namespace OpenHome.Os.Apps
         //public string UpdateUrl { get; set; }
         //public bool AutoUpdate { get; set; }
         public List<string> GrantedPermissions { get; set; }
+        public string Udn { get; set; }
 
         public AppMetadata Clone()
         {
@@ -30,7 +31,8 @@ namespace OpenHome.Os.Apps
                 DeletePending = DeletePending,
                 GrantedPermissions = new List<string>(GrantedPermissions),
                 InstallPending = InstallPending,
-                LocalInstallLocation = LocalInstallLocation
+                LocalInstallLocation = LocalInstallLocation,
+                Udn = Udn
             };
         }
     }
@@ -66,6 +68,7 @@ namespace OpenHome.Os.Apps
                           </xs:sequence>
                         </xs:complexType>
                       </xs:element>
+                      <xs:element name=""udn"" type=""xs:string"" minOccurs=""0""/>
                     </xs:sequence>
                   </xs:complexType>
                 </xs:schema>";
@@ -75,6 +78,8 @@ namespace OpenHome.Os.Apps
         static AppMetadata ParseAppElement(XElement aAppElement)
         {
             if (aAppElement == null) return null;
+            var udnElement = aAppElement.Element("udn");
+            string udn = (udnElement==null) ? null : udnElement.Value;
             return
                 new AppMetadata
                 {
@@ -85,6 +90,7 @@ namespace OpenHome.Os.Apps
                     //UpdateUrl = (string)aAppElement.Element("updateUrl"),
                     //AutoUpdate = (bool)aAppElement.Element("autoUpdate"),
                     GrantedPermissions = aAppElement.Element("grantedPermissions").Elements().Select(aE=>(string)aE).ToList(),
+                    Udn = udn
                 };
         }
 
@@ -100,7 +106,8 @@ namespace OpenHome.Os.Apps
                     //new XElement("updateUrl", aApp.UpdateUrl),
                     //new XElement("autoUpdate", aApp.AutoUpdate),
                     new XElement("grantedPermissions",
-                        aApp.GrantedPermissions.Select(aPermission=>new XElement("permission", aPermission))));
+                        aApp.GrantedPermissions.Select(aPermission=>new XElement("permission", aPermission))),
+                    new XElement("udn", aApp.Udn));
         }
 
         static XmlSchemaSet MakeSchemaSet(string aSchemaXml)

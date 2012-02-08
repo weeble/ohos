@@ -150,7 +150,7 @@ namespace OpenHome.Os.Apps
 
             void ScheduleDelete()
             {
-                Logger.InfoFormat("Schedule delete on restart for {0}", AppName);
+                Logger.InfoFormat("Mark app for delete: {0}", AppName);
                 var metadata = ReadAppMetadata();
                 metadata.DeletePending = true;
                 WriteAppMetadata(metadata);
@@ -158,11 +158,8 @@ namespace OpenHome.Os.Apps
 
             public void Delete()
             {
-                if (HasCodeLoaded)
-                {
-                    ScheduleDelete();
-                }
-                else
+                ScheduleDelete();
+                if (!HasCodeLoaded)
                 {
                     DeleteNow();
                 }
@@ -189,7 +186,7 @@ namespace OpenHome.Os.Apps
 
             void ScheduleUpgrade(string aPersistentLocalPath)
             {
-                Logger.InfoFormat("Schedule upgrade on restart for {0}", AppName);
+                Logger.InfoFormat("Mark app for upgrade: {0}", AppName);
                 var metadata = ReadAppMetadata();
                 metadata.LocalInstallLocation = aPersistentLocalPath;
                 metadata.InstallPending = true;
@@ -266,6 +263,19 @@ namespace OpenHome.Os.Apps
         public List<HistoryItem> History
         {
             get { return new List<HistoryItem>(iHistory); }
+        }
+
+        EventHandler<AppStatusChangeEventArgs> iAppStatusChanged;
+        public event EventHandler<AppStatusChangeEventArgs> AppStatusChanged
+        {
+            add { iAppStatusChanged += value; }
+            remove { iAppStatusChanged -= value; }
+        }
+
+        public void InvokeAppStatusChanged(AppStatusChangeEventArgs aE)
+        {
+            EventHandler<AppStatusChangeEventArgs> handler = iAppStatusChanged;
+            if (handler != null) handler(this, aE);
         }
 
         public AppShellImpl(
@@ -368,6 +378,7 @@ namespace OpenHome.Os.Apps
             //iInitialising = false;
             UpdateAppList();
             //iInitialising = true;
+            InvokeAppStatusChanged(new AppStatusChangeEventArgs());
         }
 
         /// <summary>
@@ -394,6 +405,7 @@ namespace OpenHome.Os.Apps
             {
                 UpdateAppList();
             }
+            InvokeAppStatusChanged(new AppStatusChangeEventArgs());
         }
 
         
@@ -443,6 +455,8 @@ namespace OpenHome.Os.Apps
             {
                 iKnownApps.Remove(aAppName);
             }
+
+            InvokeAppStatusChanged(new AppStatusChangeEventArgs());
             return true;
         }
 
@@ -523,7 +537,23 @@ namespace OpenHome.Os.Apps
             // query its Udn.
             app.Init(appContext);
 
-            string udn = app.Udn;
+            string udn = app.Udn ?? appMetadata.Udn;
+
+            if (udn == null)
+            {
+                // The app doesn't provide a udn, and we don't have one stored
+                // for it. Construct one.
+                udn = Guid.NewGuid().ToString();
+            }
+            Console.WriteLine("UDN: APP={0}, STORED={1}, USED={2}", app.Udn, appMetadata.Udn, udn);
+
+            if (appMetadata.Udn != udn)
+            {
+                // The store has needs to be updated with the new UDN
+                appMetadata.Udn = udn;
+                knownApp.WriteAppMetadata(appMetadata);
+                Console.WriteLine("WROTE UDN: {0}", appMetadata.Udn);
+            }
 
             IDvDevice device = CreateAppDevice(app, udn);
             appContext.Device = device.RawDevice;
@@ -582,5 +612,9 @@ namespace OpenHome.Os.Apps
             if (!iAppsStarted) return;
             iAddinManager.UpdateRegistry(AppAdded, (aAppDir, aApp) => { });
         }
+    }
+
+    public class AppStatusChangeEventArgs : EventArgs
+    {
     }
 }
