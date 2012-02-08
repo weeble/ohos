@@ -15,6 +15,7 @@ namespace OpenHome.Os.Apps
         void UninstallAllApps();
         void Stop();
         IEnumerable<AppInfo> GetApps();
+        event EventHandler<AppStatusChangeEventArgs> AppStatusChanged;
     }
 
     /// <summary>
@@ -106,7 +107,40 @@ namespace OpenHome.Os.Apps
                     aAppMetadataStore,
                     aZipVerifier,
                     aAutoStart);
+                iImpl.AppStatusChanged += OnAppStatusChanged;
             }
+        }
+
+        List<AppStatusChangeEventArgs> iEventQueue = new List<AppStatusChangeEventArgs>();
+
+        void OnAppStatusChanged(object aSender, AppStatusChangeEventArgs aE)
+        {
+            iEventQueue.Add(aE);
+        }
+
+        Action DeferQueuedEvents()
+        {
+            var queuedEvents = iEventQueue;
+            var handler = iAppStatusChanged;
+            iEventQueue = new List<AppStatusChangeEventArgs>();
+            return () =>
+                {
+                    if (handler != null)
+                    {
+                        foreach (var ev in queuedEvents)
+                        {
+                            handler(this, ev);
+                        }
+                    }
+                };
+
+        }
+
+        EventHandler<AppStatusChangeEventArgs> iAppStatusChanged;
+        public event EventHandler<AppStatusChangeEventArgs> AppStatusChanged
+        {
+            add { iAppStatusChanged += value; }
+            remove { iAppStatusChanged -= value; }
         }
 
         public void Dispose()
@@ -122,10 +156,13 @@ namespace OpenHome.Os.Apps
         /// </summary>
         public void Start()
         {
+            Action invokeQueuedEvents;
             lock (iLock)
             {
                 iImpl.Start();
+                invokeQueuedEvents = DeferQueuedEvents();
             }
+            invokeQueuedEvents();
         }
 
         /// <summary>
@@ -136,10 +173,13 @@ namespace OpenHome.Os.Apps
         /// <param name="aZipFile"></param>
         public void Install(string aZipFile)
         {
+            Action invokeQueuedEvents;
             lock (iLock)
             {
                 iImpl.Install(aZipFile);
+                invokeQueuedEvents = DeferQueuedEvents();
             }
+            invokeQueuedEvents();
         }
 
         /// <summary>
@@ -148,10 +188,13 @@ namespace OpenHome.Os.Apps
         /// <param name="aUdn"></param>
         public void UninstallByUdn(string aUdn)
         {
+            Action invokeQueuedEvents;
             lock (iLock)
             {
                 iImpl.UninstallByUdn(aUdn);
+                invokeQueuedEvents = DeferQueuedEvents();
             }
+            invokeQueuedEvents();
         }
 
         /// <summary>
@@ -159,18 +202,18 @@ namespace OpenHome.Os.Apps
         /// </summary>
         public void UninstallByAppName(string aAppName)
         {
+            Action invokeQueuedEvents;
             lock (iLock)
             {
                 iImpl.UninstallByAppName(aAppName);
+                invokeQueuedEvents = DeferQueuedEvents();
             }
+            invokeQueuedEvents();
         }
 
         public void UninstallAllApps()
         {
-            lock (iLock)
-            {
-                iImpl.UninstallAllApps();
-            }
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -178,10 +221,13 @@ namespace OpenHome.Os.Apps
         /// </summary>
         public void Stop()
         {
+            Action invokeQueuedEvents;
             lock (iLock)
             {
                 iImpl.Stop();
+                invokeQueuedEvents = DeferQueuedEvents();
             }
+            invokeQueuedEvents();
         }
 
         /// <summary>

@@ -183,5 +183,16 @@ namespace OpenHome.Os.Platform.Collections
             }
             throw new KeyNotFoundException(String.Format("No entry with key=={0} in dictionary.", aKey));
         }
+
+        public void Clear()
+        {
+            List<uint> oldIds = new List<uint>(iIdTable.Keys);
+            iIdTable.Clear();
+            iDictionary.Clear();
+            foreach (uint oldId in oldIds)
+            {
+                iIdDispenser.ReleaseId(oldId);
+            }
+        }
     }
 }
