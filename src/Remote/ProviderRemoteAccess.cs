@@ -69,7 +69,16 @@ namespace OpenHome.Os.Remote
             SetPropertyPasswordSet((iPassword.Length > 0));
 
             if (enabled)
-                Start();
+            {
+                try
+                {
+                    Start();
+                }
+                catch (Exception e)
+                {
+                    Logger.ErrorFormat("Start failed: {0}", e.Message);
+                }
+            }
         }
         public bool ValidateCredentials(string aUserName, string aPassword)
         {
