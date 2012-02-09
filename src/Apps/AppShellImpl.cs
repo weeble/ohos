@@ -541,7 +541,7 @@ namespace OpenHome.Os.Apps
 
             string udn = app.Udn ?? appMetadata.Udn;
 
-            if (udn == null)
+            if (string.IsNullOrEmpty(udn))
             {
                 // The app doesn't provide a udn, and we don't have one stored
                 // for it. Construct one.

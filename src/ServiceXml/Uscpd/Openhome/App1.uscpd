@@ -1,6 +1,9 @@
 var Name : string;
 var IconUri : uri;
 var DescriptionUri : uri;
+type $Udn : string;
+type $ResourceUri : string;
 action GetName(Name : out Name);
 action GetIconUri(IconUri : out IconUri);
 action GetDescriptionUri(DescriptionUri : out DescriptionUri);
+action GetHostDevice(Udn : out $Udn, ResourceUri : out $ResourceUri);

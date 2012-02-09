@@ -328,7 +328,7 @@ namespace Node
                                                };
 
                     Console.WriteLine(storeDirectory);
-                    using (var appModule = new AppShellModule(services, config))
+                    using (var appModule = new AppShellModule(services, config, nodeGuid))
                     {
                         services.RegisterService<IAppShell>(appModule.AppShell);
                         var appManager = appModule.AppShell;
