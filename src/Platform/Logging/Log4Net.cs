@@ -93,11 +93,12 @@ namespace OpenHome.Widget.Nodes.Logging
         {
             var patternLayout = DefaultPatternLayout;
             patternLayout.ActivateOptions();
-            FileAppender fa = new FileAppender()
+            FileAppender fa = new FileAppender
                                   {
                                       File = aLogFile,
                                       Layout = patternLayout,
-                                      AppendToFile = true
+                                      AppendToFile = true,
+                                      LockingModel = new FileAppender.MinimalLock()
                                   };
             fa.ActivateOptions();
             //Console.WriteLine(fa.File);
