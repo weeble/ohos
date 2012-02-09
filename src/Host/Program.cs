@@ -341,9 +341,9 @@ namespace Node
                             var appManagerConsoleCommands = new AppManagerConsoleCommands(appManager);
                             appManagerConsoleCommands.Register(commandDispatcher);
                             appManager.Start();
-                            using (var appController = new AppController(nodeGuid))
+                            using (new NodeDevice(nodeGuid, appManager))
                             {
-                                commandDispatcher.AddCommand("bump", aArguments => appController.BumpDummySequenceNumber(), "Bump the sequence number for the dummy app, for testing.");
+                                //commandDispatcher.AddCommand("bump", aArguments => appController.BumpDummySequenceNumber(), "Bump the sequence number for the dummy app, for testing.");
                                 //string exePath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
                                 //appManager.Install(System.IO.Path.Combine(exePath, "ohOs.TestApp1.zip"));
                                 if (!(sysConfig.GetAttributeAsBoolean(e=>e.Elements("console").Attributes("enable").FirstOrDefault()) ?? true))

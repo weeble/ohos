@@ -154,6 +154,7 @@ namespace OpenHome.Os.Apps
                 var metadata = ReadAppMetadata();
                 metadata.DeletePending = true;
                 WriteAppMetadata(metadata);
+                Logger.InfoFormat("App marked for delete: {0}", AppName);
             }
 
             public void Delete()
@@ -325,9 +326,9 @@ namespace OpenHome.Os.Apps
             {
                 var metadata = app.ReadAppMetadata();
                 string udn = null;
-                if (app.IsPublished)
+                if (metadata != null)
                 {
-                    udn = app.PublishedApp.Udn;
+                    udn = metadata.Udn;
                 }
                 apps.Add(new AppInfo(app.AppName, app.IsPublished ? AppState.Running : AppState.NotRunning, metadata!=null && metadata.InstallPending, metadata!=null && metadata.DeletePending, udn));
             }
@@ -457,6 +458,7 @@ namespace OpenHome.Os.Apps
             }
 
             InvokeAppStatusChanged(new AppStatusChangeEventArgs());
+
             return true;
         }
 

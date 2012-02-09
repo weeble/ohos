@@ -19,6 +19,7 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="DvOpenhomeOrgAppList1, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
     <Reference Include="DvOpenhomeOrgAppManager1, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
     <Reference Include="ICSharpCode.SharpZipLib.dll, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
     <Reference Include="log4net, Version=1.2.10.0, Culture=neutral, PublicKeyToken=1b44e1d426115821, processorArchitecture=MSIL" />
@@ -36,6 +37,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppContext.cs" />
+    <Compile Include="AppListProvider.cs" />
     <Compile Include="AppManagerConsoleCommands.cs" />
     <Compile Include="BadPluginException.cs" />
     <Compile Include="AppMetadataStore.cs" />
@@ -52,6 +54,7 @@
     <Compile Include="./ProviderApp.cs" />
     <Compile Include="AppController.cs" />
     <Compile Include="AppShellModule.cs" />
+    <Compile Include="NodeDevice.cs" />
     <Compile Include="PluginFoundInWrongDirectoryException.cs" />
     <Compile Include="ZipVerifier.cs" />
   </ItemGroup>

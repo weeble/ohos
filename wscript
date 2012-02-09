@@ -366,6 +366,7 @@ def create_tgz_task(bld, tgzfile, sourceroot, tgzroot, sourcefiles):
 upnp_services = [
         GeneratedFile('src/ServiceXml/Uscpd/Openhome/App1.uscpd', 'openhome.org', 'App', '1', 'OpenhomeOrgApp1'),
         GeneratedFile('src/ServiceXml/Uscpd/Openhome/AppManager1.uscpd', 'openhome.org', 'AppManager', '1', 'OpenhomeOrgAppManager1'),
+        GeneratedFile('src/ServiceXml/Uscpd/Openhome/AppList1.uscpd', 'openhome.org', 'AppList', '1', 'OpenhomeOrgAppList1'),
         GeneratedFile('src/ServiceXml/Uscpd/Openhome/RemoteAccess1.uscpd', 'openhome.org', 'RemoteAccess', '1', 'OpenhomeOrgRemoteAccess1'),
     ]
 
@@ -377,6 +378,7 @@ csharp_projects = [
             packages=['ohnet', 'mono-addins', 'sharpziplib', 'log4net', 'systemxmllinq', 'mef'],
             references=[
                 'DvOpenhomeOrgApp1',
+                'DvOpenhomeOrgAppList1',
                 'DvOpenhomeOrgAppManager1',
                 'ohOs.Platform',
             ]),

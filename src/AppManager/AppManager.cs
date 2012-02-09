@@ -7,6 +7,7 @@ using OpenHome.Net.Device;
 using OpenHome.Net.Device.Providers;
 using OpenHome.Os.Apps;
 using OpenHome.Os.Platform.Collections;
+using OpenHome.Widget.Nodes.Threading;
 
 namespace OpenHome.Os.AppManager
 {
@@ -26,6 +27,7 @@ namespace OpenHome.Os.AppManager
         readonly object iLock = new object();
         readonly IAppShell iAppShell;
         IAppManagerProvider iProvider;
+        readonly SafeCallbackTracker iCallbackTracker = new SafeCallbackTracker();
         IdDictionary<string, ManagedApp> iApps = new IdDictionary<string, ManagedApp>();
         //Dictionary<string, ManagedDownload> iDownloads = new Dictionary<string, ManagedDownload>();
 
@@ -42,6 +44,8 @@ namespace OpenHome.Os.AppManager
 
         public void Dispose()
         {
+            iAppShell.AppStatusChanged -= OnAppStatusChanged;
+            iCallbackTracker.Close();
             iProvider.Dispose();
         }
 
@@ -70,10 +74,13 @@ namespace OpenHome.Os.AppManager
 
         void OnAppStatusChanged(object aSender, AppStatusChangeEventArgs aE)
         {
-            lock (iLock)
+            iCallbackTracker.PreventClose(() =>
             {
-                RefreshApps();
-            }
+                lock (iLock)
+                {
+                    RefreshApps();
+                }
+            });
         }
 
         void UpdateHandles()
