@@ -29,7 +29,7 @@ namespace OpenHome.Os.Remote
         private readonly string iStoreDir;
         private readonly string iNetworkAdapter;
         private string iPassword;
-        private ProxyServer iProxyServer;
+        private readonly ProxyServer iProxyServer;
         private SshClient iSshClient;
         private ForwardedPortRemote iForwardedPortRemote;
         private string iSshServerHost;
