@@ -585,14 +585,15 @@ def build(bld):
                 for (prefix, suffix) in [('Cp', '.dll'), ('Dv', '.dll'), ('Cp', '.js')]
             ])).targets_flattened()
 
-    ohos_main_transfer = (dependencies_transfer + ohos_core_transfer).targets_prefixed('ohos/main')
+    ohos_main_transfer = (dependencies_transfer + ohos_core_transfer).targets_prefixed('main')
 
 
-    apps_transfer = all_apps_transfer.targets_prefixed('ohos/apps')
+    apps_transfer = all_apps_transfer.targets_prefixed('apps')
     
     ohos_transfer = ohos_main_transfer + apps_transfer
 
-    ohos_transfer.create_tgz_task(bld, 'ohos.tar.gz')
+    ohos_transfer.targets_prefixed('ohos').create_tgz_task(bld, 'ohos.tar.gz')
+    ohos_transfer.create_copy_tasks(bld)
 
     '''
     create_tgz_task(
