@@ -4,6 +4,7 @@ using System.IO;
 using System.Xml;
 using System.Xml.Linq;
 using System.Net;
+using System.Threading;
 using System.Collections.Generic;
 using OpenHome.Net.Device;
 using OpenHome.Net.Device.Providers;
@@ -14,6 +15,32 @@ namespace OpenHome.Os.Remote
 {
     public class ProviderRemoteAccess : DvProviderOpenhomeOrgRemoteAccess1, ILoginValidator, IDisposable
     {
+        private class QueuedCommand
+        {
+            public string Path { get; private set; }
+            public string Request { get; private set; }
+
+            private readonly Semaphore iSem;
+            private string iResponse;
+
+            public QueuedCommand(string aPath, string aRequest)
+            {
+                Path = aPath;
+                Request = aRequest;
+                iSem = new Semaphore(0, 1);
+            }
+            public string GetResponse()
+            {
+                iSem.WaitOne();
+                return iResponse;
+            }
+            public void SetResponse(string aResponse)
+            {
+                iResponse = aResponse;
+                iSem.Release();
+            }
+        }
+
         private const string kFileUserData = "UserData.xml";
         private const string kFileKeyBase = "key";
         private const string kFilePublicKey = "key.pub";
@@ -36,6 +63,10 @@ namespace OpenHome.Os.Remote
         private int iSshServerPort;
         private string iPortForwardAddress;
         private uint iPortForwardPort;
+        private readonly Thread iThread;
+        private readonly List<QueuedCommand> iCommands;
+        private readonly Semaphore iCommandSem;
+        private bool iQuit;
 
         public ProviderRemoteAccess(DvDevice aDevice, string aStoreDir, ProxyServer aProxyServer, string aNetworkAdapter)
             : base(aDevice)
@@ -44,6 +75,10 @@ namespace OpenHome.Os.Remote
             iStoreDir = aStoreDir;
             iProxyServer = aProxyServer;
             iNetworkAdapter = aNetworkAdapter;
+            iThread = new Thread(RunThread);
+            iThread.Start(this);
+            iCommands = new List<QueuedCommand>();
+            iCommandSem = new Semaphore(0, Int32.MaxValue);
 
             EnablePropertyUserName();
             EnablePropertyPublicUri();
@@ -308,34 +343,74 @@ namespace OpenHome.Os.Remote
             aPublicUri = tree.Element("success").Element("url").Value;
             return true;
         }
-        private static XElement CallWebService(string aRequestMethod, string aRequestBody)
+        private XElement CallWebService(string aRequestMethod, string aRequestBody)
         {
-            string url = kWebServiceAddress + aRequestMethod;
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-            request.Method = "POST";
-            if (aRequestBody != null)
+            QueuedCommand cmd = new QueuedCommand(aRequestMethod, aRequestBody);
+            lock (iCommands)
             {
-                byte[] bodyBytes = Encoding.UTF8.GetBytes(aRequestBody);
-                request.GetRequestStream().Write(bodyBytes, 0, bodyBytes.Length);
+                iCommands.Add(cmd);
             }
-            HttpWebResponse resp;
-            try
+            iCommandSem.Release();
+            string resp = cmd.GetResponse();
+            return (resp == null? null : XElement.Parse(resp));
+        }
+        private static void RunThread(object aSelf)
+        {
+            ((ProviderRemoteAccess)aSelf).DoRunThread();
+        }
+        private void DoRunThread()
+        {
+            while (true)
             {
-                resp = (HttpWebResponse)request.GetResponse();
+                iCommandSem.WaitOne();
+                if (iQuit)
+                    break;
+                QueuedCommand cmd;
+                lock (iCommands)
+                {
+                    cmd = iCommands[0];
+                    iCommands.RemoveAt(0);
+                }
+                string url = kWebServiceAddress + cmd.Path;
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+                request.Method = "POST";
+                if (cmd.Request != null)
+                {
+                    byte[] bodyBytes = Encoding.UTF8.GetBytes(cmd.Request);
+                    using (Stream stream = request.GetRequestStream())
+                    {
+                        stream.Write(bodyBytes, 0, bodyBytes.Length);
+                    }
+                }
+                HttpWebResponse resp;
+                try
+                {
+                    resp = (HttpWebResponse)request.GetResponse();
+                    using (Stream respStream = resp.GetResponseStream())
+                    {
+                        MemoryStream memStream = new MemoryStream();
+                        respStream.CopyTo(memStream);
+                        byte[] bytes = memStream.ToArray();
+                        cmd.SetResponse(Encoding.UTF8.GetString(bytes));
+                    }
+                }
+                catch (WebException e)
+                {
+                    Logger.ErrorFormat("Remote access web service {0} failed with error {1}.", cmd.Path, e.Message);
+                    cmd.SetResponse(null);
+                }
             }
-            catch (WebException e)
+            while (iCommands.Count > 0)
             {
-                Logger.ErrorFormat("Remote access web service {0} failed with error {1}.", aRequestMethod, e.Message);
-                return null;
+                iCommands[0].SetResponse(null);
+                iCommands.RemoveAt(0);
             }
-            Stream respStream = resp.GetResponseStream();
-            MemoryStream memStream = new MemoryStream();
-            respStream.CopyTo(memStream);
-            byte[] bytes = memStream.ToArray();
-            return XElement.Parse(Encoding.UTF8.GetString(bytes));
         }
         public new void Dispose()
         {
+            iQuit = true;
+            iCommandSem.Release();
+            iThread.Join();
             Stop();
             base.Dispose();
         }
