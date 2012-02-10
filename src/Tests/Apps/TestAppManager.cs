@@ -273,11 +273,6 @@ namespace OpenHome.Os.Apps
             iDeviceFactoryMock.Verify(x => x.CreateDeviceStandard(It.IsAny<string>()), Times.Once());
         }
         [Test]
-        public void TheDeviceGetsTheRightUdn()
-        {
-            iDeviceFactoryMock.Verify(x => x.CreateDeviceStandard(It.Is<string>(aUdn=>aUdn==AppUdn)), Times.Once());
-        }
-        [Test]
         public void TheAppIsStartedOnce()
         {
             iAppMock.Verify(x => x.Start(It.IsAny<IAppContext>()), Times.Once());
