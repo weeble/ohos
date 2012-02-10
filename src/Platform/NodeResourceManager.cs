@@ -76,10 +76,11 @@ namespace OpenHome.Os.Platform
             StreamWriter writer = new StreamWriter(memStream);
             writer.Write("var nodeUdn = \"" + iUdn + "\";\n");
             writer.Write("var webSocketPort = " + iWebSocketPort + ";\n");
-            writer.Close();
+            writer.Flush();
             aWriter.WriteResourceBegin((int)memStream.Length, "application/x-javascript");
             aWriter.WriteResource(memStream.GetBuffer(), (int)memStream.Length);
             aWriter.WriteResourceEnd();
+            writer.Close();
         }
 
         static bool IsNodeJsPath(string aUriTail)
@@ -88,7 +89,9 @@ namespace OpenHome.Os.Platform
             {
                 aUriTail = aUriTail.Substring(1);
             }
-            return aUriTail == "Node.js";
+            bool result = aUriTail == "Node.js";
+            Console.WriteLine("IsNodeJsPath('{0}') -> {1}", aUriTail, result);
+            return result;
         }
 
         private bool TryWriteFile(string aResDir, string aLangDir, string aFileName, IResourceWriter aWriter)
