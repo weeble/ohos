@@ -33,6 +33,7 @@ namespace OpenHome.Os.IntegrationTests
             BasicConfigurator.Configure();
             InitParams initParams = new InitParams();
             initParams.UseLoopbackNetworkAdapter = true;
+            string nodeGuid = Guid.NewGuid().ToString();
             using (Library library = Library.Create(initParams))
             {
                 SubnetList subnetList = new SubnetList();
@@ -57,7 +58,7 @@ namespace OpenHome.Os.IntegrationTests
                 {
                     Directory.Delete(storePath, true);
                 }
-                using (var installModule = new AppShellModule(services, config))
+                using (var installModule = new AppShellModule(services, config, nodeGuid))
                 {
                     installModule.AppShell.Start();
 

@@ -522,7 +522,7 @@ def build(bld):
                 ('Cp', 'CpUpnpJs.tt', '.js')
                 ]:
             bld(
-                rule="${SRC[0].abspath()} -o ${TGT} ${SRC[1].abspath()} -a xml:${SRC[2]} -a domain:" + service.domain + " -a type:" + service.type + " -a version:" + service.version,
+                rule="${MONO} ${SRC[0].abspath()} -o ${TGT} ${SRC[1].abspath()} -a xml:${SRC[2]} -a domain:" + service.domain + " -a type:" + service.type + " -a version:" + service.version,
                 source=[text_transform_exe_node, find_resource_or_fail(bld,bld.root,path.join(ttdir, t4Template)), service.target + '.xml'],
                 target=bld.path.find_or_declare(prefix + service.target + ext))
     bld.add_group()
@@ -566,14 +566,11 @@ def build(bld):
                 "ohOs.Platform.dll",
                 "ohOs.Remote.dll",
                 "App.addins",
-                "DvOpenhomeOrgAppManager1.dll",
-                "DvOpenhomeOrgApp1.dll",
-                "DvOpenhomeOrgRemoteAccess1.dll",
-                "CpOpenhomeOrgAppManager1.dll",
-                "CpOpenhomeOrgApp1.dll",
-                "CpOpenhomeOrgAppManager1.js",
-                "CpOpenhomeOrgApp1.js",
-                "CpOpenhomeOrgRemoteAccess1.js",
+            ] +
+            [
+                prefix + service.target + suffix
+                for service in upnp_services
+                for (prefix, suffix) in [('Cp', '.dll'), ('Dv', '.dll'), ('Cp', '.js')]
             ] +
             get_dependency_files(ohnet) +
             get_dependency_files(sharpziplib) +

@@ -251,7 +251,12 @@ namespace OpenHome.Os.Remote
                 }
             }
             if (String.Compare(aClientReq.HttpMethod, "POST", true) == 0)
-                aClientReq.InputStream.CopyTo(aForwardedReq.GetRequestStream());
+            {
+                using (Stream stream = aForwardedReq.GetRequestStream())
+                {
+                    aClientReq.InputStream.CopyTo(stream);
+                }
+            }
         }
         private static void WriteResponse(HttpWebResponse aProxiedResponse, HttpListenerResponse aResponse)
         {
@@ -285,17 +290,19 @@ namespace OpenHome.Os.Remote
                 }
             }
             Stream clientRespStream = aResponse.OutputStream;
-            Stream respStream = aProxiedResponse.GetResponseStream();
-            // following can remain commented until we want to proxy websocket connections
-            /*if (targetUrl.EndsWith("/Node.js"))
+            using (Stream respStream = aProxiedResponse.GetResponseStream())
             {
-                RewriteNodeJsFile(clientResp, respStream);
+                // following can remain commented until we want to proxy websocket connections
+                /*if (targetUrl.EndsWith("/Node.js"))
+                {
+                    RewriteNodeJsFile(clientResp, respStream);
+                }
+                else
+                {*/
+                if (contentLength > 0) // response may be chunked
+                    aResponse.ContentLength64 = contentLength;
+                respStream.CopyTo(clientRespStream);
             }
-            else
-            {*/
-            if (contentLength > 0) // response may be chunked
-                aResponse.ContentLength64 = contentLength;
-            respStream.CopyTo(clientRespStream);
             //}
             clientRespStream.Close();
         }

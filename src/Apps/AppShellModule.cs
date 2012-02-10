@@ -33,7 +33,8 @@ namespace OpenHome.Os.Apps
         public IAppShell AppShell { get; private set; }
         public AppShellModule(
             IAppServices aFullPrivilegeAppServices,
-            IConfigFileCollection aConfiguration)
+            IConfigFileCollection aConfiguration,
+            string aNodeGuid)
         {
             string storePath = aConfiguration.GetElementValueAsFilepath(e=>e.Element("system-settings").Element("store"));
             if (storePath == null)
@@ -58,7 +59,7 @@ namespace OpenHome.Os.Apps
                 addinManager,
                 appsDirectory,
                 storeDirectory,
-                (aDevice, aApp)=>new ProviderApp(aDevice, aApp),
+                (aDevice, aApp)=>new ProviderApp(aDevice, aApp, aNodeGuid, String.Format("/{0}/Upnp/Resources/", aNodeGuid)),
                 zipReader,
                 appMetadataStore,
                 zipVerifier,
