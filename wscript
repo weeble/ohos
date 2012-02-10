@@ -566,14 +566,11 @@ def build(bld):
                 "ohOs.Platform.dll",
                 "ohOs.Remote.dll",
                 "App.addins",
-                "DvOpenhomeOrgAppManager1.dll",
-                "DvOpenhomeOrgApp1.dll",
-                "DvOpenhomeOrgRemoteAccess1.dll",
-                "CpOpenhomeOrgAppManager1.dll",
-                "CpOpenhomeOrgApp1.dll",
-                "CpOpenhomeOrgAppManager1.js",
-                "CpOpenhomeOrgApp1.js",
-                "CpOpenhomeOrgRemoteAccess1.js",
+            ] +
+            [
+                prefix + service.target + suffix
+                for service in upnp_services
+                for (prefix, suffix) in [('Cp', '.dll'), ('Dv', '.dll'), ('Cp', '.js')]
             ] +
             get_dependency_files(ohnet) +
             get_dependency_files(sharpziplib) +
