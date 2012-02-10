@@ -6,20 +6,19 @@ using System.Threading;
 using System.Xml.Linq;
 using OpenHome.Net.Device;
 using OpenHome.Os.AppManager;
+using OpenHome.Os.Apps;
+using OpenHome.Os.Platform;
 using OpenHome.Widget.Nodes.Threading;
 
 namespace OpenHome.Os.Apps
 {
-    public class NodeDevice : IDisposable
+    public class NodeDevice : IDisposable, INodeDeviceAccessor
     {
-        private readonly AppListProvider iProvider;
-        private readonly DvDevice iDevice;
+        private readonly IDvDevice iDevice;
+        bool iEnabled;
         bool iDisposed;
-        readonly IAppShell iAppShell;
-        readonly SafeCallbackTracker iCallbackTracker;
-        readonly EventHandler<AppStatusChangeEventArgs> iHandler;
 
-        public NodeDevice(string aUdn, IAppShell aAppShell)
+        public NodeDevice(string aUdn)
         {
             iDevice = new DvDeviceStandard(aUdn);
             // Set initial values for the attributes mandated by UPnP
@@ -29,6 +28,49 @@ namespace OpenHome.Os.Apps
             iDevice.SetAttribute("Upnp.FriendlyName", "OpenHomeOS Node");
             iDevice.SetAttribute("Upnp.Manufacturer", "N/A");
             iDevice.SetAttribute("Upnp.ModelName", "OpenHomeOS Node");
+        }
+        public IDvDevice Device { get { return iDevice; } }
+        public void Enable()
+        {
+            if (iEnabled)
+            {
+                throw new InvalidOperationException();
+            }
+            iDevice.SetEnabled();
+        }
+        public void Disable()
+        {
+            if (!iEnabled)
+            {
+                throw new InvalidOperationException();
+            }
+            iEnabled = true;
+            Semaphore disabledSemaphore = new Semaphore(0, 1);
+            iDevice.SetDisabled(() => disabledSemaphore.Release());
+            disabledSemaphore.WaitOne();
+            ((IDisposable)disabledSemaphore).Dispose();
+        }
+        public void Dispose()
+        {
+            if (iDisposed) return;
+            if (iEnabled) Disable();
+            iDisposed = true;
+            iDevice.Dispose();
+        }
+    }
+
+    public class AppListService : IDisposable
+    {
+        private readonly AppListProvider iProvider;
+        private readonly DvDevice iDevice;
+        bool iDisposed;
+        readonly IAppShell iAppShell;
+        readonly SafeCallbackTracker iCallbackTracker;
+        readonly EventHandler<AppStatusChangeEventArgs> iHandler;
+
+        public AppListService(DvDevice aDevice, IAppShell aAppShell)
+        {
+            iDevice = aDevice;
             iProvider = new AppListProvider(iDevice);
             iDevice.SetEnabled();
             iCallbackTracker = new SafeCallbackTracker();
@@ -54,18 +96,14 @@ namespace OpenHome.Os.Apps
                         new XElement("resourceUrl", String.Format("/{0}/Upnp/Resources/", app.Udn))));
             iProvider.SetPropertyRunningAppList(root.ToString());
         }
+
         public void Dispose()
         {
             if (iDisposed) return;
             iDisposed = true;
             iAppShell.AppStatusChanged -= OnAppStatusChanged;
             iCallbackTracker.Close();
-            Semaphore disabledSemaphore = new Semaphore(0, 1);
-            iDevice.SetDisabled(() => disabledSemaphore.Release());
-            disabledSemaphore.WaitOne();
-            ((IDisposable)disabledSemaphore).Dispose();
             iProvider.Dispose();
-            iDevice.Dispose();
         }
     }
 }

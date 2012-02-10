@@ -10,9 +10,15 @@ namespace OpenHome.Os.TestApps
     [Export(typeof(IApp))]
     public class TestApp1 : IApp
     {
-        public string Udn { get { return "ohOs.TestApp1"; } }
+        //public string Udn { get { return "ohOs.TestApp1"; } }
+
+        public bool PublishesNodeServices
+        {
+            get { return false; }
+        }
+
         public IResourceManager ResourceManager { get { return null; } }
-        public string Name { get { return "ohOs.TestApp1"; } }
+        //public string Name { get { return "ohOs.TestApp1"; } }
         public AppVersion Version { get { return iVersion; } }
         public string IconUri { get { return ""; } }
         public string DescriptionUri { get { return ""; } }
@@ -30,10 +36,6 @@ namespace OpenHome.Os.TestApps
         public TestApp1()
         {
             iVersion = new AppVersion(0, 1, 0);
-        }
-
-        public void Init(IAppContext aAppServices)
-        {
         }
 
         public void Start(IAppContext aAppContext)

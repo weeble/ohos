@@ -1,11 +1,8 @@
 using System;
 using System.Linq;
 using System.IO;
-using System.Reflection;
 using System.Threading;
-using System.Xml.Linq;
 using log4net;
-//using Mono.Addins;
 using OpenHome.Net.Device;
 using System.Collections.Generic;
 using OpenHome.Net.Device.Providers;
@@ -122,10 +119,6 @@ namespace OpenHome.Os.Apps
                 if (IsPublished)
                 {
                     throw new InvalidOperationException("App is already published.");
-                }
-                if (aPublishedApp.App.Name != AppName)
-                {
-                    throw new ArgumentException(String.Format("IApp has incorrect Name. (Expected '{0}', got '{1}'.)", AppName, aPublishedApp.App.Name));
                 }
                 PublishedApp = aPublishedApp;
             }
@@ -250,7 +243,7 @@ namespace OpenHome.Os.Apps
         readonly IAddinManager iAddinManager;
         readonly IAppsDirectory iAppsDirectory;
         readonly IStoreDirectory iStoreDirectory;
-        readonly Func<DvDevice, IApp, IDvProviderOpenhomeOrgApp1> iAppProviderConstructor;
+        readonly Func<DvDevice, IApp, string, IDvProviderOpenhomeOrgApp1> iAppProviderConstructor;
         //readonly IZipReader iZipReader;
         readonly IAppMetadataStore iMetadataStore;
         readonly IZipVerifier iZipVerifier;
@@ -285,7 +278,7 @@ namespace OpenHome.Os.Apps
             IAddinManager aAddinManager,
             IAppsDirectory aAppsDirectory,
             IStoreDirectory aStoreDirectory,
-            Func<DvDevice, IApp, IDvProviderOpenhomeOrgApp1> aAppProviderConstructor,
+            Func<DvDevice, IApp, string, IDvProviderOpenhomeOrgApp1> aAppProviderConstructor,
             IZipReader aZipReader,
             IAppMetadataStore aMetadataStore,
             IZipVerifier aZipVerifier,
@@ -502,20 +495,21 @@ namespace OpenHome.Os.Apps
 
             string appDirName = aAppDirectoryInfo.Name;
 
+            if (app.PublishesNodeServices && iFullPrivilegeAppServices.NodeDeviceAccessor.Device.Enabled())
+            {
+                Logger.WarnFormat("App {0} wants to publish services on the node device, which is already enabled. It cannot run until the node is restarted.", appDirName);
+                return;
+            }
+
             // Take care here! We don't want an app peeking at other apps'
             // settings by injecting crazy XPath nonsense into its name.
-            string sanitizedName = GetSanitizedAppName(app);
+            //string sanitizedName = GetSanitizedAppName(app);
             IConfigFileCollection appConfig = iConfiguration.GetSubcollection(
                 el=>el
                     .Elements("app-settings")
-                    .Where(e=>(string)e.Attribute("name")==sanitizedName)
+                    .Where(e=>(string)e.Attribute("name")==appDirName)
                     .FirstOrDefault()
                 );
-            if (sanitizedName != appDirName)
-            {
-                Logger.ErrorFormat("Bad app: name ({0}) does not match directory ({1}).", app.Name, appDirName);
-                return;
-            }
 
             KnownApp knownApp = GetOrCreateKnownApp(appDirName);
             if (knownApp.IsPublished)
@@ -524,22 +518,21 @@ namespace OpenHome.Os.Apps
                 return;
             }
             AppMetadata appMetadata = knownApp.ReadAppMetadata();
-            if (!appMetadata.GrantedPermissions.Contains("root"))
-            {
-                Logger.WarnFormat("App {0} is running with more permissions that it needs.", knownApp.AppName);
-            }
 
             AppContext appContext = new AppContext(iFullPrivilegeAppServices,
                 iAppsDirectory.GetAbsolutePathForSubdirectory(appDirName),
                 iStoreDirectory.GetAbsolutePathForAppDirectory(appDirName), 
                 appConfig,
-                null);
+                null,
+                appDirName);
 
+            // Init method removed as we no longer expect apps to provide their own
+            // UDN.
             // Initialize the app to allow it to read its config files before we
             // query its Udn.
-            app.Init(appContext);
+            //app.Init(appContext);
 
-            string udn = app.Udn ?? appMetadata.Udn;
+            string udn = appMetadata.Udn;
 
             if (string.IsNullOrEmpty(udn))
             {
@@ -547,20 +540,18 @@ namespace OpenHome.Os.Apps
                 // for it. Construct one.
                 udn = Guid.NewGuid().ToString();
             }
-            Console.WriteLine("UDN: APP={0}, STORED={1}, USED={2}", app.Udn, appMetadata.Udn, udn);
 
             if (appMetadata.Udn != udn)
             {
-                // The store has needs to be updated with the new UDN
+                // The store needs to be updated with the new UDN
                 appMetadata.Udn = udn;
                 knownApp.WriteAppMetadata(appMetadata);
-                Console.WriteLine("WROTE UDN: {0}", appMetadata.Udn);
             }
 
-            IDvDevice device = CreateAppDevice(app, udn);
+            IDvDevice device = CreateAppDevice(app, udn, appDirName);
             appContext.Device = device.RawDevice;
 
-            var provider = iAppProviderConstructor(device.RawDevice, app);
+            var provider = iAppProviderConstructor(device.RawDevice, app, appDirName);
             var change = HistoryItem.ItemType.EInstall;
 
             // TODO: Fix History. It no longer bears any relation to how apps actually work.
@@ -571,27 +562,27 @@ namespace OpenHome.Os.Apps
 
             try
             {
-                Logger.InfoFormat("Starting app {0} (UDN={1} directory={2}).", sanitizedName, udn, appDirName);
+                Logger.InfoFormat("Starting app (UDN={0} directory={1}).", udn, appDirName);
                 app.Start(appContext);
-                Logger.InfoFormat("App started: {0} (UDN={1}).", sanitizedName, udn);
+                Logger.InfoFormat("App started: (UDN={0}).", udn);
             }
             catch (Exception e)
             {
-                Logger.ErrorFormat("Exception during app startup: {0}\n{1}", sanitizedName, e);
+                Logger.ErrorFormat("Exception during app startup: {0}\n{1}", appDirName, e);
                 throw;
             }
             device.SetEnabled();
             knownApp.Publish(new PublishedApp(app, device, provider));
             UdnsToAppNames[udn] = appDirName;
-            iHistory.Add(new HistoryItem(app.Name, change, udn));
+            iHistory.Add(new HistoryItem(appDirName, change, udn));
         }
 
-        static string GetSanitizedAppName(IApp app)
-        {
-            return app.Name.Replace("'", "").Replace("\"", "").Replace("\\","-").Replace("/","-").Replace(":","").Replace(";","");
-        }
+        //static string GetSanitizedAppName(IApp app)
+        //{
+        //    return app.Name.Replace("'", "").Replace("\"", "").Replace("\\","-").Replace("/","-").Replace(":","").Replace(";","");
+        //}
 
-        IDvDevice CreateAppDevice(IApp app, string udn)
+        IDvDevice CreateAppDevice(IApp app, string udn, string aAppDirName)
         {
             IDvDevice device = (app.ResourceManager == null
                 ? iFullPrivilegeAppServices.DeviceFactory.CreateDeviceStandard(udn)
@@ -601,7 +592,7 @@ namespace OpenHome.Os.Apps
             device.SetAttribute("Upnp.Domain", "openhome.org");
             device.SetAttribute("Upnp.Type", "App");
             device.SetAttribute("Upnp.Version", "1");
-            device.SetAttribute("Upnp.FriendlyName", app.Name);
+            device.SetAttribute("Upnp.FriendlyName", aAppDirName);
             device.SetAttribute("Upnp.Manufacturer", "N/A");
             device.SetAttribute("Upnp.ModelName", "ohOs Application");
             device.SetAttribute("Core.LongPollEnable", "");

@@ -8,6 +8,7 @@ using Node;
 using OpenHome.Net.Device;
 using OpenHome.Os.Apps;
 using OpenHome.Net.Core;
+using OpenHome.Os.Host;
 using OpenHome.Widget.Nodes;
 
 namespace OpenHome.Os.IntegrationTests

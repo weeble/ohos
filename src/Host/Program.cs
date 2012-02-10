@@ -1,36 +1,35 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.IO.Pipes;
 using System.Linq;
-using System.Threading;
 using System.Xml.Linq;
-//using Mono.Addins;
+using Node;
 using ohWidget.Utils;
 using OpenHome.Os.Apps;
 using OpenHome.Os.Host.Guardians;
 using OpenHome.Os.Platform;
 using OpenHome.Widget.Nodes;
-//using OpenHome.Widget.Nodes.Combined;
 using OpenHome.Widget.Nodes.Logging;
-//using OpenHome.Widget.Protocols.SimpleUpnp;
 using OpenHome.Net.ControlPoint;
 using OpenHome.Net.Core;
 using OpenHome.Widget.Nodes.Threading;
 using OpenHome.Widget.Utils;
 using OpenHome.Net.Device;
 using log4net;
+//using Mono.Addins;
+//using OpenHome.Widget.Nodes.Combined;
+//using OpenHome.Widget.Protocols.SimpleUpnp;
 
 //[assembly: AddinRoot("ohOs", "1.1")]
 
-namespace Node
+namespace OpenHome.Os.Host
 {
 
     public class AppServices : IAppServices
     {
         //public string StorePath { get; set; }
+        public INodeDeviceAccessor NodeDeviceAccessor { get; set; }
         public INodeInformation NodeInformation { get; set; }
         public IDvDeviceFactory DeviceFactory { get; set; }
         public ICpUpnpDeviceListFactory CpDeviceListFactory { get; set; }
@@ -53,6 +52,7 @@ namespace Node
             {
                 return (T)service;
             }
+            if (typeof(T).IsAssignableFrom(typeof(INodeDeviceAccessor))) { return (T)NodeDeviceAccessor; }
             if (typeof(T).IsAssignableFrom(typeof(INodeInformation))) { return (T)NodeInformation; }
             if (typeof(T).IsAssignableFrom(typeof(IDvDeviceFactory))) { return (T)DeviceFactory; }
             if (typeof(T).IsAssignableFrom(typeof(ICpUpnpDeviceListFactory))) { return (T)CpDeviceListFactory; }
@@ -310,54 +310,59 @@ namespace Node
                                                                        };
                     consoleInterface.Prompt = (sysConfig.GetAttributeAsBoolean(e=>e.Elements("console").Attributes("prompt").FirstOrDefault()) ?? true) ? "OpenHome>" : "";
 
-                    AppServices services = new AppServices()
-                                               {
-                                                   //StorePath = storeDirectory,
-                                                   NodeInformation = new NodeInformation{
-                                                       WebSocketPort = wsEnabled ? wsPort : (uint?)null,
-                                                       MultiNodeEnabled = sysConfig.GetAttributeAsBoolean(e=>e.Elements("multinode").Attributes("enable").FirstOrDefault()) ?? false,
-                                                       DvServerPort = dvServerPort
-                                                   },
-                                                   CommandRegistry = commandDispatcher,
-                                                   CpDeviceListFactory = deviceListFactory,
-                                                   DeviceFactory = deviceFactory,
-                                                   LogController = logSystem.LogController,
-                                                   LogReader = logSystem.LogReader,
-                                                   NodeRebooter = nodeRebooter,
-                                                   UpdateService = null
-                                               };
-
-                    Console.WriteLine(storeDirectory);
-                    using (var appModule = new AppShellModule(services, config, nodeGuid))
+                    using (var nodeDevice = new NodeDevice(nodeGuid))
                     {
-                        services.RegisterService<IAppShell>(appModule.AppShell);
-                        var appManager = appModule.AppShell;
-                        if (aOptions.InstallFile.Value != null)
+                        AppServices services = new AppServices()
+                                                   {
+                                                       //StorePath = storeDirectory,
+                                                       NodeInformation = new NodeInformation
+                                                       {
+                                                           WebSocketPort = wsEnabled ? wsPort : (uint?)null,
+                                                           MultiNodeEnabled = sysConfig.GetAttributeAsBoolean(e => e.Elements("multinode").Attributes("enable").FirstOrDefault()) ?? false,
+                                                           DvServerPort = dvServerPort
+                                                       },
+                                                       CommandRegistry = commandDispatcher,
+                                                       CpDeviceListFactory = deviceListFactory,
+                                                       DeviceFactory = deviceFactory,
+                                                       LogController = logSystem.LogController,
+                                                       LogReader = logSystem.LogReader,
+                                                       NodeRebooter = nodeRebooter,
+                                                       UpdateService = null,
+                                                       NodeDeviceAccessor = nodeDevice
+                                                   };
+
+                        Console.WriteLine(storeDirectory);
+                        using (var appModule = new AppShellModule(services, config, nodeGuid))
                         {
-                            appManager.Install(aOptions.InstallFile.Value);
-                        }
-                        else
-                        {
-                            var appManagerConsoleCommands = new AppManagerConsoleCommands(appManager);
-                            appManagerConsoleCommands.Register(commandDispatcher);
-                            appManager.Start();
-                            using (new NodeDevice(nodeGuid, appManager))
+                            services.RegisterService<IAppShell>(appModule.AppShell);
+                            var appManager = appModule.AppShell;
+                            if (aOptions.InstallFile.Value != null)
                             {
-                                //commandDispatcher.AddCommand("bump", aArguments => appController.BumpDummySequenceNumber(), "Bump the sequence number for the dummy app, for testing.");
-                                //string exePath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-                                //appManager.Install(System.IO.Path.Combine(exePath, "ohOs.TestApp1.zip"));
-                                if (!(sysConfig.GetAttributeAsBoolean(e=>e.Elements("console").Attributes("enable").FirstOrDefault()) ?? true))
+                                appManager.Install(aOptions.InstallFile.Value);
+                            }
+                            else
+                            {
+                                var appManagerConsoleCommands = new AppManagerConsoleCommands(appManager);
+                                appManagerConsoleCommands.Register(commandDispatcher);
+                                appManager.Start();
+                                using (new AppListService(nodeDevice.Device.RawDevice, appManager))
                                 {
-                                    exitCode = WaitForExit(exitChannel);
-                                }
-                                else
-                                {
-                                    exitCode = RunConsole(consoleInterface, sysConfig.GetAttributeAsBoolean(e=>e.Element("console").Attribute("prompt")) ?? true, exitChannel);
-                                }
-                                Logger.Info("Shutting down node...");
-                                if (sysConfig.GetAttributeAsBoolean(e=>e.Elements("console").Attributes("enable").FirstOrDefault()) ?? true)
-                                {
-                                    Console.WriteLine("Shutting down node...");
+                                    //commandDispatcher.AddCommand("bump", aArguments => appController.BumpDummySequenceNumber(), "Bump the sequence number for the dummy app, for testing.");
+                                    //string exePath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+                                    //appManager.Install(System.IO.Path.Combine(exePath, "ohOs.TestApp1.zip"));
+                                    if (!(sysConfig.GetAttributeAsBoolean(e => e.Elements("console").Attributes("enable").FirstOrDefault()) ?? true))
+                                    {
+                                        exitCode = WaitForExit(exitChannel);
+                                    }
+                                    else
+                                    {
+                                        exitCode = RunConsole(consoleInterface, sysConfig.GetAttributeAsBoolean(e => e.Element("console").Attribute("prompt")) ?? true, exitChannel);
+                                    }
+                                    Logger.Info("Shutting down node...");
+                                    if (sysConfig.GetAttributeAsBoolean(e => e.Elements("console").Attributes("enable").FirstOrDefault()) ?? true)
+                                    {
+                                        Console.WriteLine("Shutting down node...");
+                                    }
                                 }
                             }
                         }

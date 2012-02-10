@@ -89,7 +89,7 @@ namespace OpenHome.Os.Apps
             IAddinManager aAddinManager,
             IAppsDirectory aAppsDirectory,
             IStoreDirectory aStoreDirectory,
-            Func<DvDevice, IApp, IDvProviderOpenhomeOrgApp1> aAppProviderConstructor,
+            Func<DvDevice, IApp, string, IDvProviderOpenhomeOrgApp1> aAppProviderConstructor,
             IZipReader aZipReader,
             IAppMetadataStore aAppMetadataStore, IZipVerifier aZipVerifier,
             bool aAutoStart)
