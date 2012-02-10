@@ -374,19 +374,17 @@ namespace OpenHome.Os.Remote
                 string url = kWebServiceAddress + cmd.Path;
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
                 request.Method = "POST";
-                if (cmd.Request != null)
-                {
-                    byte[] bodyBytes = Encoding.UTF8.GetBytes(cmd.Request);
-                    using (Stream stream = request.GetRequestStream())
-                    {
-                        stream.Write(bodyBytes, 0, bodyBytes.Length);
-                    }
-                }
-                HttpWebResponse resp;
                 try
                 {
-                    resp = (HttpWebResponse)request.GetResponse();
-                    using (Stream respStream = resp.GetResponseStream())
+                    if (cmd.Request != null)
+                    {
+                        byte[] bodyBytes = Encoding.UTF8.GetBytes(cmd.Request);
+                        using (Stream stream = request.GetRequestStream())
+                        {
+                            stream.Write(bodyBytes, 0, bodyBytes.Length);
+                        }
+                    }
+                    using (Stream respStream = request.GetResponse().GetResponseStream())
                     {
                         MemoryStream memStream = new MemoryStream();
                         respStream.CopyTo(memStream);
