@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -12,7 +13,7 @@ using OpenHome.Os.Platform;
 namespace OpenHome.Os.AppManager
 {
     [Export(typeof(IApp))]
-    public class AppManagerApp : IApp
+    public class AppManagerApp : IApp, IResourceManager
     {
         public void Dispose()
         {
@@ -25,7 +26,7 @@ namespace OpenHome.Os.AppManager
 
         public IResourceManager ResourceManager
         {
-            get { return null; }
+            get { return this; }
         }
 
         // public string Name
@@ -72,16 +73,23 @@ namespace OpenHome.Os.AppManager
         }
 
         AppManager iAppManager;
+        IResourceManager iResourceManager;
 
         public void Start(IAppContext aAppServices)
         {
             if (aAppServices.Device == null) throw new ArgumentNullException("aAppServices.Device");
             iAppManager = new AppManager(aAppServices.Services.NodeDeviceAccessor.Device.RawDevice, (d,m)=>new AppManagerProvider(d,m), aAppServices.Services.ResolveService<IAppShell>());
+            iResourceManager = new NodeResourceManager(Path.Combine(aAppServices.StaticPath, "WebUi"), aAppServices.Device.Udn(), aAppServices.Services.NodeInformation.WebSocketPort ?? 0);
         }
 
         public void Stop()
         {
             iAppManager.Dispose();
+        }
+
+        public void WriteResource(string aUriTail, uint aIpAddress, List<string> aLanguageList, IResourceWriter aWriter)
+        {
+            iResourceManager.WriteResource(aUriTail, aIpAddress, aLanguageList, aWriter);
         }
     }
 }

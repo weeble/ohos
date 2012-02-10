@@ -584,9 +584,10 @@ namespace OpenHome.Os.Apps
 
         IDvDevice CreateAppDevice(IApp app, string udn, string aAppDirName)
         {
-            IDvDevice device = (app.ResourceManager == null
+            var resourceMgr = app.ResourceManager;
+            IDvDevice device = (resourceMgr == null
                 ? iFullPrivilegeAppServices.DeviceFactory.CreateDeviceStandard(udn)
-                : iFullPrivilegeAppServices.DeviceFactory.CreateDeviceStandard(udn, app.ResourceManager));
+                : iFullPrivilegeAppServices.DeviceFactory.CreateDeviceStandard(udn, resourceMgr));
             // Set initial values for the attributes mandated by UPnP
             // These may be over-ridden by the Start function below
             device.SetAttribute("Upnp.Domain", "openhome.org");

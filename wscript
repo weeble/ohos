@@ -9,12 +9,13 @@ from wafmodules.configuration import (
 
 from wafmodules.filetasks import (
     copy_task,
-    #glob_files_src,
+    glob_files_src,
     #glob_files_root,
     #specify_files_src,
     specify_files_bld,
-    #specify_files_root,
+    specify_files_root,
     FileTransfer,
+    FileTree,
     #combine_transfers,
     find_resource_or_fail)
 
@@ -538,8 +539,13 @@ def build(bld):
 
     create_csharp_tasks(bld, [prj for prj in csharp_projects if categories_to_build.intersection(prj.categories)], csharp_dependencies)
 
+
+    all_apps_transfer = FileTransfer(FileTree([]))
     for ohos_app in ohos_apps:
-        app_zip_transfer = FileTransfer(specify_files_bld(bld, *ohos_app.files)).targets_flattened().targets_prefixed(ohos_app.name)
+        app_zip_transfer = (
+                FileTransfer(specify_files_bld(bld, *ohos_app.files)).targets_flattened().targets_prefixed(ohos_app.name) +
+                FileTransfer(glob_files_src(bld, "appfiles/"+ohos_app.name+"/**/*")).targets_stripped("appfiles"))
+        all_apps_transfer += app_zip_transfer
         app_zip_transfer.create_zip_task(bld, ohos_app.name + '.zip')
 
     for service in upnp_services:
@@ -555,6 +561,40 @@ def build(bld):
     # We can probably do a nicer job of assembling the list of all output files here:
     def get_dependency_files(d):
         return [os.path.split(f)[1] for f in d.get_paths_of_files_to_copy_to_output(bld)]
+
+
+    dependencies_transfer = FileTransfer(
+            specify_files_root(bld, *(
+                ohnet.get_paths_of_files_to_copy_to_output(bld)+
+                sharpziplib.get_paths_of_files_to_copy_to_output(bld)+
+                monoaddins.get_paths_of_files_to_copy_to_output(bld)+
+                log4net.get_paths_of_files_to_copy_to_output(bld)+
+                sshnet.get_paths_of_files_to_copy_to_output(bld)))).targets_flattened()
+
+    ohos_core_transfer = FileTransfer(
+            specify_files_bld(bld,
+                "ohOs.Host.exe",
+                "ohOs.Apps.dll",
+                "ohOs.Platform.dll",
+                "ohOs.Remote.dll",
+                "App.addins") +
+            specify_files_bld(bld, *
+            [
+                prefix + service.target + suffix
+                for service in upnp_services
+                for (prefix, suffix) in [('Cp', '.dll'), ('Dv', '.dll'), ('Cp', '.js')]
+            ])).targets_flattened()
+
+    ohos_main_transfer = (dependencies_transfer + ohos_core_transfer).targets_prefixed('ohos/main')
+
+
+    apps_transfer = all_apps_transfer.targets_prefixed('ohos/apps')
+    
+    ohos_transfer = ohos_main_transfer + apps_transfer
+
+    ohos_transfer.create_tgz_task(bld, 'ohos.tar.gz')
+
+    '''
     create_tgz_task(
             bld,
             "ohos.tar.gz",
@@ -567,17 +607,13 @@ def build(bld):
                 "ohOs.Remote.dll",
                 "App.addins",
             ] +
-            [
-                prefix + service.target + suffix
-                for service in upnp_services
-                for (prefix, suffix) in [('Cp', '.dll'), ('Dv', '.dll'), ('Cp', '.js')]
-            ] +
             get_dependency_files(ohnet) +
             get_dependency_files(sharpziplib) +
             get_dependency_files(monoaddins) +
             get_dependency_files(log4net) +
             get_dependency_files(sshnet)
             )
+    '''
 
 def do_install(bld):
     bld.install_files(
