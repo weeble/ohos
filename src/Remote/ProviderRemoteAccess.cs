@@ -15,6 +15,7 @@ namespace OpenHome.Os.Remote
     public class ProviderRemoteAccess : DvProviderOpenhomeOrgRemoteAccess1, ILoginValidator, IDisposable
     {
         private const string kFileUserData = "UserData.xml";
+        private const string kFileKeyBase = "key";
         private const string kFilePublicKey = "key.pub";
         private const string kFilePrivateKey = "key.priv";
         private const string kTagEnabled = "enabled";
@@ -94,11 +95,30 @@ namespace OpenHome.Os.Remote
                 string privateKeyFileName = FileFullName(kFilePrivateKey);
                 if (!File.Exists(privateKeyFileName))
                 {
-                    Console.WriteLine("No ssh key pair found.  Currently have to create these ourselves.");
-                    Console.WriteLine("You can generate a key from the Linux command line using");
-                    Console.WriteLine("\tssh-keygen -t rsa -f key -C\"\"");
-                    Console.WriteLine("...then copy to ohWidget's 'remote' dir, renaming key to key.priv");
-                    throw new ActionError();
+                    if (Environment.OSVersion.Platform.ToString() == "Unix")
+                    {
+                        string generatedPrivateKey = FileFullName(kFileKeyBase);
+                        System.Diagnostics.Process process = new System.Diagnostics.Process();
+                        System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo
+                        {
+                            WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden,
+                            FileName = "ssh-keygen",
+                            Arguments = String.Format("-t rsa -f {0} -N \"\" -C \"\"", generatedPrivateKey)
+                        };
+                        process.StartInfo = startInfo;
+                        process.Start();
+                        process.WaitForExit();
+                        File.Move(generatedPrivateKey, privateKeyFileName);
+                        Console.WriteLine("Completed key generation!\n");
+                    }
+                    if (!File.Exists(privateKeyFileName))
+                    {
+                        Console.WriteLine("No ssh key pair found.  Currently have to create these ourselves.");
+                        Console.WriteLine("You can generate a key from the Linux command line using");
+                        Console.WriteLine("\tssh-keygen -t rsa -f key -C\"\"");
+                        Console.WriteLine("...then copy to ohWidget's 'remote' dir, renaming key to key.priv");
+                        throw new ActionError();
+                    }
                     /*using (var key = new RsaKey())
                     {
                         key.WritePublicKey(FileFullName(kFilePublicKey));
