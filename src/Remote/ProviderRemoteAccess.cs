@@ -22,6 +22,7 @@ namespace OpenHome.Os.Remote
         private const string kTagUserName = "username";
         private const string kTagPassword = "password";
         private const string kTagPublicUrl = "url";
+        private const string kSshServerUserName = "ohnode";
         private const string kWebServiceAddress = "http://remoteaccess-dev.linn.co.uk:2001/";
         private static readonly ILog Logger = LogManager.GetLogger(typeof(ProviderRemoteAccess));
         private readonly string iDeviceUdn;
@@ -242,7 +243,7 @@ namespace OpenHome.Os.Remote
             iPortForwardAddress = portForwardElement.Element("address").Value;
             iPortForwardPort = (uint)Convert.ToInt32(portForwardElement.Element("port").Value);
             PrivateKeyFile pkf = new PrivateKeyFile(FileFullName(kFilePrivateKey));
-            iSshClient = new SshClient(iSshServerHost, iSshServerPort, "root", pkf);
+            iSshClient = new SshClient(iSshServerHost, iSshServerPort, kSshServerUserName, pkf);
             iSshClient.Connect();
             Logger.InfoFormat("Connected to ssh server at {0}:{1}", iSshServerHost, iSshServerPort);
             iForwardedPortRemote = new ForwardedPortRemote(iPortForwardAddress, iPortForwardPort, iNetworkAdapter, iProxyServer.Port);
