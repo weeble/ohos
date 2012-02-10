@@ -76,9 +76,9 @@ namespace OpenHome.Os.Remote
             iProxyServer = aProxyServer;
             iNetworkAdapter = aNetworkAdapter;
             iThread = new Thread(RunThread);
-            iThread.Start(this);
             iCommands = new List<QueuedCommand>();
             iCommandSem = new Semaphore(0, Int32.MaxValue);
+            iThread.Start(this);
 
             EnablePropertyUserName();
             EnablePropertyPublicUri();
