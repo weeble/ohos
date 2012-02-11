@@ -143,8 +143,6 @@ namespace OpenHome.Os.Remote
 
             foreach (Cookie cookie in aRequest.Cookies)
             {
-                if (cookie.Name == kAuthCookieName && !iAuthenticatedClients.ContainsKey(cookie.Value))
-                    Logger.Info("WARNING: received old cookie. May need to clear cookies on browser to log in");
                 if (cookie.Name == kAuthCookieName && iAuthenticatedClients.ContainsKey(cookie.Value))
                     // already authenticated
                     return false;
@@ -298,6 +296,9 @@ namespace OpenHome.Os.Remote
             }
             if (aResponse.SendChunked)
                 aUseGzip = false;
+            if (aProxiedResponse.ContentType.Contains("image/png") || aProxiedResponse.ContentType.Contains("image/jpeg"))
+                // no point in wasting time zipping a format that is already compressed
+                aUseGzip = false;
             Stream clientRespStream = aResponse.OutputStream;
             using (Stream respStream = aProxiedResponse.GetResponseStream())
             {
@@ -324,6 +325,7 @@ namespace OpenHome.Os.Remote
                     zipper.Flush();
                     zip.Position = 0;
                     aResponse.ContentLength64 = zip.Length;
+                    Console.WriteLine("Compressed {0} to {1} bytes", contentLength, zip.Length);
                     zip.CopyTo(clientRespStream);
                 }
             }
