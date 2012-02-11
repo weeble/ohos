@@ -435,15 +435,6 @@ csharp_projects = [
             ]
             ),
         CSharpProject(
-            name="ohOs.Remote.Test", dir="Remote.Test", type="exe",
-            categories=["test"],
-            packages=[],
-            references=[
-                'ohOs.Platform',
-                'ohOs.Remote',
-            ]
-            ),
-        CSharpProject(
             name="ohOs.Tests", dir="Tests", type="library",
             categories=["test"],
             packages=['ohnet', 'mono-addins', 'nunit', 'moq', 'sharpziplib'],
