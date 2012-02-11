@@ -2,6 +2,7 @@ using System;
 using System.Net;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Xml.Linq;
 using System.Text;
 using log4net;
@@ -67,6 +68,12 @@ namespace OpenHome.Os.Remote
             HttpListenerRequest clientReq = aContext.Request;
             HttpListenerResponse clientResp = aContext.Response;
 
+            if (clientReq.Url.PathAndQuery == "/favicon.ico")
+            {   // we don't support favicons
+                clientResp.StatusCode = 404;
+                clientResp.Close();
+                return;
+            }
             if (IsAuthenticating(clientReq, clientResp))
                 return;
             string targetUrl = RewriteUrl(clientReq);
@@ -91,7 +98,7 @@ namespace OpenHome.Os.Remote
                 resp = (HttpWebResponse)e.Response;
                 Logger.ErrorFormat("ERROR: {0} for {1}", (int)resp.StatusCode, targetUrl);
             }
-            WriteResponse(resp, clientResp);
+            WriteResponse(resp, clientResp, (clientReq.HttpMethod == "GET"));
             // docs suggest following is unnecessary - we only have to close one from clientRespStream / clientResp
             if (connectionClose)
                 clientResp.Close();
@@ -258,7 +265,7 @@ namespace OpenHome.Os.Remote
                 }
             }
         }
-        private static void WriteResponse(HttpWebResponse aProxiedResponse, HttpListenerResponse aResponse)
+        private static void WriteResponse(HttpWebResponse aProxiedResponse, HttpListenerResponse aResponse, bool aUseGzip)
         {
             aResponse.StatusCode = (int)aProxiedResponse.StatusCode;
             aResponse.StatusDescription = aProxiedResponse.StatusDescription;
@@ -289,6 +296,8 @@ namespace OpenHome.Os.Remote
                         break;
                 }
             }
+            if (aResponse.SendChunked)
+                aUseGzip = false;
             Stream clientRespStream = aResponse.OutputStream;
             using (Stream respStream = aProxiedResponse.GetResponseStream())
             {
@@ -299,9 +308,24 @@ namespace OpenHome.Os.Remote
                 }
                 else
                 {*/
-                if (contentLength > 0) // response may be chunked
-                    aResponse.ContentLength64 = contentLength;
-                respStream.CopyTo(clientRespStream);
+                aUseGzip = false; // disable gzip.  We can't get past the login screen when its enabled
+                if (!aUseGzip)
+                {
+                    if (contentLength > 0) // response may be chunked
+                        aResponse.ContentLength64 = contentLength;
+                    respStream.CopyTo(clientRespStream);
+                }
+                else
+                {
+                    aResponse.AddHeader("Content-Encoding", "gzip");
+                    MemoryStream zip = new MemoryStream();
+                    GZipStream zipper = new GZipStream(zip, CompressionMode.Compress);
+                    respStream.CopyTo(zipper);
+                    zipper.Flush();
+                    zip.Position = 0;
+                    aResponse.ContentLength64 = zip.Length;
+                    zip.CopyTo(clientRespStream);
+                }
             }
             //}
             clientRespStream.Close();
