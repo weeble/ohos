@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenHome.Os.Tests", "Tests\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenHome.Os.AppManager", "AppManager\OpenHome.Os.AppManager.csproj", "{6180166A-BBEA-415E-8E10-9BB17389D6A7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenHome.Os.Remote.Test", "Remote.Test\OpenHome.Os.Remote.Test.csproj", "{91268F02-139D-4300-BA75-EDC85C9EE911}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -61,6 +63,10 @@ Global
 		{6180166A-BBEA-415E-8E10-9BB17389D6A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6180166A-BBEA-415E-8E10-9BB17389D6A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6180166A-BBEA-415E-8E10-9BB17389D6A7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{91268F02-139D-4300-BA75-EDC85C9EE911}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{91268F02-139D-4300-BA75-EDC85C9EE911}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{91268F02-139D-4300-BA75-EDC85C9EE911}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{91268F02-139D-4300-BA75-EDC85C9EE911}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

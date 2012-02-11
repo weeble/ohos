@@ -41,7 +41,6 @@
     <Compile Include="HttpServer.cs" />
     <Compile Include="ProviderRemoteAccess.cs" />
     <Compile Include="ProxyServer.cs" />
-    <Compile Include="Test.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

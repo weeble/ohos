@@ -8,7 +8,7 @@ using log4net;
 
 namespace OpenHome.Os.Remote
 {
-    internal interface ILoginValidator
+    public interface ILoginValidator
     {
         bool ValidateCredentials(string aUserName, string aPassword);
     }
@@ -17,7 +17,7 @@ namespace OpenHome.Os.Remote
     {
         public uint Port { get { return kRemoteAccessPort; } }
 
-            private HttpServer iHttpServer;
+        private HttpServer iHttpServer;
         private readonly string iForwardAddress;
         private uint iForwardPort;
         private string iForwardUdn;
@@ -40,7 +40,7 @@ namespace OpenHome.Os.Remote
             iForwardPort = aPort;
             iForwardUdn = aUdn;
         }
-        internal void Start(ILoginValidator aLoginValidator)
+        public void Start(ILoginValidator aLoginValidator)
         {
             iLoginValidator = aLoginValidator;
             iHttpServer = new HttpServer(kNumServerThreads);
