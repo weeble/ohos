@@ -145,8 +145,20 @@ namespace OpenHome.Os.Remote
             foreach (Cookie cookie in aRequest.Cookies)
             {
                 if (cookie.Name == kAuthCookieName && iAuthenticatedClients.ContainsKey(cookie.Value))
-                    // already authenticated
+                {
+                    // already authenticated.
+                    // A path of /{iForwardUdn} is a special case (see docs on our use of HaProxy) which needs to be redirected to "/"
+                    if (pathAndQuery == String.Format("/{0}", iForwardUdn))
+                    {
+                        location = aRequest.Headers.GetValues("HOST")[0];
+                        if (!location.StartsWith("http"))
+                            location = "http://" + location;
+                        aResponse.Redirect(location);
+                        aResponse.Close();
+                        return true;
+                    }
                     return false;
+                }
             }
             
             if (pathAndQuery == "/login.html" || pathAndQuery.StartsWith("/login/"))
