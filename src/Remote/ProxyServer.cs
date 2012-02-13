@@ -70,7 +70,7 @@ namespace OpenHome.Os.Remote
 
             if (clientReq.Url.PathAndQuery == "/favicon.ico")
             {   // we don't support favicons
-                clientResp.StatusCode = 404;
+                clientResp.StatusCode = (int)HttpStatusCode.NotFound;
                 clientResp.Close();
                 return;
             }
