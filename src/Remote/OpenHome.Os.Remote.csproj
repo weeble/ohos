@@ -24,7 +24,6 @@
       <HintPath>..\..\build\DvOpenhomeOrgRemoteAccess1.dll</HintPath>
     </Reference>
     <Reference Include="log4net, Version=1.2.10.0, Culture=neutral, PublicKeyToken=1b44e1d426115821, processorArchitecture=MSIL" />
-    <Reference Include="Mono.Addins, Version=0.6.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL" />
     <Reference Include="ohNet.net, Version=0.0.0.0, Culture=neutral, processorArchitecture=x86" />
     <Reference Include="Renci.SshNet, Version=0.1.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
