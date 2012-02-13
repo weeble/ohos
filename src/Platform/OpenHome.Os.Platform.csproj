@@ -63,6 +63,7 @@
     <Compile Include="Logging\TaggedLogger.cs" />
     <Compile Include="Logging\TextWriterLogger.cs" />
     <Compile Include="Logging\WrappedLog4NetLogger.cs" />
+    <Compile Include="NodeResourceManager.cs" />
     <Compile Include="OptionParser.cs" />
     <Compile Include="Proxies\ProxyList.cs" />
     <Compile Include="Threading\ActorThread.cs" />
