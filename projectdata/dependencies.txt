@@ -25,4 +25,4 @@
 "yui-compressor" "${OHNET_ARTIFACTS}/AnyPlatform/yui-compressor.tar.gz" "dependencies/AnyPlatform/" "--yui-compressor-dir dependencies/AnyPlatform/yui-compressor/"
 "mono-addins" "${OHNET_ARTIFACTS}/AnyPlatform/Mono.Addins-0.6.tar.gz" "dependencies/AnyPlatform/" "--mono-addins-dir dependencies/AnyPlatform/Mono.Addins-0.6/ --mono-addins-setup-dir dependencies/AnyPlatform/Mono.Addins-0.6/"
 "log4net" "${OHNET_ARTIFACTS}/AnyPlatform/log4net-1.2.10.tar.gz" "dependencies/AnyPlatform/" "--log4net-dir dependencies/AnyPlatform/log4net-1.2.10/bin/net/2.0/release/"
-"sshnet" "${OHNET_ARTIFACTS}/AnyPlatform/Renci.SshNet-14316.tar.gz" "dependencies/AnyPlatform/" "--sshnet-dir dependencies/AnyPlatform/Renci.SshNet-14016/"
+"sshnet" "${OHNET_ARTIFACTS}/AnyPlatform/Renci.SshNet-14316.tar.gz" "dependencies/AnyPlatform/" "--sshnet-dir dependencies/AnyPlatform/Renci.SshNet-14316/"
