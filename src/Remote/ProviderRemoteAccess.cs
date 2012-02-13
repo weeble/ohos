@@ -51,6 +51,7 @@ namespace OpenHome.Os.Remote
         private const string kTagPublicUrl = "url";
         private const string kSshServerUserName = "ohnode";
         private const string kWebServiceAddress = "http://remoteaccess-dev.linn.co.uk:2001/";
+        private const int kConnectionCheckIntervalMs = 5 * 60 * 1000; // 5 minutes
         private static readonly ILog Logger = LogManager.GetLogger(typeof(ProviderRemoteAccess));
         private readonly string iDeviceUdn;
         private readonly string iStoreDir;
@@ -67,6 +68,7 @@ namespace OpenHome.Os.Remote
         private readonly List<QueuedCommand> iCommands;
         private readonly Semaphore iCommandSem;
         private bool iQuit;
+        private readonly System.Timers.Timer iConnectionCheckTimer;
 
         public ProviderRemoteAccess(DvDevice aDevice, string aStoreDir, ProxyServer aProxyServer, string aNetworkAdapter)
             : base(aDevice)
@@ -79,6 +81,8 @@ namespace OpenHome.Os.Remote
             iCommands = new List<QueuedCommand>();
             iCommandSem = new Semaphore(0, Int32.MaxValue);
             iThread.Start(this);
+            iConnectionCheckTimer = new System.Timers.Timer { AutoReset = true, Enabled = false, Interval = kConnectionCheckIntervalMs };
+            iConnectionCheckTimer.Elapsed += CheckConnection;
 
             EnablePropertyUserName();
             EnablePropertyPublicUri();
@@ -285,9 +289,12 @@ namespace OpenHome.Os.Remote
             iSshClient.AddForwardedPort(iForwardedPortRemote);
             iForwardedPortRemote.Start();
             Logger.InfoFormat("Forwarded remote port {0}:{1} to {2}:{3}", iPortForwardAddress, iPortForwardPort, iNetworkAdapter, iProxyServer.Port);
+            // connection checking is disabled until HaProxy is more stable
+            // iConnectionCheckTimer.Enabled = true;
         }
         private void Stop()
         {
+            iConnectionCheckTimer.Enabled = false;
             iProxyServer.Stop();
             if (iSshClient != null)
             {
@@ -402,6 +409,42 @@ namespace OpenHome.Os.Remote
             {
                 iCommands[0].SetResponse(null);
                 iCommands.RemoveAt(0);
+            }
+        }
+        private void CheckConnection(object aSource, System.Timers.ElapsedEventArgs aArgs)
+        {
+            string uri = PropertyPublicUri();
+            if (uri == null)
+                return;
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
+            request.Method = "HEAD";
+            bool reconnect = false;
+            try
+            {
+                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
+                {
+                    if (response.StatusCode != HttpStatusCode.Moved)
+                    {
+                        reconnect = true;
+                        Logger.ErrorFormat("Unexpected status code checking connection status: {0}", response.StatusCode);
+                    }
+                }
+            }
+            catch (WebException)
+            {
+                reconnect = true;
+            }
+            if (reconnect)
+            {
+                try
+                {
+                    Stop();
+                    Start();
+                }
+                catch (Exception e)
+                {
+                    Logger.ErrorFormat("Re-connecting to ssh server failed: {0}", e.Message);
+                }
             }
         }
         public new void Dispose()
