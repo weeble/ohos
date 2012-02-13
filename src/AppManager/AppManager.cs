@@ -155,7 +155,7 @@ namespace OpenHome.Os.AppManager
                                 new XElement("handle", app.Handle),
                                 new XElement("id", app.Info.Name),
                                 new XElement("version", "DUMMY"),
-                                new XElement("url", "http://notimplemented.invalid"),
+                                new XElement("url", String.Format("/{0}/Upnp/resource/", app.Info.Udn)),
                                 new XElement("description", "Hi there"),
                                 new XElement("status", app.Info.State == AppState.Running ? "running" : "broken"),
                                 new XElement("updateStatus", "noUpdate")));
