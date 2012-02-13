@@ -138,6 +138,7 @@ namespace OpenHome.Os.Remote
                 aResponse.OutputStream.Write(buf, 0, buf.Length);
                 Logger.InfoFormat("Authenticated! Redirecting: {0} to {1}", pathAndQuery, location);
                 // just completed authentication.  Redirect client to (assumed) original url
+                aResponse.Close();
                 return true;
             }
 
@@ -296,7 +297,8 @@ namespace OpenHome.Os.Remote
             }
             if (aResponse.SendChunked)
                 aUseGzip = false;
-            if (aProxiedResponse.ContentType.Contains("image/png") || aProxiedResponse.ContentType.Contains("image/jpeg"))
+            if (aProxiedResponse.ContentType != null && 
+                (aProxiedResponse.ContentType.Contains("image/png") || aProxiedResponse.ContentType.Contains("image/jpeg")))
                 // no point in wasting time zipping a format that is already compressed
                 aUseGzip = false;
             Stream clientRespStream = aResponse.OutputStream;
@@ -326,7 +328,7 @@ namespace OpenHome.Os.Remote
                     }
                     zip.Seek(0, SeekOrigin.Begin);
                     aResponse.ContentLength64 = zip.Length;
-                    Console.WriteLine("Compressed {0} to {1} bytes", contentLength, zip.Length);
+                    //Console.WriteLine("Compressed {0} to {1} bytes", contentLength, zip.Length);
                     zip.CopyTo(clientRespStream);
                 }
             }
