@@ -26,18 +26,19 @@ namespace OpenHome.Os.AppManager
 
         readonly object iLock = new object();
         readonly IAppShell iAppShell;
-        IAppManagerProvider iProvider;
+        List<IAppManagerProvider> iProviders;
         readonly SafeCallbackTracker iCallbackTracker = new SafeCallbackTracker();
         IdDictionary<string, ManagedApp> iApps = new IdDictionary<string, ManagedApp>();
         //Dictionary<string, ManagedDownload> iDownloads = new Dictionary<string, ManagedDownload>();
 
         public AppManager(
-            DvDevice aDevice,
-            Func<DvDevice, IAppManagerActionHandler, IAppManagerProvider> aProviderConstructor,
+            string aResourceUri,
+            IEnumerable<DvDevice> aDevices,
+            Func<DvDevice, IAppManagerActionHandler, string, IAppManagerProvider> aProviderConstructor,
             IAppShell aAppShell)
         {
             iAppShell = aAppShell;
-            iProvider = aProviderConstructor(aDevice, this);
+            iProviders = aDevices.Select(aDevice=>aProviderConstructor(aDevice, this, aResourceUri)).ToList();
             iAppShell.AppStatusChanged += OnAppStatusChanged;
             RefreshApps();
         }
@@ -46,7 +47,10 @@ namespace OpenHome.Os.AppManager
         {
             iAppShell.AppStatusChanged -= OnAppStatusChanged;
             iCallbackTracker.Close();
-            iProvider.Dispose();
+            foreach (var provider in iProviders)
+            {
+                provider.Dispose();
+            }
         }
 
         void RefreshApps()
@@ -92,7 +96,10 @@ namespace OpenHome.Os.AppManager
                 handles.Add(kvp.Key);
                 seqNos.Add(kvp.Value.SequenceNumber);
             }
-            iProvider.SetAppHandles(handles, seqNos);
+            foreach (var provider in iProviders)
+            {
+                provider.SetAppHandles(handles, seqNos);
+            }
         }
 
         public string GetAppStatus(uint aAppHandle)

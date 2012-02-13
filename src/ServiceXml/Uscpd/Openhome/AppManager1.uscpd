@@ -86,6 +86,8 @@ type $AppHandle : ui4;
 # </appPermissions>
 type $AppPermissionsXml : string;
 
+type $AppManagerPresentationUri : uri;
+
 
 # EVENTED STATE VARIABLES
 
@@ -123,3 +125,7 @@ action RemoveApp(AppHandle : in $AppHandle);
 
 # Cancel a download.
 action CancelDownload(AppURL : in $AppURL);
+
+# Find the URI for the presentation page. May be a relative URI, if so, it is
+# relative to the base URI of this device.
+action GetPresentationUri() = AppManagerPresentationUri : $AppManagerPresentationUri;

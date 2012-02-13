@@ -52,8 +52,9 @@ namespace OpenHome.Os.AppManager
         //private static readonly ILog iLog = LogManager.GetLogger(typeof(AppManagerProvider));
 
         readonly IAppManagerActionHandler iProvider;
+        readonly string iPresentationUri;
 
-        public AppManagerProvider(DvDevice aDevice, IAppManagerActionHandler aProvider) : base(aDevice)
+        public AppManagerProvider(DvDevice aDevice, IAppManagerActionHandler aProvider, string aPresentationUri) : base(aDevice)
         {
             EnablePropertyAppHandleArray();
             EnablePropertyAppSequenceNumberArray();
@@ -64,10 +65,12 @@ namespace OpenHome.Os.AppManager
             EnableActionRemoveApp();
             EnableActionCancelDownload();
             EnableActionUpdateApp();
+            EnableActionGetPresentationUri();
             SetPropertyAppHandleArray(Converter.ConvertUintListToNetworkOrderByteArray(new List<uint>()));
             SetPropertyAppSequenceNumberArray(Converter.ConvertUintListToNetworkOrderByteArray(new List<uint>()));
             //BumpDummySequenceNumber();
             iProvider = aProvider;
+            iPresentationUri = aPresentationUri;
         }
 
         public void SetAppHandles(List<uint> aAppHandles, List<uint> aSequenceNumbers)
@@ -79,17 +82,6 @@ namespace OpenHome.Os.AppManager
             SetPropertyAppSequenceNumberArray(seqNoBytes);
             PropertiesUnlock();
         }
-
-        /*public void BumpDummySequenceNumber()
-        {
-            lock (iDummySeqNoLock)
-            {
-                iLog.InfoFormat("Bumping the AppManager dummy sequence number up to {0}.", iDummySequenceNumber + 1);
-                iDummySequenceNumber += 1;
-                uint value = iDummySequenceNumber;
-                SetPropertyAppSequenceNumberArray(Converter.ConvertUintListToNetworkOrderByteArray(new List<uint> { value }));
-            }
-        }*/
 
         protected override void GetAppStatus(IDvInvocation aInvocation, uint aAppHandle, out string aAppListXml)
         {
@@ -120,41 +112,9 @@ namespace OpenHome.Os.AppManager
         {
             iProvider.RemoveApp(aAppHandle);
         }
+        protected override void GetPresentationUri(IDvInvocation aInvocation, out string aAppManagerPresentationUri)
+        {
+            aAppManagerPresentationUri = iPresentationUri;
+        }
     }
-
-    /*public class AppController : IDisposable
-    {
-        private readonly AppManagerProvider iProvider;
-        private readonly DvDevice iDevice;
-        bool iDisposed;
-
-        public AppController(string aUdn)
-        {
-            iDevice = new DvDeviceStandard(aUdn);
-            // Set initial values for the attributes mandated by UPnP
-            iDevice.SetAttribute("Upnp.Domain", "openhome.org");
-            iDevice.SetAttribute("Upnp.Type", "AppManager");
-            iDevice.SetAttribute("Upnp.Version", "1");
-            iDevice.SetAttribute("Upnp.FriendlyName", "OpenHome App AppShell");
-            iDevice.SetAttribute("Upnp.Manufacturer", "N/A");
-            iDevice.SetAttribute("Upnp.ModelName", "OpenHome App AppShell");
-            iProvider = new AppManagerProvider(iDevice);
-            iDevice.SetEnabled();
-        }
-        public void BumpDummySequenceNumber()
-        {
-            iProvider.BumpDummySequenceNumber();
-        }
-        public void Dispose()
-        {
-            if (iDisposed) return;
-            iDisposed = true;
-            Semaphore disabledSemaphore = new Semaphore(0, 1);
-            iDevice.SetDisabled(() => disabledSemaphore.Release());
-            disabledSemaphore.WaitOne();
-            ((IDisposable)disabledSemaphore).Dispose();
-            iProvider.Dispose();
-            iDevice.Dispose();
-        }
-    }*/
 }

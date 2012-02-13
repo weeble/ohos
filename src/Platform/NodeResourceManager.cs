@@ -90,7 +90,6 @@ namespace OpenHome.Os.Platform
                 aUriTail = aUriTail.Substring(1);
             }
             bool result = aUriTail == "Node.js";
-            Console.WriteLine("IsNodeJsPath('{0}') -> {1}", aUriTail, result);
             return result;
         }
 
