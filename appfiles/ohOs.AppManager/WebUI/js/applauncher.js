@@ -1,6 +1,5 @@
 var hit = 'click';
 
-var nodeUdn = 'chrisc';
 var applist;
 var hasDownloads = false;
 var hasApp = false;
@@ -90,6 +89,7 @@ $().ready(function () {
     ohnet.subscriptionmanager.start(
     {
         allowWebSockets: true,
+        debugMode: false,
         startedFunction: function () {
             $('.app-list').html('');
             $('.app-detailedlist').html('');

@@ -11,6 +11,7 @@
 oh.namespace('oh.app');
 
 oh.app.applist = function (node, options) {
+	var _this = this;
     var defaults = {
         appReadyFunction: null,
         appListAddedFunction: null,
@@ -53,8 +54,12 @@ oh.app.applist.prototype.setupArrayIdChanged = function () {
             var newAppIds = oh.util.convert.byteStringToUint32Array(state);
             _this.appIds.sort(function (a, b) { return a - b });
             _this.appIds.diff(newAppIds
-                                    , _this.appAdded
-                                    , _this.appRemoved);
+                                    , function(seq) {
+                                       	_this.appAdded.call(_this,seq);
+                                   }
+                                    ,  function(seq) {
+                                    	_this.appRemoved.call(_this,seq);
+                                   });
             _this.appIds = newAppIds;
         }, this);
     }
@@ -139,9 +144,11 @@ oh.app.applist.prototype.appHasDownloads = function () {
 
 oh.app.applist.prototype.appAdded = function (seq) {
     var _this = this;
-
+ 
     this.appProxy.GetAppStatus(seq, function (result) {
+    	
         var xml = result.AppListXml;
+        if(result.AppListXml)
         var appListObj = oh.util.dataformat.xmlStringToJson(xml);
 
         if (appListObj.appList.app) {
