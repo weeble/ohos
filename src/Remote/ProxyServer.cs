@@ -98,7 +98,7 @@ namespace OpenHome.Os.Remote
                 resp = (HttpWebResponse)e.Response;
                 Logger.ErrorFormat("ERROR: {0} for {1}", (int)resp.StatusCode, targetUrl);
             }
-            WriteResponse(resp, clientResp, (clientReq.HttpMethod == "GET"));
+            WriteResponse(resp, clientResp);
             // docs suggest following is unnecessary - we only have to close one from clientRespStream / clientResp
             if (connectionClose)
                 clientResp.Close();
@@ -264,7 +264,7 @@ namespace OpenHome.Os.Remote
                 }
             }
         }
-        private static void WriteResponse(HttpWebResponse aProxiedResponse, HttpListenerResponse aResponse, bool aUseGzip)
+        private static void WriteResponse(HttpWebResponse aProxiedResponse, HttpListenerResponse aResponse)
         {
             aResponse.StatusCode = (int)aProxiedResponse.StatusCode;
             aResponse.StatusDescription = aProxiedResponse.StatusDescription;
@@ -295,12 +295,12 @@ namespace OpenHome.Os.Remote
                         break;
                 }
             }
-            if (aResponse.SendChunked)
-                aUseGzip = false;
-            if (aProxiedResponse.ContentType != null && 
-                (aProxiedResponse.ContentType.Contains("image/png") || aProxiedResponse.ContentType.Contains("image/jpeg")))
+            bool useGzip = false;
+            if (!aResponse.SendChunked && contentLength > 512 /* no point in zipping tiny responses */ &&
+                aProxiedResponse.ContentType != null && 
+                !(aProxiedResponse.ContentType.Contains("image/png") || aProxiedResponse.ContentType.Contains("image/jpeg")))
                 // no point in wasting time zipping a format that is already compressed
-                aUseGzip = false;
+                useGzip = true;
             Stream clientRespStream = aResponse.OutputStream;
             using (Stream respStream = aProxiedResponse.GetResponseStream())
             {
@@ -311,8 +311,7 @@ namespace OpenHome.Os.Remote
                 }
                 else
                 {*/
-                //aUseGzip = false; // might be useful to disable gzip during debugging
-                if (!aUseGzip)
+                if (!useGzip)
                 {
                     if (contentLength > 0) // response may be chunked
                         aResponse.ContentLength64 = contentLength;
@@ -328,7 +327,7 @@ namespace OpenHome.Os.Remote
                     }
                     zip.Seek(0, SeekOrigin.Begin);
                     aResponse.ContentLength64 = zip.Length;
-                    //Console.WriteLine("Compressed {0} to {1} bytes", contentLength, zip.Length);
+                    Console.WriteLine("Compressed {0} to {1} bytes", contentLength, zip.Length);
                     zip.CopyTo(clientRespStream);
                 }
             }
