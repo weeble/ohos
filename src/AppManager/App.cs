@@ -78,7 +78,13 @@ namespace OpenHome.Os.AppManager
         public void Start(IAppContext aAppServices)
         {
             if (aAppServices.Device == null) throw new ArgumentNullException("aAppServices.Device");
-            iAppManager = new AppManager(aAppServices.Services.NodeDeviceAccessor.Device.RawDevice, (d,m)=>new AppManagerProvider(d,m), aAppServices.Services.ResolveService<IAppShell>());
+            var appDevice = aAppServices.Device;
+            var nodeDevice = aAppServices.Services.NodeDeviceAccessor.Device.RawDevice;
+            string appResourceUrl = string.Format("/{0}/Upnp/resource/", appDevice.Udn());
+            iAppManager = new AppManager(
+                appResourceUrl,
+                new[]{appDevice, nodeDevice},
+                (d,m,uri)=>new AppManagerProvider(d,m,uri), aAppServices.Services.ResolveService<IAppShell>());
             iResourceManager = new NodeResourceManager(Path.Combine(aAppServices.StaticPath, "WebUi"), aAppServices.Device.Udn(), aAppServices.Services.NodeInformation.WebSocketPort ?? 0);
         }
 
