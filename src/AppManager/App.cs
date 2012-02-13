@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -12,26 +13,26 @@ using OpenHome.Os.Platform;
 namespace OpenHome.Os.AppManager
 {
     [Export(typeof(IApp))]
-    public class AppManagerApp : IApp
+    public class AppManagerApp : IApp, IResourceManager
     {
         public void Dispose()
         {
         }
 
-        public string Udn
+        public bool PublishesNodeServices
         {
-            get { return null; }
+            get { return true; }
         }
 
         public IResourceManager ResourceManager
         {
-            get { return null; }
+            get { return this; }
         }
 
-        public string Name
-        {
-            get { return "ohOs.AppManager"; }
-        }
+        // public string Name
+        // {
+        //    get { return "ohOs.AppManager"; }
+        // }
 
         public AppVersion Version
         {
@@ -71,26 +72,24 @@ namespace OpenHome.Os.AppManager
             get { return "http://something.invalid/insert/description/url/here"; }
         }
 
-        public string AssemblyPath
-        {
-            get { return "IGNORED"; }
-        }
-
         AppManager iAppManager;
-
-        public void Init(IAppContext aAppServices)
-        {
-        }
+        IResourceManager iResourceManager;
 
         public void Start(IAppContext aAppServices)
         {
             if (aAppServices.Device == null) throw new ArgumentNullException("aAppServices.Device");
-            iAppManager = new AppManager(aAppServices.Device, (d,m)=>new AppManagerProvider(d,m), aAppServices.Services.ResolveService<IAppShell>());
+            iAppManager = new AppManager(aAppServices.Services.NodeDeviceAccessor.Device.RawDevice, (d,m)=>new AppManagerProvider(d,m), aAppServices.Services.ResolveService<IAppShell>());
+            iResourceManager = new NodeResourceManager(Path.Combine(aAppServices.StaticPath, "WebUi"), aAppServices.Device.Udn(), aAppServices.Services.NodeInformation.WebSocketPort ?? 0);
         }
 
         public void Stop()
         {
             iAppManager.Dispose();
+        }
+
+        public void WriteResource(string aUriTail, uint aIpAddress, List<string> aLanguageList, IResourceWriter aWriter)
+        {
+            iResourceManager.WriteResource(aUriTail, aIpAddress, aLanguageList, aWriter);
         }
     }
 }

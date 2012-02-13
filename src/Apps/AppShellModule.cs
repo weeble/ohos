@@ -59,7 +59,7 @@ namespace OpenHome.Os.Apps
                 addinManager,
                 appsDirectory,
                 storeDirectory,
-                (aDevice, aApp)=>new ProviderApp(aDevice, aApp, aNodeGuid, String.Format("/{0}/Upnp/Resources/", aNodeGuid)),
+                (aDevice, aApp, aAppName)=>new ProviderApp(aDevice, aApp, aNodeGuid, String.Format("/{0}/Upnp/Resources/", aNodeGuid), aAppName),
                 zipReader,
                 appMetadataStore,
                 zipVerifier,

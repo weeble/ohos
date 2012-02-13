@@ -8,7 +8,7 @@ namespace OpenHome.Os.Apps
     {
         readonly string iHostUdn;
         readonly string iHostResourceUri;
-        public ProviderApp(DvDevice aDevice, IApp aApp, string aHostUdn, string aHostResourceUri)
+        public ProviderApp(DvDevice aDevice, IApp aApp, string aHostUdn, string aHostResourceUri, string aAppName)
             : base(aDevice)
         {
             EnablePropertyName();
@@ -18,7 +18,7 @@ namespace OpenHome.Os.Apps
             EnableActionGetIconUri();
             EnableActionGetDescriptionUri();
             EnableActionGetHostDevice();
-            SetPropertyName(aApp.Name);
+            SetPropertyName(aAppName);
             SetPropertyIconUri(aApp.IconUri);
             SetPropertyDescriptionUri(aApp.DescriptionUri);
             iHostUdn = aHostUdn;

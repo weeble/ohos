@@ -25,6 +25,8 @@ MONO_CONFIG_OPTS  = --prefix=$(prefix)                \
 RUNTIME_ASSEMBLIES =  CustomMarshalers               \
                       Mono.Posix                     \
                       Mono.Security                  \
+                      Mono.CSharp                    \
+                      Microsoft.CSharp               \
                       System.Configuration.Install   \
                       System.Configuration           \
                       System.Core                    \

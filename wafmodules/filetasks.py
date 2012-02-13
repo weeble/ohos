@@ -1,6 +1,7 @@
 import zipfile
 import os
 import shutil
+import tarfile
 
 def find_resource_or_fail(bld, root, path):
     node = root.find_resource(path)
@@ -19,6 +20,12 @@ def simpleziprule(task):
     for inputnode, arcname in zip(task.inputs, task.generator.arcnames):
         zf.write(inputnode.abspath(), arcname)
     zf.close()
+
+def simpletgzrule(task):
+    tarf = tarfile.open(task.outputs[0].abspath(),'w:gz')
+    for inputnode, arcname in zip(task.inputs, task.generator.arcnames):
+        tarf.add(inputnode.abspath(), arcname)
+    tarf.close()
 
 def _strip_prefix(path, prefix):
     result = os.path.relpath(path, prefix)
@@ -88,7 +95,7 @@ def specify_files_src(bld, *files):
     Specify a collection of files relative to the source directory. They must exist already.
     Returns a FileTree.
     '''
-    return FileTree(find_resource_or_fail(bld.srcnode, f).abspath() for f in files)
+    return FileTree(find_resource_or_fail(bld, bld.srcnode, f).abspath() for f in files)
 
 def specify_files_bld(bld, *files):
     '''
@@ -105,7 +112,7 @@ def specify_files_root(bld, *files):
     Returns a FileTree.
     '''
     _must_have_at_least_one(files)
-    return FileTree(find_resource_or_fail(bld.root, f).abspath() for f in files)
+    return FileTree(find_resource_or_fail(bld, bld.root, f).abspath() for f in files)
 
 def combine_trees(trees):
     '''
@@ -160,6 +167,13 @@ class FileTransfer(object):
                 arcnames=list(self.targettree.files),
                 target=target,
                 name=name)
+    def create_tgz_task(self, bld, target, name=None):
+        return bld(
+                rule=simpletgzrule,
+                source=list(bld.root.find_or_declare(f) for f in self.sourcetree.files),
+                arcnames=list(self.targettree.files),
+                target=target,
+                name=name)
     def create_copy_tasks(self, bld, name=None):
         '''
         Create one task per file, copying from source locations to target locations.
@@ -175,6 +189,13 @@ class FileTransfer(object):
         '''
         for source, target in zip(self.sourcetree.files, self.targettree.files):
             bld.install_as(target, bld.root.find_or_declare(source))
+    def install_files_preserving_permissions(self, bld):
+        '''
+        Copy the files at install-time.
+        '''
+        for source, target in zip(self.sourcetree.files, self.targettree.files):
+            mode = os.stat(source).st_mode & 0o777
+            bld.install_as(target, bld.root.find_or_declare(source), chmod=mode)
 
 def combine_transfers(transfers):
     '''
