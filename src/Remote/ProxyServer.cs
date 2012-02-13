@@ -309,7 +309,7 @@ namespace OpenHome.Os.Remote
                 }
                 else
                 {*/
-                aUseGzip = false; // disable gzip.  We can't get past the login screen when its enabled
+                //aUseGzip = false; // might be useful to disable gzip during debugging
                 if (!aUseGzip)
                 {
                     if (contentLength > 0) // response may be chunked
@@ -320,10 +320,11 @@ namespace OpenHome.Os.Remote
                 {
                     aResponse.AddHeader("Content-Encoding", "gzip");
                     MemoryStream zip = new MemoryStream();
-                    GZipStream zipper = new GZipStream(zip, CompressionMode.Compress);
-                    respStream.CopyTo(zipper);
-                    zipper.Flush();
-                    zip.Position = 0;
+                    using (var zipper = new GZipStream(zip, CompressionMode.Compress, true))
+                    {
+                        respStream.CopyTo(zipper);
+                    }
+                    zip.Seek(0, SeekOrigin.Begin);
                     aResponse.ContentLength64 = zip.Length;
                     Console.WriteLine("Compressed {0} to {1} bytes", contentLength, zip.Length);
                     zip.CopyTo(clientRespStream);
