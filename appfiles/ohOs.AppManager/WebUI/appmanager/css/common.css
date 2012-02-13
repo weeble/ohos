@@ -1,0 +1,34 @@
+
+#pageScroller {
+	max-width: 896px;
+	width: 100%;
+	margin: 0px auto;
+}
+#pageScroller .page-loader {
+	width: 100px;
+	padding-top: 50px;
+	margin: 0px auto;
+}
+
+#pageScroller .ghostapp .page-loader {
+	padding-top: 10px;
+	width: 200px;
+	margin-left: 10px;
+}
+
+body .main {
+	width: 896px;
+	height: 400px;
+	margin: 0px auto;
+}
+
+#app-add .app:hover {
+	border: 3px dashed #A2C2F4;
+	color: #A2C2F4;
+	cursor: pointer;
+}
+#app-add .app-name {
+	color: #3C3C3C;
+	margin-top: 20px;
+	line-height: 25px;
+}

@@ -2,13 +2,14 @@ using System;
 using System.Net;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Xml.Linq;
 using System.Text;
 using log4net;
 
 namespace OpenHome.Os.Remote
 {
-    internal interface ILoginValidator
+    public interface ILoginValidator
     {
         bool ValidateCredentials(string aUserName, string aPassword);
     }
@@ -17,7 +18,7 @@ namespace OpenHome.Os.Remote
     {
         public uint Port { get { return kRemoteAccessPort; } }
 
-            private HttpServer iHttpServer;
+        private HttpServer iHttpServer;
         private readonly string iForwardAddress;
         private uint iForwardPort;
         private string iForwardUdn;
@@ -40,7 +41,7 @@ namespace OpenHome.Os.Remote
             iForwardPort = aPort;
             iForwardUdn = aUdn;
         }
-        internal void Start(ILoginValidator aLoginValidator)
+        public void Start(ILoginValidator aLoginValidator)
         {
             iLoginValidator = aLoginValidator;
             iHttpServer = new HttpServer(kNumServerThreads);
@@ -67,6 +68,12 @@ namespace OpenHome.Os.Remote
             HttpListenerRequest clientReq = aContext.Request;
             HttpListenerResponse clientResp = aContext.Response;
 
+            if (clientReq.Url.PathAndQuery == "/favicon.ico")
+            {   // we don't support favicons
+                clientResp.StatusCode = 404;
+                clientResp.Close();
+                return;
+            }
             if (IsAuthenticating(clientReq, clientResp))
                 return;
             string targetUrl = RewriteUrl(clientReq);
@@ -91,7 +98,7 @@ namespace OpenHome.Os.Remote
                 resp = (HttpWebResponse)e.Response;
                 Logger.ErrorFormat("ERROR: {0} for {1}", (int)resp.StatusCode, targetUrl);
             }
-            WriteResponse(resp, clientResp);
+            WriteResponse(resp, clientResp, (clientReq.HttpMethod == "GET"));
             // docs suggest following is unnecessary - we only have to close one from clientRespStream / clientResp
             if (connectionClose)
                 clientResp.Close();
@@ -136,8 +143,6 @@ namespace OpenHome.Os.Remote
 
             foreach (Cookie cookie in aRequest.Cookies)
             {
-                if (cookie.Name == kAuthCookieName && !iAuthenticatedClients.ContainsKey(cookie.Value))
-                    Logger.Info("WARNING: received old cookie. May need to clear cookies on browser to log in");
                 if (cookie.Name == kAuthCookieName && iAuthenticatedClients.ContainsKey(cookie.Value))
                     // already authenticated
                     return false;
@@ -258,7 +263,7 @@ namespace OpenHome.Os.Remote
                 }
             }
         }
-        private static void WriteResponse(HttpWebResponse aProxiedResponse, HttpListenerResponse aResponse)
+        private static void WriteResponse(HttpWebResponse aProxiedResponse, HttpListenerResponse aResponse, bool aUseGzip)
         {
             aResponse.StatusCode = (int)aProxiedResponse.StatusCode;
             aResponse.StatusDescription = aProxiedResponse.StatusDescription;
@@ -289,6 +294,11 @@ namespace OpenHome.Os.Remote
                         break;
                 }
             }
+            if (aResponse.SendChunked)
+                aUseGzip = false;
+            if (aProxiedResponse.ContentType.Contains("image/png") || aProxiedResponse.ContentType.Contains("image/jpeg"))
+                // no point in wasting time zipping a format that is already compressed
+                aUseGzip = false;
             Stream clientRespStream = aResponse.OutputStream;
             using (Stream respStream = aProxiedResponse.GetResponseStream())
             {
@@ -299,9 +309,26 @@ namespace OpenHome.Os.Remote
                 }
                 else
                 {*/
-                if (contentLength > 0) // response may be chunked
-                    aResponse.ContentLength64 = contentLength;
-                respStream.CopyTo(clientRespStream);
+                //aUseGzip = false; // might be useful to disable gzip during debugging
+                if (!aUseGzip)
+                {
+                    if (contentLength > 0) // response may be chunked
+                        aResponse.ContentLength64 = contentLength;
+                    respStream.CopyTo(clientRespStream);
+                }
+                else
+                {
+                    aResponse.AddHeader("Content-Encoding", "gzip");
+                    MemoryStream zip = new MemoryStream();
+                    using (var zipper = new GZipStream(zip, CompressionMode.Compress, true))
+                    {
+                        respStream.CopyTo(zipper);
+                    }
+                    zip.Seek(0, SeekOrigin.Begin);
+                    aResponse.ContentLength64 = zip.Length;
+                    Console.WriteLine("Compressed {0} to {1} bytes", contentLength, zip.Length);
+                    zip.CopyTo(clientRespStream);
+                }
             }
             //}
             clientRespStream.Close();

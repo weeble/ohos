@@ -1,4 +1,5 @@
-﻿using OpenHome.Net.Device;
+﻿using System;
+using OpenHome.Net.Device;
 using OpenHome.Os.Platform;
 
 namespace OpenHome.Os.Apps
@@ -11,13 +12,16 @@ namespace OpenHome.Os.Apps
         public IConfigFileCollection Configuration { get; private set; }
         public DvDevice Device { get; set; }
 
-        public AppContext(IAppServices aServices, string aStaticPath, string aStorePath, IConfigFileCollection aConfiguration, DvDevice aDevice)
+        public string Name { get; private set; }
+
+        public AppContext(IAppServices aServices, string aStaticPath, string aStorePath, IConfigFileCollection aConfiguration, DvDevice aDevice, string aAppName)
         {
             Services = aServices;
             StaticPath = aStaticPath;
             StorePath = aStorePath;
             Configuration = aConfiguration;
             Device = aDevice;
+            Name = aAppName;
         }
     }
 }

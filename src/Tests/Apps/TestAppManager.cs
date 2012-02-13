@@ -16,7 +16,7 @@ namespace OpenHome.Os.Apps
     {
         public interface IProviderConstructor
         {
-            IDvProviderOpenhomeOrgApp1 Create(DvDevice aDevice, IApp aApp);
+            IDvProviderOpenhomeOrgApp1 Create(DvDevice aDevice, IApp aApp, string aAppName);
         }
 
         protected Mock<IAppServices> iAppServicesMock;
@@ -37,7 +37,7 @@ namespace OpenHome.Os.Apps
         protected IAddinManager iAddinManager;
         protected IAppsDirectory iAppsDirectory;
         protected IStoreDirectory iStoreDirectory;
-        protected Func<DvDevice, IApp, IDvProviderOpenhomeOrgApp1> iProviderConstructor;
+        protected Func<DvDevice, IApp, string, IDvProviderOpenhomeOrgApp1> iProviderConstructor;
         protected IApp iApp;
         protected IDvDeviceFactory iDeviceFactory;
         protected IDvDevice iDevice;
@@ -58,8 +58,8 @@ namespace OpenHome.Os.Apps
 
         protected virtual void PrepareMocks()
         {
-            iAppMock.Setup(x=>x.Udn).Returns(AppUdn);
-            iAppMock.Setup(x=>x.Name).Returns(AppName);
+            //iAppMock.Setup(x=>x.Udn).Returns(AppUdn);
+            //iAppMock.Setup(x=>x.Name).Returns(AppName);
             iStoreDirectoryMock.Setup(x => x.GetAbsolutePathForAppDirectory(It.IsAny<string>())).Returns(StoreDirectoryAbsPath);
             iAppsDirectoryMock.Setup(x => x.GetAbsolutePathForSubdirectory(It.IsAny<string>())).Returns(AppDirectoryAbsPath);
             iAppsDirectoryMock.Setup(x => x.GetAssemblySubdirectory(It.IsAny<Assembly>())).Returns(AppDirName);
@@ -68,7 +68,7 @@ namespace OpenHome.Os.Apps
             iDeviceFactoryMock.Setup(x => x.CreateDeviceStandard(It.IsAny<string>())).Returns(iDevice);
             iDeviceFactoryMock.Setup(x => x.CreateDeviceStandard(It.IsAny<string>(), It.IsAny<IResourceManager>())).Returns(iDevice);
             iDeviceMock.Setup(x => x.SetDisabled(It.IsAny<Action>())).Callback<Action>(aAction => aAction());
-            iProviderConstructorMock.Setup(x => x.Create(It.IsAny<DvDevice>(), It.IsAny<IApp>())).Returns(iProvider);
+            iProviderConstructorMock.Setup(x => x.Create(It.IsAny<DvDevice>(), It.IsAny<IApp>(), It.IsAny<string>())).Returns(iProvider);
             iAppMetadataStoreMock.Setup(x => x.LoadAppsFromStore()).Returns(LoadAppsFromStore);
             iAppMetadataStoreMock.Setup(x => x.GetApp(It.IsAny<string>())).Returns<string>(GetApp);
             iAppMetadataStoreMock.Setup(x => x.PutApp(It.IsAny<AppMetadata>())).Callback<AppMetadata>(PutApp);
@@ -268,44 +268,9 @@ namespace OpenHome.Os.Apps
             iAddinManagerMock.Verify(x => x.UpdateRegistry(It.IsAny<Action<DirectoryInfo, IApp>>(), It.IsAny<Action<DirectoryInfo, IApp>>()), Times.Once());
         }
         [Test]
-        public void TheAppIsInitializedOnce()
-        {
-            iAppMock.Verify(x => x.Init(It.IsAny<IAppContext>()), Times.Once());
-        }
-        [Test]
-        public void TheInitMethodReceivesAllTheAppServices()
-        {
-            iAppMock.Verify(x => x.Init(It.Is<IAppContext>(
-                aContext => aContext.Services == iAppServices)), Times.Once());
-        }
-        [Test]
-        public void TheInitMethodReceivesTheAbsoluteStorePath()
-        {
-            iAppMock.Verify(x => x.Init(It.Is<IAppContext>(
-                aContext => aContext.StorePath == StoreDirectoryAbsPath)), Times.Once());
-        }
-        [Test]
-        public void TheInitMethodReceivesTheAbsoluteAppsPath()
-        {
-            iAppMock.Verify(x => x.Init(It.Is<IAppContext>(
-                aContext => aContext.StaticPath == AppDirectoryAbsPath)), Times.Once());
-        }
-        // The app should be receiving a subset of the configuration, not the whole thing.
-        //[Test]
-        //public void TheInitMethodReceivesTheConfiguration()
-        //{
-        //    iAppMock.Verify(x => x.Init(It.Is<IAppContext>(
-        //        aContext => aContext.Configuration == iConfig)), Times.Once());
-        //}
-        [Test]
         public void OneDeviceIsCreated()
         {
             iDeviceFactoryMock.Verify(x => x.CreateDeviceStandard(It.IsAny<string>()), Times.Once());
-        }
-        [Test]
-        public void TheDeviceGetsTheRightUdn()
-        {
-            iDeviceFactoryMock.Verify(x => x.CreateDeviceStandard(It.Is<string>(aUdn=>aUdn==AppUdn)), Times.Once());
         }
         [Test]
         public void TheAppIsStartedOnce()
@@ -315,19 +280,19 @@ namespace OpenHome.Os.Apps
         [Test]
         public void TheStartMethodReceivesAllTheAppServices()
         {
-            iAppMock.Verify(x => x.Init(It.Is<IAppContext>(
+            iAppMock.Verify(x => x.Start(It.Is<IAppContext>(
                 aContext => aContext.Services == iAppServices)), Times.Once());
         }
         [Test]
         public void TheStartMethodReceivesTheAbsoluteStorePath()
         {
-            iAppMock.Verify(x => x.Init(It.Is<IAppContext>(
+            iAppMock.Verify(x => x.Start(It.Is<IAppContext>(
                 aContext => aContext.StorePath == StoreDirectoryAbsPath)), Times.Once());
         }
         [Test]
         public void TheStartMethodReceivesTheAbsoluteAppsPath()
         {
-            iAppMock.Verify(x => x.Init(It.Is<IAppContext>(
+            iAppMock.Verify(x => x.Start(It.Is<IAppContext>(
                 aContext => aContext.StaticPath == AppDirectoryAbsPath)), Times.Once());
         }
         [Test]

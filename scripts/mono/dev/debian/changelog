@@ -1,3 +1,9 @@
+ohmono-dev (2.10.6-6) nightly; urgency=low
+
+  * Added the Microsoft.CSharp and Mono.CSharp assemblies
+
+ -- Openhome <admin@openhome.org>  Fri, 10 Feb 2012 16:00:54 +0000
+
 ohmono-dev (2.10.6-5) nightly; urgency=low
 
   * Reorganisation of ohmono and ohmono-dev packages
