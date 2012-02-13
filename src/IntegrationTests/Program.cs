@@ -40,7 +40,7 @@ namespace OpenHome.Os.IntegrationTests
                 SubnetList subnetList = new SubnetList();
                 NetworkAdapter nif = subnetList.SubnetAt(0);
                 uint subnet = nif.Subnet();
-                subnetList.Destroy();
+                subnetList.Dispose();
                 var combinedStack = library.StartCombined(subnet);
                 AppServices services = new AppServices();
                 services.NodeRebooter = new NullNodeRebooter();

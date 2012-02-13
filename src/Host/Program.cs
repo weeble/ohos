@@ -247,7 +247,7 @@ namespace OpenHome.Os.Host
                     SubnetList subnetList = new SubnetList();
                     NetworkAdapter nif = subnetList.SubnetAt(0);
                     uint subnet = nif.Subnet();
-                    subnetList.Destroy();
+                    subnetList.Dispose();
                     var combinedStack = library.StartCombined(subnet);
                     var deviceListFactory = new CpUpnpDeviceListFactory(combinedStack.ControlPointStack);
                     var deviceFactory = new DvDeviceFactory(combinedStack.DeviceStack);
