@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
+using log4net;
 using OpenHome.Net.Device;
 using OpenHome.Net.Device.Providers;
 using OpenHome.Os.Apps;
@@ -23,6 +24,8 @@ namespace OpenHome.Os.AppManager
         //{
         //    public string Url { get; set; }
         //}
+
+        static readonly ILog Logger = LogManager.GetLogger(typeof(AppManager));
 
         readonly object iLock = new object();
         readonly IAppShell iAppShell;
@@ -172,13 +175,19 @@ namespace OpenHome.Os.AppManager
 
         public void InstallAppFromUrl(string aAppUrl)
         {
-            throw new NotImplementedException();
+            // TODO: Download from URL instead of installing.
+            Logger.ErrorFormat("InstallAppFromUrl({0}) treating URL as a local filename!!!", aAppUrl);
+            iAppShell.Install(aAppUrl);
         }
 
         public void RemoveApp(uint aAppHandle)
         {
-            throw new NotImplementedException();
+            string appName;
+            lock (iLock)
+            {
+                appName = iApps.GetKeyForId(aAppHandle);
+            }
+            iAppShell.UninstallByAppName(appName);
         }
-
     }
 }

@@ -403,7 +403,7 @@ csharp_projects = [
         CSharpProject(
             name="ohOs.AppManager.App", dir="AppManager", type="library",
             categories=["core"],
-            packages=['ohnet', 'mono-addins', 'mef', 'systemxmllinq'],
+            packages=['ohnet', 'mono-addins', 'mef', 'systemxmllinq', 'log4net'],
             references=[
                 'ohOs.Apps',
                 'ohOs.Platform',
