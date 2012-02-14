@@ -196,13 +196,28 @@ header .logo {
 	white-space: nowrap;
 }
 .app-icon {
-	width: 100px;
-	height: 100px;
-	-webkit-border-radius: 10px;
-	-moz-border-radius: 10px;
-	border-radius: 10px;
-	border: 3px solid #7DABF0;
-	background-color: #FFF;
+	width: 120px;
+	height: 120px;
+	position:relative;
+  -moz-box-shadow:    2px 2px 4px 1px #888;
+  -webkit-box-shadow: 2px 2px 4px 1px #888;
+  box-shadow:         2px 2px 4px 1px #888;
+}
+
+.app-icon-name{
+	position:absolute;
+	height:25px;
+	width:110px;
+	top:95px;
+	background:#000;
+	opacity:0.5;
+	color:#FFF;
+	font-size:14px;
+	font-weight:700;
+	padding:0px 5px 0px 5px;
+	text-align: center;
+	overflow:hidden;
+	text-overflow:ellipsis;
 }
 
 .app-icon-ghost {
@@ -353,7 +368,7 @@ button.sm
 	}
 	.app-details
 	{
-	    width:420px;
+	    width:400px;
 	}
 }
 /*		Wide Mobile Layout: 480px.
@@ -378,6 +393,11 @@ button.sm
     {
         height:30px;
     }
+    .app-icon-name
+    {
+    	display:none;
+    }
+    
     
 	.ohdrawer form
 	{
@@ -487,18 +507,20 @@ button.sm
 	.app {
 		margin: 0px 20px 0px 0px;
 	}
-	.app-icon {
-		width: 70px;
-		height: 70px;
-		padding-top: 0px;
-	}
+	
 	.app .text {
 		width: 75px;
 		font-size: 14px;
 	}
+	
+	.app-icon {
+		width: 80px;
+		height: 80px;
+		padding-top: 0px;
+	}
 	.app-icon img {
-		width: 70px;
-		height: 70px;;
+		width: 80px;
+		height: 80px;;
 	}
 	.detailedapp .app-name {
 		font-size: 15px;
@@ -607,6 +629,31 @@ button.sm
 	    width:250px;
 	    font-size:0.7em;
 	}
+	
+		.app-icon {
+		width: 80px;
+		height: 80px;
+		padding-top: 0px;
+	}
+	.app-icon img {
+		width: 80px;
+		height: 80px;;
+	}
+	
+	.app-icon-name
+    {
+    	display:none;
+    }
+    
+    .app {
+		margin: 0px 15px 0px 0px;
+	}
+	
+	.app-details
+	{
+	    width:170px;
+	}
+    
 }
 
 

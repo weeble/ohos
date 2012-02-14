@@ -149,14 +149,16 @@ oh.app.applist.prototype.appAdded = function (seq) {
     	
         var xml = result.AppListXml;
         if(result.AppListXml)
-        var appListObj = oh.util.dataformat.xmlStringToJson(xml);
-
-        if (appListObj.appList.app) {
-            var handle = appListObj.appList.app.handle;
-            _this.list[handle] = appListObj.appList.app;
-            if (_this.appListAddedFunction)
-                _this.appListAddedFunction(_this.list[handle]);
-            _this.appHasDownloads();
+        {
+        
+	        var appListObj = oh.util.dataformat.xmlStringToJson(xml);
+		    if (appListObj.appList.app && appListObj.appList.app.id != 'ohOs.AppManager') {
+	            var handle = appListObj.appList.app.handle;
+	            _this.list[handle] = appListObj.appList.app;
+	            if (_this.appListAddedFunction)
+	                _this.appListAddedFunction(_this.list[handle]);
+	            _this.appHasDownloads();
+	        }
         }
     });
 

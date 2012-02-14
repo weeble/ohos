@@ -203,20 +203,21 @@ function addApp(app) {
         $("#ghostapp_" + ghost).remove();
         ghostApps[ghost] = null;
     }
+    console.log(app);
     var applauncher = parseTemplate($("#tpl_app-launcher").html(), {
 	    id: app.id,
-		name : app.name
+		name : app.id // change to name
 	});
 	var appmanager = parseTemplate($("#tpl_app-manager").html(), {
 	    id: app.id,
 	    handle: app.handle,
-		name : app.name,
+		name : app.id,
 		version : app.version,
         description: app.description
 	});
     $('.app-list').append(applauncher);
     $('#app_' + app.id).bind(hit, function () {
-        window.location = 'http://www.openhome.org';
+        window.location = app.url;
     });
     var ghostIndex = ghostApps.indexOf(app.url);
     if (ghostIndex != -1) {

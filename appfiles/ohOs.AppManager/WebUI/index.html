@@ -123,8 +123,8 @@
 <script type="text/html" id="tpl_app-launcher">
 	<div id="app_<#=id#>" data-uid="<#=id#>" class="app">
 	<div class="app-icon">
-	<img src="images/<#=id#>.png">
-
+	<img onerror="this.src='images/oh-app-default.png'" src="images/apps/<#=id#>.png">
+	<div class="app-icon-name"><#=name#></div>
 	</div>
 	</div>
 </script>
@@ -132,7 +132,7 @@
 	<div class="detailedapp" data-uid="<#=id#>" id="detailedapp_<#=id#>">
 	<div class="app">
 	<div class="app-icon">
-	<img src="images/<#=id#>.png">
+	<img onerror="this.src='images/oh-app-default.png'" src="images/apps/<#=id#>.png">
 	</div>
 	</div>
     <div class="app-details">
@@ -146,7 +146,11 @@
         </div>
         <div id="progress_<#=id#>"></div>
 	    </div>
+	    <br/>
+	    <div class="clear"></div>
+	    <div class="horiz"></div>	
     </div>
+     
 </script>
 
 <script type="text/html" id="tpl_app_ghost">
@@ -160,4 +164,5 @@
         <div id="ghostloader_<#=id#>" data-controls-ohloader="true"></div>
 	    </div>
     </div>
+    
 </script>
