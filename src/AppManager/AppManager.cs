@@ -15,7 +15,7 @@ using OpenHome.Widget.Nodes.Threading;
 
 namespace OpenHome.Os.AppManager
 {
-    class DownloadFinishedEventArgs : EventArgs
+    class DownloadChangedEventArgs : EventArgs
     {
         public bool Success { get; private set; }
     }
@@ -214,18 +214,18 @@ namespace OpenHome.Os.AppManager
         readonly Queue<FailedDownload> iPublicFailedDownloads = new Queue<FailedDownload>();
         readonly object iPublicDownloadsLock = new object();
         public TimeSpan FailureTimeout { get; set; }
-        public event EventHandler<DownloadFinishedEventArgs> DownloadCompleted;
+        public event EventHandler DownloadChanged;
 
         public DownloadThread(DownloadDirectory aDownloadDirectory, Channel<DownloadInstruction> aInstructionChannel)
         {
             iInstructionChannel = aInstructionChannel;
             iDownloadDirectory = aDownloadDirectory;
-            FailureTimeout = TimeSpan.FromMinutes(10);
+            FailureTimeout = TimeSpan.FromSeconds(10);
         }
 
-        public void InvokeDownloadCompleted(DownloadFinishedEventArgs aE)
+        public void InvokeDownloadChanged(EventArgs aE)
         {
-            EventHandler<DownloadFinishedEventArgs> handler = DownloadCompleted;
+            EventHandler handler = DownloadChanged;
             if (handler != null) handler(this, aE);
         }
 
@@ -261,6 +261,7 @@ namespace OpenHome.Os.AppManager
 
         void CleanupFailedDownloads()
         {
+            bool cleanedUp = false;
             lock (iPublicDownloadsLock)
             {
                 while (
@@ -268,7 +269,12 @@ namespace OpenHome.Os.AppManager
                     (DateTime.UtcNow - iPublicFailedDownloads.Peek().TimeOfFailure > FailureTimeout))
                 {
                     iPublicFailedDownloads.Dequeue();
+                    cleanedUp = true;
                 }
+            }
+            if (cleanedUp)
+            {
+                InvokeDownloadChanged(EventArgs.Empty);
             }
         }
 
@@ -304,6 +310,7 @@ namespace OpenHome.Os.AppManager
                                         {
                                             iPublicDownloadInfo[url] = DownloadProgress.CreateJustStarted(url);
                                         }
+                                        InvokeDownloadChanged(EventArgs.Empty);
                                         download.Start();
                                     }
                                 }
@@ -326,6 +333,7 @@ namespace OpenHome.Os.AppManager
                                         iPublicDownloadInfo.Remove(url);
                                     }
                                     iPublicFailedDownloads.Enqueue(new FailedDownload { TimeOfFailure = DateTime.UtcNow, DownloadProgress = aMessage });
+                                    InvokeDownloadChanged(EventArgs.Empty);
                                 }
                                 else if (aMessage.HasCompleted)
                                 {
@@ -335,6 +343,7 @@ namespace OpenHome.Os.AppManager
                                     {
                                         iPublicDownloadInfo.Remove(url);
                                     }
+                                    InvokeDownloadChanged(EventArgs.Empty);
                                 }
                                 else
                                 {
@@ -370,12 +379,10 @@ namespace OpenHome.Os.AppManager
         readonly Channel<DownloadInstruction> iInstructionChannel;
         public int MaxSimultaneousDownloads { get; set; }
         //public event EventHandler DownloadComplete;
-        public event EventHandler DownloadCountChanged;
-
-        public void InvokeDownloadCountChanged(EventArgs aE)
+        public event EventHandler DownloadCountChanged
         {
-            EventHandler handler = DownloadCountChanged;
-            if (handler != null) handler(this, aE);
+            add { iDownloadThread.DownloadChanged += value; }
+            remove { iDownloadThread.DownloadChanged -= value; }
         }
 
         public DownloadManager(DownloadDirectory aDownloadDirectory)
@@ -392,12 +399,8 @@ namespace OpenHome.Os.AppManager
             {
                 Cancel = false,
                 Url = aUrl,
-                CompleteCallback = aLocalFile =>
-                {
-                    InvokeDownloadCountChanged(EventArgs.Empty);
-                    aCallback(aLocalFile);
-                },
-                FailedCallback = () => InvokeDownloadCountChanged(EventArgs.Empty)
+                CompleteCallback = aCallback,
+                FailedCallback = () => { }
             }))
             {
                 throw new ActionError("Too busy.");
@@ -454,14 +457,25 @@ namespace OpenHome.Os.AppManager
             DownloadDirectory aDownloadDirectory)
         {
             iDownloadManager = new DownloadManager(aDownloadDirectory);
+            iDownloadManager.DownloadCountChanged += OnDownloadCountChanged;
             iAppShell = aAppShell;
             iProviders = aDevices.Select(aDevice=>aProviderConstructor(aDevice, this, aResourceUri)).ToList();
             iAppShell.AppStatusChanged += OnAppStatusChanged;
             RefreshApps();
         }
 
+        void OnDownloadCountChanged(object aSender, EventArgs aE)
+        {
+            int downloadCount = iDownloadManager.GetDownloadsStatus().Count();
+            foreach (var provider in iProviders)
+            {
+                provider.SetDownloadCount((uint)downloadCount);
+            }
+        }
+
         public void Dispose()
         {
+            iDownloadManager.DownloadCountChanged -= OnDownloadCountChanged;
             iAppShell.AppStatusChanged -= OnAppStatusChanged;
             iDownloadManager.Dispose();
             iCallbackTracker.Close();
