@@ -74,6 +74,7 @@ namespace OpenHome.Os.AppManager
 
         AppManager iAppManager;
         IResourceManager iResourceManager;
+        DownloadManager iDownloadManager;
 
         public void Start(IAppContext aAppServices)
         {
@@ -81,17 +82,19 @@ namespace OpenHome.Os.AppManager
             var appDevice = aAppServices.Device;
             var nodeDevice = aAppServices.Services.NodeDeviceAccessor.Device.RawDevice;
             string appResourceUrl = string.Format("/{0}/Upnp/resource/", appDevice.Udn());
+            iDownloadManager = new DownloadManager(new DownloadDirectory(aAppServices.StorePath));
             iAppManager = new AppManager(
                 appResourceUrl,
                 new[]{appDevice, nodeDevice},
                 (d,m,uri)=>new AppManagerProvider(d,m,uri), aAppServices.Services.ResolveService<IAppShell>(),
-                new DownloadDirectory(aAppServices.StorePath));
+                iDownloadManager);
             iResourceManager = new NodeResourceManager(Path.Combine(aAppServices.StaticPath, "WebUi"), aAppServices.Device.Udn(), aAppServices.Services.NodeInformation.WebSocketPort ?? 0);
         }
 
         public void Stop()
         {
             iAppManager.Dispose();
+            iDownloadManager.Dispose();
         }
 
         public void WriteResource(string aUriTail, uint aIpAddress, List<string> aLanguageList, IResourceWriter aWriter)
