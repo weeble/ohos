@@ -84,7 +84,8 @@ namespace OpenHome.Os.AppManager
             iAppManager = new AppManager(
                 appResourceUrl,
                 new[]{appDevice, nodeDevice},
-                (d,m,uri)=>new AppManagerProvider(d,m,uri), aAppServices.Services.ResolveService<IAppShell>());
+                (d,m,uri)=>new AppManagerProvider(d,m,uri), aAppServices.Services.ResolveService<IAppShell>(),
+                new DownloadDirectory(aAppServices.StorePath));
             iResourceManager = new NodeResourceManager(Path.Combine(aAppServices.StaticPath, "WebUi"), aAppServices.Device.Udn(), aAppServices.Services.NodeInformation.WebSocketPort ?? 0);
         }
 

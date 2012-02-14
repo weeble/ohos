@@ -2,9 +2,9 @@
 <ohos>
     <system-settings>
         <!-- Directory for the store, relative to this file. -->
-        <store>.</store>
+        <store>./store</store>
         <!-- Directory for installed apps, relative to this file. -->
-        <installed-apps>./Apps</installed-apps>
+        <installed-apps>./installed-apps</installed-apps>
         <!-- UUID for this node. Chosen randomly if empty. -->
         <uuid></uuid>
         <!-- Network settings. -->

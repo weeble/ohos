@@ -18,6 +18,7 @@ namespace OpenHome.Os.AppManager
     interface IAppManagerProvider : IDvProviderOpenhomeOrgAppManager1
     {
         void SetAppHandles(List<uint> aAppHandles, List<uint> aSequenceNumbers);
+        void SetDownloadCount(uint aCount);
     }
 
     class AppManagerProvider : Net.Device.Providers.DvProviderOpenhomeOrgAppManager1, IAppManagerProvider
@@ -56,6 +57,7 @@ namespace OpenHome.Os.AppManager
 
         public AppManagerProvider(DvDevice aDevice, IAppManagerActionHandler aProvider, string aPresentationUri) : base(aDevice)
         {
+            EnablePropertyDownloadCount();
             EnablePropertyAppHandleArray();
             EnablePropertyAppSequenceNumberArray();
             EnableActionGetAppStatus();
@@ -66,6 +68,7 @@ namespace OpenHome.Os.AppManager
             EnableActionCancelDownload();
             EnableActionUpdateApp();
             EnableActionGetPresentationUri();
+            SetPropertyDownloadCount(0);
             SetPropertyAppHandleArray(Converter.ConvertUintListToNetworkOrderByteArray(new List<uint>()));
             SetPropertyAppSequenceNumberArray(Converter.ConvertUintListToNetworkOrderByteArray(new List<uint>()));
             //BumpDummySequenceNumber();
@@ -81,6 +84,11 @@ namespace OpenHome.Os.AppManager
             SetPropertyAppHandleArray(handlesBytes);
             SetPropertyAppSequenceNumberArray(seqNoBytes);
             PropertiesUnlock();
+        }
+
+        public void SetDownloadCount(uint aCount)
+        {
+            SetPropertyDownloadCount(aCount);
         }
 
         protected override void GetAppStatus(IDvInvocation aInvocation, uint aAppHandle, out string aAppListXml)
