@@ -134,7 +134,7 @@ namespace OpenHome.Os.AppManager
             {
                 element.Add(
                     new XElement("totalBytes", aDownload.TotalBytes),
-                    new XElement("progressPercent", (int)Math.Round((float)aDownload.DownloadedBytes / aDownload.TotalBytes)));
+                    new XElement("progressPercent", (int)Math.Round(100.0 * aDownload.DownloadedBytes / aDownload.TotalBytes)));
             }
             return element;
         }
