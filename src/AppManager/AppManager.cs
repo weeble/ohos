@@ -168,7 +168,7 @@ namespace OpenHome.Os.AppManager
                                 new XElement("handle", app.Handle),
                                 new XElement("id", app.Info.Name),
                                 new XElement("friendlyName", app.Info.FriendlyName),
-                                new XElement("version", app.Info.Version.ToString()),
+                                new XElement("version", app.Info.Version == null ? "" : app.Info.Version.ToString()),
                                 new XElement("updateUrl", app.Info.UpdateUrl),
                                 new XElement("autoUpdate", app.Info.AutoUpdate),
                                 // Commenting out description. Apps provide only DescriptionUri, and
