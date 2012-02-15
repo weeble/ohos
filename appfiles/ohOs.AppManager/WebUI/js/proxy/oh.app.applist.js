@@ -105,24 +105,27 @@ oh.app.applist.prototype.appHasDownloads = function () {
             var xml = result.DownloadStatusXml;
             var downloadListObj = oh.util.dataformat.xmlStringToJson(xml);
             for (var d in downloadListObj) {
-                var download = downloadListObj[d].download;
-                if (download.appHandle && download.status == 'downloading') {
-                    if (_this.appListUpdateProgressFunction)
-                        _this.appListUpdateProgressFunction(download.appId, false,download.url, download.progressPercent, download.progressBytes, download.totalBytes);
-                    _this.hasDownloads = true;
-                    // app update
-                } else if (download.url && download.status == 'downloading') {
-                    if (_this.appListUpdateProgressFunction)
-                        _this.appListUpdateProgressFunction(download.url, true,download.url, download.progressPercent, download.progressBytes, download.totalBytes);
-                    _this.hasDownloads = true;
-                }
-                else {
-                    if (_this.appListUpdateFailedFunction) {
-                        if (download.appHandle)
-                            _this.appListUpdateFailedFunction(download.appId, false);
-                        else if (download.url)
-                            _this.appListUpdateFailedFunction(download.url, true);
-                    }
+            	if(downloadListObj[d])
+            	{
+	                var download = downloadListObj[d].download;
+	                if (download.appHandle && download.status == 'downloading') {
+	                    if (_this.appListUpdateProgressFunction)
+	                        _this.appListUpdateProgressFunction(download.appId, false,download.url, download.progressPercent, download.progressBytes, download.totalBytes);
+	                    _this.hasDownloads = true;
+	                    // app update
+	                } else if (download.url && download.status == 'downloading') {
+	                    if (_this.appListUpdateProgressFunction)
+	                        _this.appListUpdateProgressFunction(download.url, true,download.url, download.progressPercent, download.progressBytes, download.totalBytes);
+	                    _this.hasDownloads = true;
+	                }
+	                else {
+	                    if (_this.appListUpdateFailedFunction) {
+	                        if (download.appHandle)
+	                            _this.appListUpdateFailedFunction(download.appId, false);
+	                        else if (download.url)
+	                            _this.appListUpdateFailedFunction(download.url, true);
+	                    }
+	                }
                 }
             }
             if (_this.hasDownloads) {

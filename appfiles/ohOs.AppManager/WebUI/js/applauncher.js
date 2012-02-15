@@ -214,7 +214,8 @@ function addApp(app) {
     $("#page-appmanager .page-loader").hide();
     hasApp = true;
     $(".help").hide();
-    var ghost = ghostApps.indexOf(app.url);
+
+    var ghost = ghostApps.indexOf(app.updateUrl);
 
     if (ghost != -1) {
         $("#ghostapp_" + ghost).remove();
