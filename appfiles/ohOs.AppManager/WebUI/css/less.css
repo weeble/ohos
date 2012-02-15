@@ -231,7 +231,8 @@ header .logo {
 {
     padding: 25px 0px 5px 0px;
     font-size:20px;
-
+	overflow:hidden;
+	text-overflow:ellipsis;
 }
 
 .detailedapp {

@@ -261,7 +261,13 @@ function addApp(app) {
 	    $('#drawer').data('ohdrawer').showWarning(
         {
             onSuccessFunction: function () {
+            	var pro = $('#progress_' + app.handle);
+            	$('#detailedapp_' + app.handle + ' .btn-app-remove').hide();
+            	pro.ohloader();
+            	pro.data('ohloader').setText("Deleting...");
+            	
                 applist.remove(app.handle, function () {
+                	
                     removeApp(app.handle, app);
                 });
             }
