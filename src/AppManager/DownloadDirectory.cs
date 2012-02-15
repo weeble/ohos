@@ -25,7 +25,7 @@ namespace OpenHome.Os.AppManager
 
         public void Clear()
         {
-            foreach (var fname in Directory.GetFiles(iPath))
+            foreach (var fname in Directory.GetFiles(iPath, "*.download"))
             {
                 File.Delete(fname);
             }

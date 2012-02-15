@@ -83,7 +83,9 @@ namespace OpenHome.Os.AppManager
             var appDevice = aAppServices.Device;
             var nodeDevice = aAppServices.Services.NodeDeviceAccessor.Device.RawDevice;
             string appResourceUrl = string.Format("/{0}/Upnp/resource/", appDevice.Udn());
-            iDownloadManager = new DownloadManager(new DownloadDirectory(aAppServices.StorePath));
+            var downloadDirectory = new DownloadDirectory(aAppServices.StorePath);
+            downloadDirectory.Clear();
+            iDownloadManager = new DownloadManager(downloadDirectory);
             iAppManager = new AppManager(
                 appResourceUrl,
                 new[]{appDevice, nodeDevice},
