@@ -44,7 +44,7 @@ oh.app.applist = function (node, options) {
     });
     this.setupArrayIdChanged();
     this.setupSequenceNumberChanged();
-
+	this.setupDownloadCountChanged();
 };
 
 oh.app.applist.prototype.setupArrayIdChanged = function () {
@@ -82,11 +82,24 @@ oh.app.applist.prototype.setupSequenceNumberChanged = function () {
     }
 }
 
-oh.app.applist.prototype.appHasDownloads = function () {
+oh.app.applist.prototype.setupDownloadCountChanged = function () {
+
     var _this = this;
+    this.appProxy.DownloadCount_Changed(function (download) { 
+        if(download > 0)
+        {
+        	_this.appHasDownloads();
+        }
+        
+    });
+}
+
+
+oh.app.applist.prototype.appHasDownloads = function () {
+	var _this = this;
     if (!this.downloadPoll) {
         this.downloadPoll = true;
-        debugprogressxml = $("#progressxml").val();  // debug
+        //debugprogressxml = $("#progressxml").val();  // debug
         this.appProxy.GetAllDownloadsStatus(function (result) {
             _this.hasDownloads = false;
             var xml = result.DownloadStatusXml;
@@ -95,12 +108,12 @@ oh.app.applist.prototype.appHasDownloads = function () {
                 var download = downloadListObj[d].download;
                 if (download.appHandle && download.status == 'downloading') {
                     if (_this.appListUpdateProgressFunction)
-                        _this.appListUpdateProgressFunction(download.appId, false, download.progressPercent, download.progressBytes, download.totalBytes);
+                        _this.appListUpdateProgressFunction(download.appId, false,download.url, download.progressPercent, download.progressBytes, download.totalBytes);
                     _this.hasDownloads = true;
                     // app update
                 } else if (download.url && download.status == 'downloading') {
                     if (_this.appListUpdateProgressFunction)
-                        _this.appListUpdateProgressFunction(download.url, true, download.progressPercent, download.progressBytes, download.totalBytes);
+                        _this.appListUpdateProgressFunction(download.url, true,download.url, download.progressPercent, download.progressBytes, download.totalBytes);
                     _this.hasDownloads = true;
                 }
                 else {
@@ -157,7 +170,6 @@ oh.app.applist.prototype.appAdded = function (seq) {
 	            _this.list[handle] = appListObj.appList.app;
 	            if (_this.appListAddedFunction)
 	                _this.appListAddedFunction(_this.list[handle]);
-	            _this.appHasDownloads();
 	        }
         }
     });
@@ -178,7 +190,6 @@ oh.app.applist.prototype.appChanged = function (seq) {
 
             if (_this.appListChangedFunction)
                 _this.appListChangedFunction(oldid, _this.list[handle]);
-            _this.appHasDownloads();
         }
     });
 }
@@ -190,6 +201,7 @@ oh.app.applist.prototype.appRemoved = function (seq) {
 }
 
 oh.app.applist.prototype.remove = function (seq,successFunction, errorFunction) {
+		console.log('remove')
     this.appProxy.RemoveApp(seq,successFunction,errorFunction);
 }
 
@@ -201,7 +213,6 @@ oh.app.applist.prototype.install = function (url, successFunction, errorFunction
         if (successFunction) {
             successFunction();
         }
-        _this.appHasDownloads();
     }, errorFunction);
 }
 

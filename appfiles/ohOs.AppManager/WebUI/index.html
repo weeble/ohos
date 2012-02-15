@@ -39,12 +39,12 @@
 	<body lang="en">
 		<div id="drawer" data-controls-ohdrawer="true"></div>
      
-		<div id="oh-logo">   <div id="back"><img src="appmanager/images/navigation/back.png" /></div></div>
+		<div id="oh-logo">   <div id="back"><img src="images/navigation/back.png" /></div></div>
 		<div id="pageScroller" data-controls-ohpageslider="true" data-speed="350">
 			<ul>
 				<li id="page-myapps">
 					<div class="page-content">
-						<h1>My Home<div class="appmanager navbutton"><img src="appmanager/images/navigation/appmanager.png" /></div></h1>
+						<h1>My Home<div class="appmanager navbutton"><img src="images/navigation/appmanager.png" /></div></h1>
                         <div class="horiz"></div>		
 						<div class="page-loader" data-controls-ohloader="true"></div>
                         <div class="help">
@@ -52,14 +52,14 @@
                                 <span class="help-num">1.</span>You don't have any Apps at the moment.  <br/>Press here to begin.
                             </div>
                             <div class="clear"></div>
-                            <img class="help-img" src="appmanager/images/navigation/helparrow.png" />
+                            <img class="help-img" src="images/navigation/helparrow.png" />
                         </div>
 						<div class="app-list"></div>
 					</div>
 				</li>
 				<li id="page-appmanager">
 					<div class="page-content">
-						<h1>Manage Apps<div data-uid="<#=id#>" id="app-add"  class="addapp navbutton"><img src="appmanager/images/navigation/addapp.png" /></div></h1>
+						<h1>Manage Apps<div data-uid="<#=id#>" id="app-add"  class="addapp navbutton"><img src="images/navigation/addapp.png" /></div></h1>
                         <div class="horiz"></div>		
 						<div class="page-loader" data-controls-ohloader="true"></div>
                         <div class="help">
@@ -68,7 +68,7 @@
                             </div>
                             <div class="clear"></div>
 
-                            <img class="help-img" src="appmanager/images/navigation/helparrow.png" />
+                            <img class="help-img" src="images/navigation/helparrow.png" />
                         </div>
 						<div class="app-detailedlist"></div>
 					
@@ -156,7 +156,8 @@
 <script type="text/html" id="tpl_app_ghost">
 	<div class="detailedapp ghostapp" data-uid="<#=id#>" id="ghostapp_<#=id#>">
 	<div class="app">
-	    <div class="app-icon app-icon-ghost">
+	    <div class="app-icon">
+	    	<img src="images/oh-app-default.png">
 	    </div>
 	</div>
     <div class="app-details">

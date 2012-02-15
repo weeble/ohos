@@ -61,24 +61,7 @@ $().ready(function () {
         {
             onSuccessFunction: function (input) {
                 _this.applist.install(input, function () {
-                    var ghostIndex = ghostApps.length;
-                    var applauncher = parseTemplate($("#tpl_app_ghost").html(), {
-                        url: input,
-                        id: ghostIndex
-                    });
-                    hasApp = true;
-                    $(".help").hide();
-                    ghostApps.push(input);
-
-                    $('.app-detailedlist').prepend(applauncher);
-                    $('#ghostapp_' + ghostIndex).ohanimate({
-                        animate: 'bounceIn'
-                    });
-
-                    setTimeout(function () {
-                        $('#ghostloader_' + ghostIndex).ohloader({ loadingtext: 'Locating app...' });
-                    }, 100);
-
+                	  addGhostApp(input);
                 });
             },
             labelValue: 'Enter the App Url:',
@@ -122,14 +105,44 @@ $().ready(function () {
     });
 });
 
-function appListUpdateProgress(appid, isGhost, progressPercent, progressBytes, totalBytes) {
+
+function addGhostApp(input)
+{
+	var ghostIndex = ghostApps.length;
+    var applauncher = parseTemplate($("#tpl_app_ghost").html(), {
+        url: input,
+        id: ghostIndex
+    });
+    hasApp = true;
+    $(".help").hide();
+    ghostApps.push(input);
+
+    $('.app-detailedlist').prepend(applauncher);
+    $('#ghostapp_' + ghostIndex).ohanimate({
+        animate: 'bounceIn'
+    });
+
+    setTimeout(function () {
+        $('#ghostloader_' + ghostIndex).ohloader({ loadingtext: 'Locating app...' });
+    }, 100);
+}
+
+
+
+function appListUpdateProgress(appid, isGhost, url,progressPercent, progressBytes, totalBytes) {
     setTimeout(function () {
         var app;
       
         if (isGhost) {
-            app = $('#ghostloader_' + ghostApps.indexOf(appid));
+        	var index = ghostApps.indexOf(appid);
+        	if(index== -1)
+        	{
+        		addGhostApp(url);
+        		index = ghostApps.length;
+        	}
+            app = $('#ghostloader_' + index);
             app.ohloader();
-            $('#ghostloader_' + ghostApps.indexOf(appid)).show();
+            $('#ghostloader_' + index).show();
         }
         else {
             app = $('#progress_' + appid);
@@ -137,16 +150,19 @@ function appListUpdateProgress(appid, isGhost, progressPercent, progressBytes, t
             $('#detailedapp_' + appid + ' .app-actions').hide();
             $('#progress_' + appid).show();
         }
-        app.data('ohloader').setText('Downloading...');
-        if (progressPercent) {
-            if (progressPercent == 100)
-                app.data('ohloader').setText('Installing...');
-
-            app.data('ohloader').renderProgress();
-            app.data('ohloader').updateProgress(progressPercent);
-        }
-        else {
-            app.data('ohloader').renderSpinner();
+        if(app.data('ohloader'))
+        {
+	        app.data('ohloader').setText('Downloading...');
+	        if (progressPercent) {
+	            if (progressPercent == 100)
+	                app.data('ohloader').setText('Installing...');
+	
+	            app.data('ohloader').renderProgress();
+	            app.data('ohloader').updateProgress(progressPercent);
+	        }
+	        else {
+	            app.data('ohloader').renderSpinner();
+	        }
         }
     }, 500);
 }
@@ -203,7 +219,6 @@ function addApp(app) {
         $("#ghostapp_" + ghost).remove();
         ghostApps[ghost] = null;
     }
-    console.log(app);
     var applauncher = parseTemplate($("#tpl_app-launcher").html(), {
 	    id: app.id,
 		name : app.id // change to name
@@ -244,7 +259,7 @@ function addApp(app) {
 	    $('#drawer').data('ohdrawer').showWarning(
         {
             onSuccessFunction: function () {
-                applist.remove(app.id, function () {
+                applist.remove(app.handle, function () {
                     removeApp(app.id, app.name);
                 });
             }

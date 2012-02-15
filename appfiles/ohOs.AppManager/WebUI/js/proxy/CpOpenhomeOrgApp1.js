@@ -145,4 +145,25 @@ CpProxyOpenhomeOrgApp1.prototype.GetDescriptionUri = function(successFunction, e
 }
 
 
+/**
+* A service action to GetHostDevice
+* @method GetHostDevice
+* @param {Function} successFunction The function that is executed when the action has completed successfully
+* @param {Function} errorFunction The function that is executed when the action has cause an error
+*/
+CpProxyOpenhomeOrgApp1.prototype.GetHostDevice = function(successFunction, errorFunction){	
+	var request = new ohnet.soaprequest("GetHostDevice", this.url, this.domain, this.type, this.version);		
+    request.send(function(result){
+		result["Udn"] = ohnet.soaprequest.readStringParameter(result["Udn"]);	
+		result["ResourceUri"] = ohnet.soaprequest.readStringParameter(result["ResourceUri"]);	
+	
+		if (successFunction){
+			successFunction(result);
+		}
+	}, function(message, transport) {
+		if (errorFunction) {errorFunction(message, transport);}
+	});
+}
+
+
 

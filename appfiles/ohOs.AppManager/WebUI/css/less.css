@@ -204,6 +204,8 @@ header .logo {
   box-shadow:         2px 2px 4px 1px #888;
 }
 
+
+
 .app-icon-name{
 	position:absolute;
 	height:25px;
@@ -270,7 +272,7 @@ header .logo {
 .app-details
 {
     float:left;
-    width:560px;
+    width:540px;
 }
 
 button 
