@@ -13,6 +13,7 @@ using OpenHome.Os.Platform;
 namespace OpenHome.Os.AppManager
 {
     [Export(typeof(IApp))]
+    [AppFriendlyName("App Manager")]
     public class AppManagerApp : IApp, IResourceManager
     {
         public void Dispose()

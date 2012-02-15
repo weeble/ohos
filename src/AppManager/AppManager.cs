@@ -163,15 +163,24 @@ namespace OpenHome.Os.AppManager
                     ManagedApp app;
                     if (iApps.TryGetValueById(handle, out app))
                     {
-                        appListElement.Add(
+                        var element =
                             new XElement("app",
                                 new XElement("handle", app.Handle),
                                 new XElement("id", app.Info.Name),
-                                new XElement("version", "DUMMY"),
-                                new XElement("url", String.Format("/{0}/Upnp/resource/", app.Info.Udn)),
-                                new XElement("description", "Hi there"),
+                                new XElement("friendlyName", app.Info.FriendlyName),
+                                new XElement("version", app.Info.Version.ToString()),
+                                new XElement("updateUrl", app.Info.UpdateUrl),
+                                new XElement("autoUpdate", app.Info.AutoUpdate),
+                                // Commenting out description. Apps provide only DescriptionUri, and
+                                // I've no idea what it's supposed to point to.
+                                //new XElement("description", "Hi there"),
                                 new XElement("status", app.Info.State == AppState.Running ? "running" : "broken"),
-                                new XElement("updateStatus", "noUpdate")));
+                                new XElement("updateStatus", "noUpdate"));
+                        if (!string.IsNullOrEmpty(app.Info.Udn))
+                        {
+                            element.Add(new XElement("url", String.Format("/{0}/Upnp/resource/", app.Info.Udn)));
+                        }
+                        appListElement.Add(element);
                     }
                 }
                 return appListElement.ToString();

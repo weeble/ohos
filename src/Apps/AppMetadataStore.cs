@@ -18,10 +18,11 @@ namespace OpenHome.Os.Apps
         public bool InstallPending { get; set; }
         public bool DeletePending { get; set; }
         public string LocalInstallLocation { get; set; }
-        //public string UpdateUrl { get; set; }
-        //public bool AutoUpdate { get; set; }
+        public string UpdateUrl { get; set; }
+        public bool AutoUpdate { get; set; }
         public List<string> GrantedPermissions { get; set; }
         public string Udn { get; set; }
+        public string FriendlyName { get; set; }
 
         public AppMetadata Clone()
         {
@@ -32,7 +33,10 @@ namespace OpenHome.Os.Apps
                 GrantedPermissions = new List<string>(GrantedPermissions),
                 InstallPending = InstallPending,
                 LocalInstallLocation = LocalInstallLocation,
-                Udn = Udn
+                Udn = Udn,
+                AutoUpdate = AutoUpdate,
+                UpdateUrl = UpdateUrl,
+                FriendlyName = FriendlyName
             };
         }
     }
@@ -59,8 +63,8 @@ namespace OpenHome.Os.Apps
                       <xs:element name=""installPending"" type=""xs:boolean""/>
                       <xs:element name=""deletePending"" type=""xs:boolean""/>
                       <xs:element name=""localInstallationLocation"" type=""xs:string""/>
-                      <!--<xs:element name=""updateUrl"" type=""xs:string""/>-->
-                      <!--<xs:element name=""autoUpdate"" type=""xs:boolean""/>-->
+                      <xs:element name=""updateUrl"" type=""xs:string"" minOccurs=""0""/>
+                      <xs:element name=""autoUpdate"" type=""xs:boolean"" minOccurs=""0""/>
                       <xs:element name=""grantedPermissions"">
                         <xs:complexType>
                           <xs:sequence>
@@ -69,6 +73,7 @@ namespace OpenHome.Os.Apps
                         </xs:complexType>
                       </xs:element>
                       <xs:element name=""udn"" type=""xs:string"" minOccurs=""0""/>
+                      <xs:element name=""friendlyName"" type=""xs:string"" minOccurs=""0""/>
                     </xs:sequence>
                   </xs:complexType>
                 </xs:schema>";
@@ -80,6 +85,12 @@ namespace OpenHome.Os.Apps
             if (aAppElement == null) return null;
             var udnElement = aAppElement.Element("udn");
             string udn = (udnElement==null) ? null : udnElement.Value;
+            var autoUpdateElement = aAppElement.Element("autoUpdate");
+            bool autoUpdate = (autoUpdateElement == null) ? false : (bool)autoUpdateElement;
+            var updateUrlElement = aAppElement.Element("updateUrl");
+            string updateUrl = (updateUrlElement == null) ? "" : updateUrlElement.Value;
+            var friendlyNameElement = aAppElement.Element("friendlyName");
+            string friendlyName = (friendlyNameElement == null) ? "" : friendlyNameElement.Value;
             return
                 new AppMetadata
                 {
@@ -87,10 +98,11 @@ namespace OpenHome.Os.Apps
                     InstallPending = (bool)aAppElement.Element("installPending"),
                     DeletePending = (bool)aAppElement.Element("deletePending"),
                     LocalInstallLocation = (string)aAppElement.Element("localInstallationLocation"),
-                    //UpdateUrl = (string)aAppElement.Element("updateUrl"),
-                    //AutoUpdate = (bool)aAppElement.Element("autoUpdate"),
+                    UpdateUrl = updateUrl,
+                    AutoUpdate = autoUpdate,
                     GrantedPermissions = aAppElement.Element("grantedPermissions").Elements().Select(aE=>(string)aE).ToList(),
-                    Udn = udn
+                    Udn = udn,
+                    FriendlyName = friendlyName,
                 };
         }
 
@@ -103,11 +115,12 @@ namespace OpenHome.Os.Apps
                     new XElement("installPending", aApp.InstallPending),
                     new XElement("deletePending", aApp.DeletePending),
                     new XElement("localInstallationLocation", aApp.LocalInstallLocation),
-                    //new XElement("updateUrl", aApp.UpdateUrl),
-                    //new XElement("autoUpdate", aApp.AutoUpdate),
+                    new XElement("updateUrl", aApp.UpdateUrl),
+                    new XElement("autoUpdate", aApp.AutoUpdate),
                     new XElement("grantedPermissions",
                         aApp.GrantedPermissions.Select(aPermission=>new XElement("permission", aPermission))),
-                    new XElement("udn", aApp.Udn));
+                    new XElement("udn", aApp.Udn),
+                    new XElement("friendlyName", aApp.FriendlyName));
         }
 
         static XmlSchemaSet MakeSchemaSet(string aSchemaXml)
