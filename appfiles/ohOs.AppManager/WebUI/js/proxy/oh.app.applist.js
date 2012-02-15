@@ -185,23 +185,22 @@ oh.app.applist.prototype.appChanged = function (seq) {
 
         if (appListObj.appList.app) {
             var handle = appListObj.appList.app.handle;
-            var oldid = _this.list[handle].id;
             _this.list[handle] = appListObj.appList.app;
 
             if (_this.appListChangedFunction)
-                _this.appListChangedFunction(oldid, _this.list[handle]);
+                _this.appListChangedFunction(handle, _this.list[handle]);
         }
     });
 }
 
 oh.app.applist.prototype.appRemoved = function (seq) {
-    delete this.list[seq];
+   
     if (this.appListRemovedFunction)
-        this.appListRemovedFunction(seq);
+        this.appListRemovedFunction(seq,this.list[seq]);
+     delete this.list[seq];
 }
 
 oh.app.applist.prototype.remove = function (seq,successFunction, errorFunction) {
-		console.log('remove')
     this.appProxy.RemoveApp(seq,successFunction,errorFunction);
 }
 

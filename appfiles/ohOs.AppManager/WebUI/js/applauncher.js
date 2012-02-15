@@ -11,12 +11,12 @@ function appListAdded(data) {
 	addApp(data);
 }
 
-function appListRemoved(id) {
-	removeApp(id);
+function appListRemoved(handle,data) {
+	removeApp(handle,data);
 }
 
-function appListChanged(id,data) {
-    updateApp(id, data);
+function appListChanged(handle,data) {
+    updateApp(handle, data);
 }
 
 
@@ -129,12 +129,12 @@ function addGhostApp(input)
 
 
 
-function appListUpdateProgress(appid, isGhost, url,progressPercent, progressBytes, totalBytes) {
+function appListUpdateProgress(handle, isGhost, url,progressPercent, progressBytes, totalBytes) {
     setTimeout(function () {
         var app;
       
         if (isGhost) {
-        	var index = ghostApps.indexOf(appid);
+        	var index = ghostApps.indexOf(handle);
         	if(index== -1)
         	{
         		addGhostApp(url);
@@ -145,10 +145,10 @@ function appListUpdateProgress(appid, isGhost, url,progressPercent, progressByte
             $('#ghostloader_' + index).show();
         }
         else {
-            app = $('#progress_' + appid);
+            app = $('#progress_' + handle);
             app.ohloader();
-            $('#detailedapp_' + appid + ' .app-actions').hide();
-            $('#progress_' + appid).show();
+            $('#detailedapp_' + handle + ' .app-actions').hide();
+            $('#progress_' + handle).show();
         }
         if(app.data('ohloader'))
         {
@@ -167,7 +167,7 @@ function appListUpdateProgress(appid, isGhost, url,progressPercent, progressByte
     }, 500);
 }
 
-function appListUpdateFailed(appid,isGhost) {
+function appListUpdateFailed(handle,isGhost) {
     if (isGhost) {
         var app = $('#ghostapp_' + ghostApps.indexOf(appid));
         app.data('ohanimate').animate('bounceOut');
@@ -178,33 +178,33 @@ function appListUpdateFailed(appid,isGhost) {
         ghostApps[ghostApps.indexOf(appid)] = null;
     }
     else {
-        $('#detailedapp_' + appid).data('ohanimate').animate('bounceIn');
-        $('#detailedapp_' + appid + ' .app-actions').show();
-        $('#progress_' + appid).hide();
+        $('#detailedapp_' + handle).data('ohanimate').animate('bounceIn');
+        $('#detailedapp_' + handle + ' .app-actions').show();
+        $('#progress_' + handle).hide();
         $('#drawer').data('ohdrawer').showError('App failed to update');
     }
 }
 
 
-function updateApp(id, app) {
+function updateApp(handle, app) {
     
-    $('#app_' + id + ' .text').html(app.name);
+    $('#app_' + handle + ' .text').html(app.name);
 
     if (app.updateStatus && app.updateStatus == "available") {
-        $('#detailedapp_' + app.id + ' .btn-app-update').show();
+        $('#detailedapp_' + handle + ' .btn-app-update').show();
 	
     } 
 
 
-    $('#detailedapp_' + id + ' .app-name').html(app.name);
-    $('#detailedapp_' + id + ' .app-version').html('Version: ' +app.version);
-    $('#detailedapp_' + id + ' .app-description').html(app.description);
+    $('#detailedapp_' + handle + ' .app-name').html(app.name);
+    $('#detailedapp_' + handle + ' .app-version').html('Version: ' +app.version);
+    $('#detailedapp_' + handle + ' .app-description').html(app.description);
     
-    $('#app_' + id).data('ohanimate').animate('bounceIn');
-    $('#detailedapp_' + id).data('ohanimate').animate('bounceIn');
+    $('#app_' + handle).data('ohanimate').animate('bounceIn');
+    $('#detailedapp_' + handle).data('ohanimate').animate('bounceIn');
 
-    $('#detailedapp_' + id + ' .app-actions').show();
-    $('#progress_' + id ).hide();
+    $('#detailedapp_' + handle + ' .app-actions').show();
+    $('#progress_' + handle ).hide();
    
 }
 
@@ -215,23 +215,25 @@ function addApp(app) {
     hasApp = true;
     $(".help").hide();
     var ghost = ghostApps.indexOf(app.url);
+
     if (ghost != -1) {
         $("#ghostapp_" + ghost).remove();
         ghostApps[ghost] = null;
     }
     var applauncher = parseTemplate($("#tpl_app-launcher").html(), {
 	    id: app.id,
-		name : app.id // change to name
+	    handle: app.handle,
+		name : app.friendlyName // change to name
 	});
 	var appmanager = parseTemplate($("#tpl_app-manager").html(), {
 	    id: app.id,
 	    handle: app.handle,
-		name : app.id,
+		name : app.friendlyName,
 		version : app.version,
         description: app.description
 	});
     $('.app-list').append(applauncher);
-    $('#app_' + app.id).bind(hit, function () {
+    $('#app_' + app.handle).bind(hit, function () {
         window.location = app.url;
     });
     var ghostIndex = ghostApps.indexOf(app.url);
@@ -243,32 +245,32 @@ function addApp(app) {
     else {
         $('.app-detailedlist').append(appmanager);
     }
-	$('#detailedapp_' + app.id + ' .btn-app-update').hide();
-	$('#app_' + app.id).ohanimate({
+	$('#detailedapp_' + app.handle + ' .btn-app-update').hide();
+	$('#app_' + app.handle).ohanimate({
 		animate : 'bounceIn'
 	});
 
-    $('#detailedapp_' + app.id + ' .btn-app-remove').ohanimate({
+    $('#detailedapp_' + app.handle + ' .btn-app-remove').ohanimate({
 		speed : 1000
 	});
-    $('#detailedapp_' + app.id).ohanimate({
+    $('#detailedapp_' + app.handle).ohanimate({
 		animate : 'bounceIn'
 	});
 
-	$('#detailedapp_' + app.id + ' .btn-app-remove').bind(hit, function () {
+	$('#detailedapp_' + app.handle + ' .btn-app-remove').bind(hit, function () {
 	    $('#drawer').data('ohdrawer').showWarning(
         {
             onSuccessFunction: function () {
                 applist.remove(app.handle, function () {
-                    removeApp(app.id, app.name);
+                    removeApp(app.handle, app);
                 });
             }
         });
 	    return false;
 	});
 
-	$('#detailedapp_' + app.id + ' .btn-app-update').bind(hit, function () {
-	    appListUpdateProgress(app.id, false);
+	$('#detailedapp_' + app.handle + ' .btn-app-update').bind(hit, function () {
+	    appListUpdateProgress(app.handle, false);
 	    return false;
 	});
 	if (ghost != -1) {
@@ -280,17 +282,17 @@ function addApp(app) {
 
 }
 
-function removeApp(appid,appname) {
-    var app = $('#app_' + appid);
+function removeApp(handle,appdata) {
+    var app = $('#app_' + handle);
    
 	app.data('ohanimate').animate('bounceOut');
 
-	var detailedapp = $('#detailedapp_' + appid);
+	var detailedapp = $('#detailedapp_' + handle);
 	detailedapp.data('ohanimate').animate('bounceOut');
 	setTimeout(function() {
 		app.remove();
 		detailedapp.remove();
-		$('#drawer').data('ohdrawer').showSuccess(appname + ' has been removed');
+		$('#drawer').data('ohdrawer').showSuccess(appdata.friendlyName + ' has been removed');
 }, 500);
 
 
