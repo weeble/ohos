@@ -17,27 +17,40 @@ namespace OpenHome.Os.Apps
 
         void Install(string aArgs)
         {
-            try
-            {
-                iAppAppShell.Install(aArgs);
-            }
-            catch (Exception e)
-            {
-                Console.Error.WriteLine(e);
-            }
+            iAppAppShell.Install(aArgs);
         }
 
         void Uninstall(string aArgs)
         {
-            try
-            {
-                iAppAppShell.UninstallByAppName(aArgs);
-            }
-            catch (Exception e)
-            {
-                Console.Error.WriteLine(e);
-            }
+            iAppAppShell.UninstallByAppName(aArgs);
         }
+
+        void Upgrade(string aArgs)
+        {
+            string[] segments = aArgs.Split();
+            iAppAppShell.Upgrade(segments[0], segments[1]);
+        }
+
+        void InstallNew(string aArgs)
+        {
+            iAppAppShell.InstallNew(aArgs);
+        }
+
+        Action<string> Guard(Action<string> aAction)
+        {
+            return aString =>
+                {
+                    try
+                    {
+                        aAction(aString);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.Error.WriteLine(e);
+                    }
+                };
+        }
+
 
         void ListApps(string aArgs)
         {
@@ -61,9 +74,11 @@ namespace OpenHome.Os.Apps
 
         public void Register(ICommandRegistry aCommandRegistry)
         {
-            aCommandRegistry.AddCommand("install", Install, "Install an app from a file.");
-            aCommandRegistry.AddCommand("uninstall", Uninstall, "Uninstall an app by name.");
-            aCommandRegistry.AddCommand("listapps", ListApps, "List installed apps.");
+            aCommandRegistry.AddCommand("install", Guard(Install), "Install (or upgrade) an app from a file.");
+            aCommandRegistry.AddCommand("uninstall", Guard(Uninstall), "Uninstall an app by name.");
+            aCommandRegistry.AddCommand("listapps", Guard(ListApps), "List installed apps.");
+            aCommandRegistry.AddCommand("installnew", Guard(InstallNew), "Install an app from a file.");
+            aCommandRegistry.AddCommand("upgrade", Guard(Upgrade), "Upgrade an app from a file. Usage: 'upgrade <appname> <zipfile>'");
         }
     }
 }

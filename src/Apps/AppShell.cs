@@ -8,13 +8,54 @@ namespace OpenHome.Os.Apps
 {
     public interface IAppShell : IDisposable
     {
+        /// <summary>
+        /// Start running apps.
+        /// </summary>
         void Start();
+        /// <summary>
+        /// Install or upgrade from the given app package.
+        /// </summary>
+        /// <param name="aZipFile"></param>
         void Install(string aZipFile);
+        /// <summary>
+        /// Install the given app package, or throw BadPluginException if it
+        /// collides with an existing app.
+        /// </summary>
+        /// <param name="aZipFile"></param>
+        void InstallNew(string aZipFile);
+        /// <summary>
+        /// Upgrade the named app with the given package. Throws
+        /// BadPluginException if the package does not match.
+        /// </summary>
+        /// <param name="aAppName"></param>
+        /// <param name="aZipFile"></param>
+        void Upgrade(string aAppName, string aZipFile);
+        /// <summary>
+        /// Uninstall the running app with given UDN.
+        /// </summary>
+        /// <param name="aUdn"></param>
         void UninstallByUdn(string aUdn);
+        /// <summary>
+        /// Uninstall the app with the given name.
+        /// </summary>
+        /// <param name="aAppName"></param>
         void UninstallByAppName(string aAppName);
+        /// <summary>
+        /// Uninstall all apps.
+        /// </summary>
         void UninstallAllApps();
+        /// <summary>
+        /// Stop running apps.
+        /// </summary>
         void Stop();
+        /// <summary>
+        /// Get information on all the apps.
+        /// </summary>
+        /// <returns></returns>
         IEnumerable<AppInfo> GetApps();
+        /// <summary>
+        /// Subscribe for notifications when apps are installed/uninstalled/started/stopped.
+        /// </summary>
         event EventHandler<AppStatusChangeEventArgs> AppStatusChanged;
     }
 
@@ -177,6 +218,29 @@ namespace OpenHome.Os.Apps
             lock (iLock)
             {
                 iImpl.Install(aZipFile);
+                invokeQueuedEvents = DeferQueuedEvents();
+            }
+            invokeQueuedEvents();
+        }
+
+        public void InstallNew(string aZipFile)
+        {
+            Action invokeQueuedEvents;
+            lock (iLock)
+            {
+                iImpl.InstallNew(aZipFile);
+                invokeQueuedEvents = DeferQueuedEvents();
+            }
+            invokeQueuedEvents();
+        }
+
+
+        public void Upgrade(string aAppName, string aZipFile)
+        {
+            Action invokeQueuedEvents;
+            lock (iLock)
+            {
+                iImpl.Upgrade(aAppName, aZipFile);
                 invokeQueuedEvents = DeferQueuedEvents();
             }
             invokeQueuedEvents();

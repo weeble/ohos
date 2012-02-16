@@ -46,18 +46,20 @@ namespace OpenHome.Os.AppManager
 
         void OnDownloadCountChanged(object aSender, EventArgs aE)
         {
-            int downloadCount = iDownloadManager.GetDownloadsStatus().Count();
-            foreach (var provider in iProviders)
+            iCallbackTracker.PreventClose(() =>
             {
-                provider.SetDownloadCount((uint)downloadCount);
-            }
+                int downloadCount = iDownloadManager.GetDownloadsStatus().Count();
+                foreach (var provider in iProviders)
+                {
+                    provider.SetDownloadCount((uint)downloadCount);
+                }
+            });
         }
 
         public void Dispose()
         {
             iDownloadManager.DownloadCountChanged -= OnDownloadCountChanged;
             iAppShell.AppStatusChanged -= OnAppStatusChanged;
-            //iDownloadManager.Dispose();
             iCallbackTracker.Close();
             foreach (var provider in iProviders)
             {
@@ -79,7 +81,11 @@ namespace OpenHome.Os.AppManager
                     iApps.TryAdd(app.Name, managedApp, out handle);
                     managedApp.Handle = handle;
                 }
-                managedApp.Info = app;
+                if (managedApp.Info != app)
+                {
+                    managedApp.Info = app;
+                    managedApp.SequenceNumber += 1;
+                }
             }
             foreach (string missingApp in unseenApps)
             {
@@ -171,9 +177,6 @@ namespace OpenHome.Os.AppManager
                                 new XElement("version", app.Info.Version == null ? "" : app.Info.Version.ToString()),
                                 new XElement("updateUrl", app.Info.UpdateUrl),
                                 new XElement("autoUpdate", app.Info.AutoUpdate),
-                                // Commenting out description. Apps provide only DescriptionUri, and
-                                // I've no idea what it's supposed to point to.
-                                //new XElement("description", "Hi there"),
                                 new XElement("status", app.Info.State == AppState.Running ? "running" : "broken"),
                                 new XElement("updateStatus", "noUpdate"));
                         if (!string.IsNullOrEmpty(app.Info.Udn))
@@ -189,7 +192,27 @@ namespace OpenHome.Os.AppManager
 
         public void UpdateApp(uint aAppHandle)
         {
-            throw new NotImplementedException();
+            lock (iLock)
+            {
+                ManagedApp managedApp;
+                iApps.TryGetValueById(aAppHandle, out managedApp);
+                string url = managedApp.Info.UpdateUrl;
+                string name = managedApp.Info.Name;
+                iDownloadManager.StartDownload(
+                    url,
+                    aLocalFile =>
+                    {
+                        try
+                        {
+                            iAppShell.Upgrade(name, aLocalFile);
+                        }
+                        catch (BadPluginException)
+                        {
+                            // TODO: Update download status to record failure.
+                            Logger.Warn("Update failed: bad plugin.");
+                        }
+                    });
+            }
         }
 
         public void InstallAppFromUrl(string aAppUrl)
@@ -201,12 +224,12 @@ namespace OpenHome.Os.AppManager
                 {
                     try
                     {
-                        iAppShell.Install(aLocalFile);
+                        iAppShell.InstallNew(aLocalFile);
                     }
                     catch (BadPluginException)
                     {
                         // TODO: Update download status to record failure.
-                        Console.WriteLine("Bad plugin");
+                        Logger.Warn("Install failed: bad plugin.");
                     }
                 });
         }
