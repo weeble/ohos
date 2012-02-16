@@ -35,10 +35,10 @@ namespace OpenHome.Os.Apps
         /// <returns></returns>
         public string VerifyPluginZip(string aZipFile)
         {
-            var zf = iZipReader.Open(aZipFile);
             HashSet<string> topLevelDirectories = new HashSet<string>();
             try
             {
+                var zf = iZipReader.Open(aZipFile);
                 foreach (ZipEntry entry in zf)
                 {
                     string fname = entry.Name;
@@ -51,6 +51,10 @@ namespace OpenHome.Os.Apps
                     string topLevelDirectory = VerifyPluginZipEntry(fname);
                     topLevelDirectories.Add(topLevelDirectory);
                 }
+            }
+            catch (ZipException)
+            {
+                throw new BadPluginException("Bad plugin: corrupt archive.");
             }
             catch (NotSupportedException)
             {

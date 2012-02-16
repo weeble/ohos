@@ -28,14 +28,24 @@ namespace OpenHome.Os.Apps
         public bool PendingUpdate { get; private set; }
         public bool PendingDelete { get; private set; }
         public string Udn { get; private set; }
+        public string FriendlyName { get; private set; }
+        public bool AutoUpdate { get; private set; }
+        public string UpdateUrl { get; private set; }
+        public string IconUrl { get; private set; }
+        public AppVersion Version { get; private set; }
 
-        public AppInfo(string aName, AppState aState, bool aPendingUpdate, bool aPendingDelete, string aUdn)
+        public AppInfo(string aName, AppState aState, bool aPendingUpdate, bool aPendingDelete, string aUdn, string aFriendlyName, bool aAutoUpdate, string aUpdateUrl, string aIconUrl, AppVersion aVersion)
         {
             Name = aName;
             State = aState;
             PendingUpdate = aPendingUpdate;
             PendingDelete = aPendingDelete;
             Udn = aUdn;
+            FriendlyName = aFriendlyName;
+            AutoUpdate = aAutoUpdate;
+            UpdateUrl = aUpdateUrl;
+            IconUrl = aIconUrl;
+            Version = aVersion;
         }
     }
 
@@ -103,12 +113,15 @@ namespace OpenHome.Os.Apps
                 iMetadataStore = aMetadataStore;
                 iZipVerifier = aZipVerifier;
                 iAppsDirectory = aAppsDirectory;
+                IconUrl = "";
             }
 
             public PublishedApp PublishedApp { get; private set; }
             public bool IsPublished { get { return PublishedApp != null; } }
             public bool DirectoryExists { get { return iAppsDirectory.DoesSubdirectoryExist(AppName); } }
             public bool HasCodeLoaded { get; private set; }
+            public string IconUrl { get; set; }
+            public AppVersion Version { get; set; }
 
             public void Publish(PublishedApp aPublishedApp)
             {
@@ -319,11 +332,28 @@ namespace OpenHome.Os.Apps
             {
                 var metadata = app.ReadAppMetadata();
                 string udn = null;
+                string friendlyName = "";
+                bool autoUpdate = false;
+                string updateUrl = "";
                 if (metadata != null)
                 {
                     udn = metadata.Udn;
+                    friendlyName = metadata.FriendlyName;
+                    autoUpdate = metadata.AutoUpdate;
+                    updateUrl = metadata.UpdateUrl;
                 }
-                apps.Add(new AppInfo(app.AppName, app.IsPublished ? AppState.Running : AppState.NotRunning, metadata!=null && metadata.InstallPending, metadata!=null && metadata.DeletePending, udn));
+                apps.Add(new AppInfo(
+                    app.AppName,
+                    app.IsPublished ? AppState.Running : AppState.NotRunning,
+                    metadata!=null && metadata.InstallPending,
+                    metadata!=null && metadata.DeletePending,
+                    udn,
+                    friendlyName,
+                    autoUpdate,
+                    updateUrl,
+                    app.IconUrl,
+                    app.Version
+                    ));
             }
             return apps;
         }
@@ -493,7 +523,19 @@ namespace OpenHome.Os.Apps
 
             var app = aApp;
 
+            var friendlyNameAttribute =
+                app
+                .GetType()
+                .GetCustomAttributes(typeof(AppFriendlyNameAttribute), true)
+                .Cast<AppFriendlyNameAttribute>()
+                .FirstOrDefault();
+
             string appDirName = aAppDirectoryInfo.Name;
+
+            string friendlyName =
+                friendlyNameAttribute == null ?
+                appDirName :
+                friendlyNameAttribute.FriendlyName;
 
             if (app.PublishesNodeServices && iFullPrivilegeAppServices.NodeDeviceAccessor.Device.Enabled())
             {
@@ -517,6 +559,7 @@ namespace OpenHome.Os.Apps
                 Logger.ErrorFormat("Bad app: multiple apps started from directory {0}.", appDirName);
                 return;
             }
+
             AppMetadata appMetadata = knownApp.ReadAppMetadata();
 
             AppContext appContext = new AppContext(iFullPrivilegeAppServices,
@@ -541,12 +584,28 @@ namespace OpenHome.Os.Apps
                 udn = Guid.NewGuid().ToString();
             }
 
+            bool metadataDirty = false;
+
+            if (friendlyName != appMetadata.FriendlyName)
+            {
+                appMetadata.FriendlyName = friendlyName;
+                metadataDirty = true;
+            }
+
             if (appMetadata.Udn != udn)
             {
                 // The store needs to be updated with the new UDN
                 appMetadata.Udn = udn;
+                metadataDirty = true;
+            }
+
+            if (metadataDirty)
+            {
                 knownApp.WriteAppMetadata(appMetadata);
             }
+
+            knownApp.IconUrl = app.IconUri;
+            knownApp.Version = app.Version;
 
             IDvDevice device = CreateAppDevice(app, udn, appDirName);
             appContext.Device = device.RawDevice;

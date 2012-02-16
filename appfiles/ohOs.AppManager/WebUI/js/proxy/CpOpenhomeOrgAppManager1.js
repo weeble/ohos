@@ -20,6 +20,7 @@ var CpProxyOpenhomeOrgAppManager1 = function(udn){
 	this.serviceProperties = {};
 	this.serviceProperties["AppHandleArray"] = new ohnet.serviceproperty("AppHandleArray","binary");
 	this.serviceProperties["AppSequenceNumberArray"] = new ohnet.serviceproperty("AppSequenceNumberArray","binary");
+	this.serviceProperties["DownloadCount"] = new ohnet.serviceproperty("DownloadCount","int");
 }
 
 
@@ -69,6 +70,19 @@ CpProxyOpenhomeOrgAppManager1.prototype.AppSequenceNumberArray_Changed = functio
 		stateChangedFunction(ohnet.soaprequest.readBinaryParameter(state)); 
 	});
 }
+	
+
+/**
+* Adds a listener to handle "DownloadCount" property change events
+* @method DownloadCount_Changed
+* @param {Function} stateChangedFunction The handler for state changes
+*/
+CpProxyOpenhomeOrgAppManager1.prototype.DownloadCount_Changed = function (stateChangedFunction) {
+    this.serviceProperties.DownloadCount.addListener(function (state) 
+	{ 
+		stateChangedFunction(ohnet.soaprequest.readIntParameter(state)); 
+	});
+}
 
 
 /**
@@ -78,7 +92,7 @@ CpProxyOpenhomeOrgAppManager1.prototype.AppSequenceNumberArray_Changed = functio
 * @param {Function} successFunction The function that is executed when the action has completed successfully
 * @param {Function} errorFunction The function that is executed when the action has cause an error
 */
-CpProxyOpenhomeOrgAppManager1.prototype.GetAppStatus = function (AppHandle, successFunction, errorFunction) {	
+CpProxyOpenhomeOrgAppManager1.prototype.GetAppStatus = function(AppHandle, successFunction, errorFunction){	
 	var request = new ohnet.soaprequest("GetAppStatus", this.url, this.domain, this.type, this.version);		
     request.writeIntParameter("AppHandle", AppHandle);
     request.send(function(result){
@@ -91,7 +105,6 @@ CpProxyOpenhomeOrgAppManager1.prototype.GetAppStatus = function (AppHandle, succ
 		if (errorFunction) {errorFunction(message, transport);}
 	});
 }
-
 
 
 /**
@@ -210,6 +223,26 @@ CpProxyOpenhomeOrgAppManager1.prototype.CancelDownload = function(AppURL, succes
 	var request = new ohnet.soaprequest("CancelDownload", this.url, this.domain, this.type, this.version);		
     request.writeStringParameter("AppURL", AppURL);
     request.send(function(result){
+	
+		if (successFunction){
+			successFunction(result);
+		}
+	}, function(message, transport) {
+		if (errorFunction) {errorFunction(message, transport);}
+	});
+}
+
+
+/**
+* A service action to GetPresentationUri
+* @method GetPresentationUri
+* @param {Function} successFunction The function that is executed when the action has completed successfully
+* @param {Function} errorFunction The function that is executed when the action has cause an error
+*/
+CpProxyOpenhomeOrgAppManager1.prototype.GetPresentationUri = function(successFunction, errorFunction){	
+	var request = new ohnet.soaprequest("GetPresentationUri", this.url, this.domain, this.type, this.version);		
+    request.send(function(result){
+		result["AppManagerPresentationUri"] = ohnet.soaprequest.readStringParameter(result["AppManagerPresentationUri"]);	
 	
 		if (successFunction){
 			successFunction(result);

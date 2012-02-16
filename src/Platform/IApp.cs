@@ -21,6 +21,19 @@ namespace OpenHome.Os.Platform
             Minor = aMinor;
             Build = aBuild;
         }
+        public override string ToString()
+        {
+            return String.Format("{0}.{1}.{2}", Major, Minor, Build);
+        }
+        public static AppVersion Parse(string aString)
+        {
+            string[] segments = aString.Split('.');
+            if (segments.Length != 3)
+            {
+                throw new ArgumentException();
+            }
+            return new AppVersion(uint.Parse(segments[0]), uint.Parse(segments[1]), uint.Parse(segments[2]));
+        }
     }
 
     public interface INodeInformation
@@ -97,6 +110,25 @@ namespace OpenHome.Os.Platform
         string Name { get; }
     }
 
+    /// <summary>
+    /// Give the app a friendly name to appear in UIs. Not currently
+    /// localized.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple=false, Inherited=true)]
+    public class AppFriendlyNameAttribute : Attribute
+    {
+        public AppFriendlyNameAttribute(string aFriendlyName)
+        {
+            FriendlyName = aFriendlyName;
+        }
+        public string FriendlyName { get; private set; }
+    }
+
+    /// <summary>
+    /// Apps should implement this interface. They can also apply attributes
+    /// to add various optional metadata or behaviour:
+    /// [AppFriendlyName]
+    /// </summary>
     [TypeExtensionPoint("/ohOs/App")]
     public interface IApp : IDisposable
     {

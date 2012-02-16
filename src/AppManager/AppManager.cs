@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Xml.Linq;
+using log4net;
 using OpenHome.Net.Device;
-using OpenHome.Net.Device.Providers;
 using OpenHome.Os.Apps;
 using OpenHome.Os.Platform.Collections;
 using OpenHome.Widget.Nodes.Threading;
 
 namespace OpenHome.Os.AppManager
 {
+
     class AppManager : IAppManagerActionHandler, IDisposable
     {
         class ManagedApp
@@ -19,33 +19,45 @@ namespace OpenHome.Os.AppManager
             public uint SequenceNumber { get; set; }
             public uint Handle { get; set; }
         }
-        //class ManagedDownload
-        //{
-        //    public string Url { get; set; }
-        //}
+
+        static readonly ILog Logger = LogManager.GetLogger(typeof(AppManager));
 
         readonly object iLock = new object();
         readonly IAppShell iAppShell;
-        List<IAppManagerProvider> iProviders;
+        readonly List<IAppManagerProvider> iProviders;
         readonly SafeCallbackTracker iCallbackTracker = new SafeCallbackTracker();
-        IdDictionary<string, ManagedApp> iApps = new IdDictionary<string, ManagedApp>();
-        //Dictionary<string, ManagedDownload> iDownloads = new Dictionary<string, ManagedDownload>();
+        readonly IdDictionary<string, ManagedApp> iApps = new IdDictionary<string, ManagedApp>();
+        readonly IDownloadManager iDownloadManager;
 
         public AppManager(
             string aResourceUri,
             IEnumerable<DvDevice> aDevices,
             Func<DvDevice, IAppManagerActionHandler, string, IAppManagerProvider> aProviderConstructor,
-            IAppShell aAppShell)
+            IAppShell aAppShell,
+            IDownloadManager aDownloadManager)
         {
+            iDownloadManager = aDownloadManager; // new DownloadManager(aDownloadDirectory);
+            iDownloadManager.DownloadCountChanged += OnDownloadCountChanged;
             iAppShell = aAppShell;
             iProviders = aDevices.Select(aDevice=>aProviderConstructor(aDevice, this, aResourceUri)).ToList();
             iAppShell.AppStatusChanged += OnAppStatusChanged;
             RefreshApps();
         }
 
+        void OnDownloadCountChanged(object aSender, EventArgs aE)
+        {
+            int downloadCount = iDownloadManager.GetDownloadsStatus().Count();
+            foreach (var provider in iProviders)
+            {
+                provider.SetDownloadCount((uint)downloadCount);
+            }
+        }
+
         public void Dispose()
         {
+            iDownloadManager.DownloadCountChanged -= OnDownloadCountChanged;
             iAppShell.AppStatusChanged -= OnAppStatusChanged;
+            //iDownloadManager.Dispose();
             iCallbackTracker.Close();
             foreach (var provider in iProviders)
             {
@@ -105,35 +117,36 @@ namespace OpenHome.Os.AppManager
         public string GetAppStatus(uint aAppHandle)
         {
             return GetMultipleAppsStatus(new List<uint> { aAppHandle });
-            /*lock (iLock)
-            {
-                
-                string appName = iApps.GetKeyForId(aAppHandle);
-                ManagedApp app;
-                if (iApps.TryGetValueById(aAppHandle, out app))
-                {
-                    return new XElement("appList",
-                        new XElement("app"),
-                            new XElement("handle", aAppHandle),
-                            new XElement("id", app.Info.Name),
-                            new XElement("version", "DUMMY"),
-                            new XElement("url", "http://notimplemented.invalid"),
-                            new XElement("description", "Hi there"),
-                            new XElement("status", app.Info.State == AppState.Running ? "running" : "broken"),
-                            new XElement("updateStatus", "noUpdate")).ToString();
-                }
-                throw new ActionError("Handle not found");
-            }*/
         }
 
         public void CancelDownload(string aAppUrl)
         {
-            throw new NotImplementedException();
+            iDownloadManager.CancelDownload(aAppUrl);
+        }
+
+        XElement DownloadProgressToXElement(DownloadProgress aDownload)
+        {
+            XElement element = new XElement("download",
+                new XElement("status", aDownload.HasFailed ? "failed" : "downloading"),
+                new XElement("url", aDownload.Uri),
+                new XElement("progressBytes", aDownload.DownloadedBytes));
+            if (aDownload.HasTotalBytes)
+            {
+                element.Add(
+                    new XElement("totalBytes", aDownload.TotalBytes),
+                    new XElement("progressPercent", (int)Math.Round(100.0 * aDownload.DownloadedBytes / aDownload.TotalBytes)));
+            }
+            return element;
         }
 
         public string GetAllDownloadsStatus()
         {
-            throw new NotImplementedException();
+            IEnumerable<DownloadProgress> downloads = iDownloadManager.GetDownloadsStatus();
+            lock (iLock)
+            {
+                XElement root = new XElement("downloadList",downloads.Select(DownloadProgressToXElement));
+                return root.ToString();
+            }
         }
 
         public string GetMultipleAppsStatus(List<uint> aHandles)
@@ -150,15 +163,24 @@ namespace OpenHome.Os.AppManager
                     ManagedApp app;
                     if (iApps.TryGetValueById(handle, out app))
                     {
-                        appListElement.Add(
+                        var element =
                             new XElement("app",
                                 new XElement("handle", app.Handle),
                                 new XElement("id", app.Info.Name),
-                                new XElement("version", "DUMMY"),
-                                new XElement("url", String.Format("/{0}/Upnp/resource/", app.Info.Udn)),
-                                new XElement("description", "Hi there"),
+                                new XElement("friendlyName", app.Info.FriendlyName),
+                                new XElement("version", app.Info.Version == null ? "" : app.Info.Version.ToString()),
+                                new XElement("updateUrl", app.Info.UpdateUrl),
+                                new XElement("autoUpdate", app.Info.AutoUpdate),
+                                // Commenting out description. Apps provide only DescriptionUri, and
+                                // I've no idea what it's supposed to point to.
+                                //new XElement("description", "Hi there"),
                                 new XElement("status", app.Info.State == AppState.Running ? "running" : "broken"),
-                                new XElement("updateStatus", "noUpdate")));
+                                new XElement("updateStatus", "noUpdate"));
+                        if (!string.IsNullOrEmpty(app.Info.Udn))
+                        {
+                            element.Add(new XElement("url", String.Format("/{0}/Upnp/resource/", app.Info.Udn)));
+                        }
+                        appListElement.Add(element);
                     }
                 }
                 return appListElement.ToString();
@@ -172,13 +194,31 @@ namespace OpenHome.Os.AppManager
 
         public void InstallAppFromUrl(string aAppUrl)
         {
-            throw new NotImplementedException();
+            Logger.InfoFormat("InstallAppFromUrl({0})", aAppUrl);
+            iDownloadManager.StartDownload(
+                aAppUrl,
+                aLocalFile =>
+                {
+                    try
+                    {
+                        iAppShell.Install(aLocalFile);
+                    }
+                    catch (BadPluginException)
+                    {
+                        // TODO: Update download status to record failure.
+                        Console.WriteLine("Bad plugin");
+                    }
+                });
         }
 
         public void RemoveApp(uint aAppHandle)
         {
-            throw new NotImplementedException();
+            string appName;
+            lock (iLock)
+            {
+                appName = iApps.GetKeyForId(aAppHandle);
+            }
+            iAppShell.UninstallByAppName(appName);
         }
-
     }
 }

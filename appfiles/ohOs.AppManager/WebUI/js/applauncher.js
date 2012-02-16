@@ -1,6 +1,5 @@
 var hit = 'click';
 
-var nodeUdn = 'chrisc';
 var applist;
 var hasDownloads = false;
 var hasApp = false;
@@ -12,12 +11,12 @@ function appListAdded(data) {
 	addApp(data);
 }
 
-function appListRemoved(id) {
-	removeApp(id);
+function appListRemoved(handle,data) {
+	removeApp(handle,data);
 }
 
-function appListChanged(id,data) {
-    updateApp(id, data);
+function appListChanged(handle,data) {
+    updateApp(handle, data);
 }
 
 
@@ -62,24 +61,7 @@ $().ready(function () {
         {
             onSuccessFunction: function (input) {
                 _this.applist.install(input, function () {
-                    var ghostIndex = ghostApps.length;
-                    var applauncher = parseTemplate($("#tpl_app_ghost").html(), {
-                        url: input,
-                        id: ghostIndex
-                    });
-                    hasApp = true;
-                    $(".help").hide();
-                    ghostApps.push(input);
-
-                    $('.app-detailedlist').prepend(applauncher);
-                    $('#ghostapp_' + ghostIndex).ohanimate({
-                        animate: 'bounceIn'
-                    });
-
-                    setTimeout(function () {
-                        $('#ghostloader_' + ghostIndex).ohloader({ loadingtext: 'Locating app...' });
-                    }, 100);
-
+                	  addGhostApp(input);
                 });
             },
             labelValue: 'Enter the App Url:',
@@ -90,6 +72,7 @@ $().ready(function () {
     ohnet.subscriptionmanager.start(
     {
         allowWebSockets: true,
+        debugMode: false,
         startedFunction: function () {
             $('.app-list').html('');
             $('.app-detailedlist').html('');
@@ -122,36 +105,69 @@ $().ready(function () {
     });
 });
 
-function appListUpdateProgress(appid, isGhost, progressPercent, progressBytes, totalBytes) {
+
+function addGhostApp(input)
+{
+	var ghostIndex = ghostApps.length;
+    var applauncher = parseTemplate($("#tpl_app_ghost").html(), {
+        url: input,
+        id: ghostIndex
+    });
+    hasApp = true;
+    $(".help").hide();
+    ghostApps.push(input);
+
+    $('.app-detailedlist').prepend(applauncher);
+    $('#ghostapp_' + ghostIndex).ohanimate({
+        animate: 'bounceIn'
+    });
+
+    setTimeout(function () {
+        $('#ghostloader_' + ghostIndex).ohloader({ loadingtext: 'Locating app...' });
+    }, 100);
+}
+
+
+
+function appListUpdateProgress(handle, isGhost, url,progressPercent, progressBytes, totalBytes) {
     setTimeout(function () {
         var app;
       
         if (isGhost) {
-            app = $('#ghostloader_' + ghostApps.indexOf(appid));
+        	var index = ghostApps.indexOf(handle);
+        	if(index== -1)
+        	{
+        		addGhostApp(url);
+        		index = ghostApps.length;
+        	}
+            app = $('#ghostloader_' + index);
             app.ohloader();
-            $('#ghostloader_' + ghostApps.indexOf(appid)).show();
+            $('#ghostloader_' + index).show();
         }
         else {
-            app = $('#progress_' + appid);
+            app = $('#progress_' + handle);
             app.ohloader();
-            $('#detailedapp_' + appid + ' .app-actions').hide();
-            $('#progress_' + appid).show();
+            $('#detailedapp_' + handle + ' .app-actions').hide();
+            $('#progress_' + handle).show();
         }
-        app.data('ohloader').setText('Downloading...');
-        if (progressPercent) {
-            if (progressPercent == 100)
-                app.data('ohloader').setText('Installing...');
-
-            app.data('ohloader').renderProgress();
-            app.data('ohloader').updateProgress(progressPercent);
-        }
-        else {
-            app.data('ohloader').renderSpinner();
+        if(app.data('ohloader'))
+        {
+	        app.data('ohloader').setText('Downloading...');
+	        if (progressPercent) {
+	            if (progressPercent == 100)
+	                app.data('ohloader').setText('Installing...');
+	
+	            app.data('ohloader').renderProgress();
+	            app.data('ohloader').updateProgress(progressPercent);
+	        }
+	        else {
+	            app.data('ohloader').renderSpinner();
+	        }
         }
     }, 500);
 }
 
-function appListUpdateFailed(appid,isGhost) {
+function appListUpdateFailed(handle,isGhost) {
     if (isGhost) {
         var app = $('#ghostapp_' + ghostApps.indexOf(appid));
         app.data('ohanimate').animate('bounceOut');
@@ -162,33 +178,33 @@ function appListUpdateFailed(appid,isGhost) {
         ghostApps[ghostApps.indexOf(appid)] = null;
     }
     else {
-        $('#detailedapp_' + appid).data('ohanimate').animate('bounceIn');
-        $('#detailedapp_' + appid + ' .app-actions').show();
-        $('#progress_' + appid).hide();
+        $('#detailedapp_' + handle).data('ohanimate').animate('bounceIn');
+        $('#detailedapp_' + handle + ' .app-actions').show();
+        $('#progress_' + handle).hide();
         $('#drawer').data('ohdrawer').showError('App failed to update');
     }
 }
 
 
-function updateApp(id, app) {
+function updateApp(handle, app) {
     
-    $('#app_' + id + ' .text').html(app.name);
+    $('#app_' + handle + ' .text').html(app.name);
 
     if (app.updateStatus && app.updateStatus == "available") {
-        $('#detailedapp_' + app.id + ' .btn-app-update').show();
+        $('#detailedapp_' + handle + ' .btn-app-update').show();
 	
     } 
 
 
-    $('#detailedapp_' + id + ' .app-name').html(app.name);
-    $('#detailedapp_' + id + ' .app-version').html('Version: ' +app.version);
-    $('#detailedapp_' + id + ' .app-description').html(app.description);
+    $('#detailedapp_' + handle + ' .app-name').html(app.name);
+    $('#detailedapp_' + handle + ' .app-version').html('Version: ' +app.version);
+    $('#detailedapp_' + handle + ' .app-description').html(app.description);
     
-    $('#app_' + id).data('ohanimate').animate('bounceIn');
-    $('#detailedapp_' + id).data('ohanimate').animate('bounceIn');
+    $('#app_' + handle).data('ohanimate').animate('bounceIn');
+    $('#detailedapp_' + handle).data('ohanimate').animate('bounceIn');
 
-    $('#detailedapp_' + id + ' .app-actions').show();
-    $('#progress_' + id ).hide();
+    $('#detailedapp_' + handle + ' .app-actions').show();
+    $('#progress_' + handle ).hide();
    
 }
 
@@ -198,25 +214,28 @@ function addApp(app) {
     $("#page-appmanager .page-loader").hide();
     hasApp = true;
     $(".help").hide();
-    var ghost = ghostApps.indexOf(app.url);
+
+    var ghost = ghostApps.indexOf(app.updateUrl);
+
     if (ghost != -1) {
         $("#ghostapp_" + ghost).remove();
         ghostApps[ghost] = null;
     }
     var applauncher = parseTemplate($("#tpl_app-launcher").html(), {
 	    id: app.id,
-		name : app.name
+	    handle: app.handle,
+		name : app.friendlyName // change to name
 	});
 	var appmanager = parseTemplate($("#tpl_app-manager").html(), {
 	    id: app.id,
 	    handle: app.handle,
-		name : app.name,
+		name : app.friendlyName,
 		version : app.version,
         description: app.description
 	});
     $('.app-list').append(applauncher);
-    $('#app_' + app.id).bind(hit, function () {
-        window.location = 'http://www.openhome.org';
+    $('#app_' + app.handle).bind(hit, function () {
+        window.location = app.url;
     });
     var ghostIndex = ghostApps.indexOf(app.url);
     if (ghostIndex != -1) {
@@ -227,32 +246,38 @@ function addApp(app) {
     else {
         $('.app-detailedlist').append(appmanager);
     }
-	$('#detailedapp_' + app.id + ' .btn-app-update').hide();
-	$('#app_' + app.id).ohanimate({
+	$('#detailedapp_' + app.handle + ' .btn-app-update').hide();
+	$('#app_' + app.handle).ohanimate({
 		animate : 'bounceIn'
 	});
 
-    $('#detailedapp_' + app.id + ' .btn-app-remove').ohanimate({
+    $('#detailedapp_' + app.handle + ' .btn-app-remove').ohanimate({
 		speed : 1000
 	});
-    $('#detailedapp_' + app.id).ohanimate({
+    $('#detailedapp_' + app.handle).ohanimate({
 		animate : 'bounceIn'
 	});
 
-	$('#detailedapp_' + app.id + ' .btn-app-remove').bind(hit, function () {
+	$('#detailedapp_' + app.handle + ' .btn-app-remove').bind(hit, function () {
 	    $('#drawer').data('ohdrawer').showWarning(
         {
             onSuccessFunction: function () {
-                applist.remove(app.id, function () {
-                    removeApp(app.id, app.name);
+            	var pro = $('#progress_' + app.handle);
+            	$('#detailedapp_' + app.handle + ' .btn-app-remove').hide();
+            	pro.ohloader();
+            	pro.data('ohloader').setText("Deleting...");
+            	
+                applist.remove(app.handle, function () {
+                	
+                    removeApp(app.handle, app);
                 });
             }
         });
 	    return false;
 	});
 
-	$('#detailedapp_' + app.id + ' .btn-app-update').bind(hit, function () {
-	    appListUpdateProgress(app.id, false);
+	$('#detailedapp_' + app.handle + ' .btn-app-update').bind(hit, function () {
+	    appListUpdateProgress(app.handle, false);
 	    return false;
 	});
 	if (ghost != -1) {
@@ -264,17 +289,17 @@ function addApp(app) {
 
 }
 
-function removeApp(appid,appname) {
-    var app = $('#app_' + appid);
+function removeApp(handle,appdata) {
+    var app = $('#app_' + handle);
    
 	app.data('ohanimate').animate('bounceOut');
 
-	var detailedapp = $('#detailedapp_' + appid);
+	var detailedapp = $('#detailedapp_' + handle);
 	detailedapp.data('ohanimate').animate('bounceOut');
 	setTimeout(function() {
 		app.remove();
 		detailedapp.remove();
-		$('#drawer').data('ohdrawer').showSuccess(appname + ' has been removed');
+		$('#drawer').data('ohdrawer').showSuccess(appdata.friendlyName + ' has been removed');
 }, 500);
 
 

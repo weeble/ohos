@@ -34,6 +34,8 @@
     <Compile Include="App.cs" />
     <Compile Include="AppManagerProvider.cs" />
     <Compile Include="AppManager.cs" />
+    <Compile Include="DownloadDirectory.cs" />
+    <Compile Include="DownloadManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Apps\OpenHome.Os.Apps.csproj">

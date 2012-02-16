@@ -11,6 +11,7 @@
 oh.namespace('oh.app');
 
 oh.app.applist = function (node, options) {
+	var _this = this;
     var defaults = {
         appReadyFunction: null,
         appListAddedFunction: null,
@@ -43,7 +44,7 @@ oh.app.applist = function (node, options) {
     });
     this.setupArrayIdChanged();
     this.setupSequenceNumberChanged();
-
+	this.setupDownloadCountChanged();
 };
 
 oh.app.applist.prototype.setupArrayIdChanged = function () {
@@ -53,8 +54,12 @@ oh.app.applist.prototype.setupArrayIdChanged = function () {
             var newAppIds = oh.util.convert.byteStringToUint32Array(state);
             _this.appIds.sort(function (a, b) { return a - b });
             _this.appIds.diff(newAppIds
-                                    , _this.appAdded
-                                    , _this.appRemoved);
+                                    , function(seq) {
+                                       	_this.appAdded.call(_this,seq);
+                                   }
+                                    ,  function(seq) {
+                                    	_this.appRemoved.call(_this,seq);
+                                   });
             _this.appIds = newAppIds;
         }, this);
     }
@@ -77,34 +82,50 @@ oh.app.applist.prototype.setupSequenceNumberChanged = function () {
     }
 }
 
-oh.app.applist.prototype.appHasDownloads = function () {
+oh.app.applist.prototype.setupDownloadCountChanged = function () {
+
     var _this = this;
+    this.appProxy.DownloadCount_Changed(function (download) { 
+        if(download > 0)
+        {
+        	_this.appHasDownloads();
+        }
+        
+    });
+}
+
+
+oh.app.applist.prototype.appHasDownloads = function () {
+	var _this = this;
     if (!this.downloadPoll) {
         this.downloadPoll = true;
-        debugprogressxml = $("#progressxml").val();  // debug
+        //debugprogressxml = $("#progressxml").val();  // debug
         this.appProxy.GetAllDownloadsStatus(function (result) {
             _this.hasDownloads = false;
             var xml = result.DownloadStatusXml;
             var downloadListObj = oh.util.dataformat.xmlStringToJson(xml);
             for (var d in downloadListObj) {
-                var download = downloadListObj[d].download;
-                if (download.appHandle && download.status == 'downloading') {
-                    if (_this.appListUpdateProgressFunction)
-                        _this.appListUpdateProgressFunction(download.appId, false, download.progressPercent, download.progressBytes, download.totalBytes);
-                    _this.hasDownloads = true;
-                    // app update
-                } else if (download.url && download.status == 'downloading') {
-                    if (_this.appListUpdateProgressFunction)
-                        _this.appListUpdateProgressFunction(download.url, true, download.progressPercent, download.progressBytes, download.totalBytes);
-                    _this.hasDownloads = true;
-                }
-                else {
-                    if (_this.appListUpdateFailedFunction) {
-                        if (download.appHandle)
-                            _this.appListUpdateFailedFunction(download.appId, false);
-                        else if (download.url)
-                            _this.appListUpdateFailedFunction(download.url, true);
-                    }
+            	if(downloadListObj[d])
+            	{
+	                var download = downloadListObj[d].download;
+	                if (download.appHandle && download.status == 'downloading') {
+	                    if (_this.appListUpdateProgressFunction)
+	                        _this.appListUpdateProgressFunction(download.appId, false,download.url, download.progressPercent, download.progressBytes, download.totalBytes);
+	                    _this.hasDownloads = true;
+	                    // app update
+	                } else if (download.url && download.status == 'downloading') {
+	                    if (_this.appListUpdateProgressFunction)
+	                        _this.appListUpdateProgressFunction(download.url, true,download.url, download.progressPercent, download.progressBytes, download.totalBytes);
+	                    _this.hasDownloads = true;
+	                }
+	                else {
+	                    if (_this.appListUpdateFailedFunction) {
+	                        if (download.appHandle)
+	                            _this.appListUpdateFailedFunction(download.appId, false);
+	                        else if (download.url)
+	                            _this.appListUpdateFailedFunction(download.url, true);
+	                    }
+	                }
                 }
             }
             if (_this.hasDownloads) {
@@ -139,17 +160,20 @@ oh.app.applist.prototype.appHasDownloads = function () {
 
 oh.app.applist.prototype.appAdded = function (seq) {
     var _this = this;
-
+ 
     this.appProxy.GetAppStatus(seq, function (result) {
+    	
         var xml = result.AppListXml;
-        var appListObj = oh.util.dataformat.xmlStringToJson(xml);
-
-        if (appListObj.appList.app) {
-            var handle = appListObj.appList.app.handle;
-            _this.list[handle] = appListObj.appList.app;
-            if (_this.appListAddedFunction)
-                _this.appListAddedFunction(_this.list[handle]);
-            _this.appHasDownloads();
+        if(result.AppListXml)
+        {
+        
+	        var appListObj = oh.util.dataformat.xmlStringToJson(xml);
+		    if (appListObj.appList.app && appListObj.appList.app.id != 'ohOs.AppManager') {
+	            var handle = appListObj.appList.app.handle;
+	            _this.list[handle] = appListObj.appList.app;
+	            if (_this.appListAddedFunction)
+	                _this.appListAddedFunction(_this.list[handle]);
+	        }
         }
     });
 
@@ -164,20 +188,19 @@ oh.app.applist.prototype.appChanged = function (seq) {
 
         if (appListObj.appList.app) {
             var handle = appListObj.appList.app.handle;
-            var oldid = _this.list[handle].id;
             _this.list[handle] = appListObj.appList.app;
 
             if (_this.appListChangedFunction)
-                _this.appListChangedFunction(oldid, _this.list[handle]);
-            _this.appHasDownloads();
+                _this.appListChangedFunction(handle, _this.list[handle]);
         }
     });
 }
 
 oh.app.applist.prototype.appRemoved = function (seq) {
-    delete this.list[seq];
+   
     if (this.appListRemovedFunction)
-        this.appListRemovedFunction(seq);
+        this.appListRemovedFunction(seq,this.list[seq]);
+     delete this.list[seq];
 }
 
 oh.app.applist.prototype.remove = function (seq,successFunction, errorFunction) {
@@ -192,7 +215,6 @@ oh.app.applist.prototype.install = function (url, successFunction, errorFunction
         if (successFunction) {
             successFunction();
         }
-        _this.appHasDownloads();
     }, errorFunction);
 }
 

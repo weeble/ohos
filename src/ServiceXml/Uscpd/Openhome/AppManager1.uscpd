@@ -98,6 +98,9 @@ var AppHandleArray : bin.base64;
 # These are incremented whenever an app's status changes.
 var AppSequenceNumberArray : bin.base64;
 
+# The number of downloads currently in progress.
+var DownloadCount : ui4;
+
 
 # ACTIONS
 
