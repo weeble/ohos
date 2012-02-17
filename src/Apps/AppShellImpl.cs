@@ -518,7 +518,7 @@ namespace OpenHome.Os.Apps
                 throw new BadPluginException(String.Format("Expected plugin app name '{0}', but got '{1}' instead.", aAppName, appDirName));
             }
             var knownApp = GetOrCreateKnownApp(appDirName);
-            if (knownApp.DirectoryExists && !aAllowUpgrade)
+            if (knownApp.DirectoryExists && !aAllowUpgrade && !knownApp.ReadAppMetadata().DeletePending)
             {
                 throw new BadPluginException(String.Format("Expected new install, but plugin collides with existing app '{0}'.", appDirName));
             }
