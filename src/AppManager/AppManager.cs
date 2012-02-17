@@ -6,6 +6,7 @@ using log4net;
 using OpenHome.Net.Device;
 using OpenHome.Os.Apps;
 using OpenHome.Os.Platform.Collections;
+using OpenHome.Widget.Nodes.IO;
 using OpenHome.Widget.Nodes.Threading;
 
 namespace OpenHome.Os.AppManager
@@ -18,6 +19,9 @@ namespace OpenHome.Os.AppManager
             public AppInfo Info { get; set; }
             public uint SequenceNumber { get; set; }
             public uint Handle { get; set; }
+
+            public bool DownloadAvailable { get; set; }
+            public bool Downloading { get; set; }
         }
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(AppManager));
@@ -36,7 +40,7 @@ namespace OpenHome.Os.AppManager
             IAppShell aAppShell,
             IDownloadManager aDownloadManager)
         {
-            iDownloadManager = aDownloadManager; // new DownloadManager(aDownloadDirectory);
+            iDownloadManager = aDownloadManager;
             iDownloadManager.DownloadCountChanged += OnDownloadCountChanged;
             iAppShell = aAppShell;
             iProviders = aDevices.Select(aDevice=>aProviderConstructor(aDevice, this, aResourceUri)).ToList();
@@ -67,6 +71,27 @@ namespace OpenHome.Os.AppManager
             }
         }
 
+        void OnAppAvailableForDownload(string aAppName)
+        {
+            Logger.InfoFormat("App update available: {0}", aAppName);
+            iCallbackTracker.PreventClose(() =>
+            {
+                lock (iLock)
+                {
+                    ManagedApp managedApp;
+                    if (iApps.TryGetValueByKey(aAppName, out managedApp))
+                    {
+                        if (!managedApp.DownloadAvailable)
+                        {
+                            managedApp.DownloadAvailable = true;
+                            managedApp.SequenceNumber += 1;
+                            UpdateHandles();
+                        }
+                    }
+                }
+            });
+        }
+
         void RefreshApps()
         {
             HashSet<string> unseenApps = new HashSet<string>(iApps.ItemsByKey.Select(aKvp => aKvp.Key));
@@ -84,14 +109,28 @@ namespace OpenHome.Os.AppManager
                 if (managedApp.Info != app)
                 {
                     managedApp.Info = app;
+                    if (managedApp.Info.DownloadLastModified != null)
+                    {
+                        string appName = managedApp.Info.Name;
+                        iDownloadManager.StartPollingForAppUpdate(managedApp.Info.Name, managedApp.Info.UpdateUrl,
+                            () => OnAppAvailableForDownload(appName),
+                            () => OnAppPollFailed(appName),
+                            managedApp.Info.DownloadLastModified.Value);
+                    }
                     managedApp.SequenceNumber += 1;
                 }
             }
             foreach (string missingApp in unseenApps)
             {
+                iDownloadManager.StopPollingForAppUpdate(missingApp);
                 iApps.TryRemoveByKey(missingApp);
             }
             UpdateHandles();
+        }
+
+        void OnAppPollFailed(string aAppName)
+        {
+            Logger.InfoFormat("Poll for app update received error: {0}", aAppName);
         }
 
         void OnAppStatusChanged(object aSender, AppStatusChangeEventArgs aE)
@@ -178,7 +217,7 @@ namespace OpenHome.Os.AppManager
                                 new XElement("updateUrl", app.Info.UpdateUrl),
                                 new XElement("autoUpdate", app.Info.AutoUpdate),
                                 new XElement("status", app.Info.State == AppState.Running ? "running" : "broken"),
-                                new XElement("updateStatus", "noUpdate"));
+                                new XElement("updateStatus", app.DownloadAvailable ? "available" : "noUpdate"));
                         if (!string.IsNullOrEmpty(app.Info.Udn))
                         {
                             element.Add(new XElement("url", String.Format("/{0}/Upnp/resource/", app.Info.Udn)));
@@ -195,16 +234,20 @@ namespace OpenHome.Os.AppManager
             lock (iLock)
             {
                 ManagedApp managedApp;
-                iApps.TryGetValueById(aAppHandle, out managedApp);
+                if (!iApps.TryGetValueById(aAppHandle, out managedApp))
+                {
+                    throw new ActionError("No such app.");
+                }
+
                 string url = managedApp.Info.UpdateUrl;
                 string name = managedApp.Info.Name;
                 iDownloadManager.StartDownload(
                     url,
-                    aLocalFile =>
+                    (aLocalFile, aLastModified) =>
                     {
                         try
                         {
-                            iAppShell.Upgrade(name, aLocalFile);
+                            iAppShell.Upgrade(name, aLocalFile, url, aLastModified);
                         }
                         catch (BadPluginException)
                         {
@@ -212,6 +255,7 @@ namespace OpenHome.Os.AppManager
                             Logger.Warn("Update failed: bad plugin.");
                         }
                     });
+                managedApp.Downloading = true;
             }
         }
 
@@ -220,11 +264,11 @@ namespace OpenHome.Os.AppManager
             Logger.InfoFormat("InstallAppFromUrl({0})", aAppUrl);
             iDownloadManager.StartDownload(
                 aAppUrl,
-                aLocalFile =>
+                (aLocalFile, aLastModified) =>
                 {
                     try
                     {
-                        iAppShell.InstallNew(aLocalFile);
+                        iAppShell.InstallNew(aLocalFile, aAppUrl, aLastModified);
                     }
                     catch (BadPluginException)
                     {
