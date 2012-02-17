@@ -12,6 +12,10 @@ using OpenHome.Widget.Nodes.Threading;
 namespace OpenHome.Os.AppManager
 {
 
+    /// <summary>
+    /// High level management of apps. Checks for updates, coordinates downloads, provides UPnP
+    /// control over apps.
+    /// </summary>
     class AppManager : IAppManagerActionHandler, IDisposable
     {
         class ManagedApp
@@ -164,11 +168,20 @@ namespace OpenHome.Os.AppManager
             }
         }
 
+        /// <summary>
+        /// Get XML describing the status of one app.
+        /// </summary>
+        /// <param name="aAppHandle"></param>
+        /// <returns></returns>
         public string GetAppStatus(uint aAppHandle)
         {
             return GetMultipleAppsStatus(new List<uint> { aAppHandle });
         }
 
+        /// <summary>
+        /// Cancel a download by its URL.
+        /// </summary>
+        /// <param name="aAppUrl"></param>
         public void CancelDownload(string aAppUrl)
         {
             iDownloadManager.CancelDownload(aAppUrl);
@@ -189,6 +202,10 @@ namespace OpenHome.Os.AppManager
             return element;
         }
 
+        /// <summary>
+        /// Get XML describing the status of all downloads.
+        /// </summary>
+        /// <returns></returns>
         public string GetAllDownloadsStatus()
         {
             IEnumerable<DownloadProgress> downloads = iDownloadManager.GetDownloadsStatus();
@@ -199,6 +216,12 @@ namespace OpenHome.Os.AppManager
             }
         }
 
+        /// <summary>
+        /// Get the XML status of multiple apps. If zero handles are supplied, gets the
+        /// status of all apps.
+        /// </summary>
+        /// <param name="aHandles"></param>
+        /// <returns></returns>
         public string GetMultipleAppsStatus(List<uint> aHandles)
         {
             lock (iLock)
@@ -234,6 +257,10 @@ namespace OpenHome.Os.AppManager
             }
         }
 
+        /// <summary>
+        /// Update an app.
+        /// </summary>
+        /// <param name="aAppHandle"></param>
         public void UpdateApp(uint aAppHandle)
         {
             lock (iLock)
