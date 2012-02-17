@@ -7,8 +7,8 @@ using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Schema;
 using log4net;
-using OpenHome.Widget.Nodes.IO;
-using OpenHome.Widget.Nodes.Logging;
+using OpenHome.Os.Platform.IO;
+using OpenHome.Os.Platform.Logging;
 
 namespace OpenHome.Os.Apps
 {

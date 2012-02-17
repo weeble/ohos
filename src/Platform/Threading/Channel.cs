@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 
-namespace OpenHome.Widget.Nodes.Threading
+namespace OpenHome.Os.Platform.Threading
 {
     public static class Channel
     {

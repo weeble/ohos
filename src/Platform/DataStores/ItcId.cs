@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace OpenHome.Widget.Nodes.DataStores
+namespace OpenHome.Os.Platform.DataStores
 {
     public abstract class ItcId
     {

@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using OpenHome.Net.Device;
-using OpenHome.Widget.Nodes.Threading;
+using OpenHome.Os.Platform.Threading;
 
 namespace OpenHome.Os.AppManager
 {

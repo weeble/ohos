@@ -4,11 +4,11 @@ using System.Linq;
 using System.Threading;
 using log4net;
 using OpenHome.Os.Platform.Collections;
-using OpenHome.Widget.Nodes.Threading;
+using OpenHome.Os.Platform.Threading;
 using OpenHome.Net.ControlPoint;
 using OpenHome.Net.Device;
 
-namespace OpenHome.Widget.Nodes.Proxies
+namespace OpenHome.Os.Platform.Proxies
 {
     public class ProxyList<T> : IDisposable where T : IDisposable
     {

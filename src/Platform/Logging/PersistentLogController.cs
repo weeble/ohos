@@ -5,7 +5,7 @@ using System.Xml;
 using System.Xml.Linq;
 using log4net;
 
-namespace OpenHome.Widget.Nodes.Logging
+namespace OpenHome.Os.Platform.Logging
 {
     /// <summary>
     /// Wraps a set of controls for log levels and saves any changes to disk.

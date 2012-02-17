@@ -5,7 +5,7 @@ using System.Xml;
 using System.Xml.Linq;
 using OpenHome.Net.Device;
 
-namespace OpenHome.Widget.Nodes.Logging
+namespace OpenHome.Os.Platform.Logging
 {
     [Serializable]
     public class LogLevelXmlException : XmlException

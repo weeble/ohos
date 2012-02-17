@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using OpenHome.Os.Platform;
-using OpenHome.Widget.Nodes.Threading;
+using OpenHome.Os.Platform.Threading;
 
 namespace ohWidget.Utils
 {

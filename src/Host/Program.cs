@@ -10,16 +10,13 @@ using OpenHome.Os.Apps;
 using OpenHome.Os.Host.Guardians;
 using OpenHome.Os.Platform;
 using OpenHome.Widget.Nodes;
-using OpenHome.Widget.Nodes.Logging;
+using OpenHome.Os.Platform.Logging;
 using OpenHome.Net.ControlPoint;
 using OpenHome.Net.Core;
-using OpenHome.Widget.Nodes.Threading;
-using OpenHome.Widget.Utils;
+using OpenHome.Os.Platform.Threading;
 using OpenHome.Net.Device;
 using log4net;
 //using Mono.Addins;
-//using OpenHome.Widget.Nodes.Combined;
-//using OpenHome.Widget.Protocols.SimpleUpnp;
 
 //[assembly: AddinRoot("ohOs", "1.1")]
 
@@ -383,7 +380,7 @@ namespace OpenHome.Os.Host
             string exeDirectory = Path.GetDirectoryName(
                 System.Reflection.Assembly.GetExecutingAssembly().Location);
             string logConfigFile = Path.Combine(exeDirectory, "Log4Net.config");
-            var logSystem = OpenHome.Widget.Nodes.Logging.Log4Net.SetupLog4NetLogging(
+            var logSystem = Log4Net.SetupLog4NetLogging(
                 logConfigFile,
                 Path.Combine(Path.Combine(storeDirectory, "logging"), "ohos.log"),
                 Path.Combine(Path.Combine(storeDirectory, "logging"), "loglevels.xml"));

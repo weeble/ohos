@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 
-namespace OpenHome.Widget.Nodes.Threading
+namespace OpenHome.Os.Platform.Threading
 {
     /// <summary>
     /// A thread that can perform blocking channel operations with Channel.Select

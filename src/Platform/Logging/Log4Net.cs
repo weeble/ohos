@@ -7,7 +7,7 @@ using log4net.Appender;
 using log4net.Layout;
 using log4net.Repository.Hierarchy;
 
-namespace OpenHome.Widget.Nodes.Logging
+namespace OpenHome.Os.Platform.Logging
 {
     public class LogSystem
     {

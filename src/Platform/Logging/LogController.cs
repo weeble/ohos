@@ -5,7 +5,7 @@ using log4net.Core;
 using log4net.Repository;
 using log4net.Repository.Hierarchy;
 
-namespace OpenHome.Widget.Nodes.Logging
+namespace OpenHome.Os.Platform.Logging
 {
     /// <summary>
     /// Provides controls to inspect and change the log4net log levels.

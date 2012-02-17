@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-namespace OpenHome.Widget.Utils
+namespace OpenHome.Os.Platform
 {
     public static class ErrorHandling
     {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace OpenHome.Widget.Nodes.Threading
+namespace OpenHome.Os.Platform.Threading
 {
     /// <summary>
     /// Simple synchronisation device to communicate one item between threads

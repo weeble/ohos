@@ -8,7 +8,7 @@ using OpenHome.Net.Device;
 using OpenHome.Os.AppManager;
 using OpenHome.Os.Apps;
 using OpenHome.Os.Platform;
-using OpenHome.Widget.Nodes.Threading;
+using OpenHome.Os.Platform.Threading;
 
 namespace OpenHome.Os.Apps
 {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace OpenHome.Widget.Nodes.Threading
+namespace OpenHome.Os.Platform.Threading
 {
     public class SafeCallbackTracker
     {
