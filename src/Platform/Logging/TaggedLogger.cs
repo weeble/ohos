@@ -2,8 +2,8 @@
 {
     public class TaggedLogger : ILogger
     {
-        private ILogger iBaseLogger;
-        private string iTag;
+        private readonly ILogger iBaseLogger;
+        private readonly string iTag;
         public TaggedLogger(ILogger aBaseLogger, string aTag)
         {
             iBaseLogger = aBaseLogger;

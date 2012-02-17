@@ -6,7 +6,7 @@
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{E592BA45-2DF6-428D-861C-BC4528494EE0}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>OpenHome.Os.IntegrationTests</RootNamespace>
     <AssemblyName>OpenHome.Os.IntegrationTests</AssemblyName>

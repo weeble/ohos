@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Xml;
 using System.Xml.Linq;
-using OpenHome.Net.Device;
 
 namespace OpenHome.Os.Platform.Logging
 {

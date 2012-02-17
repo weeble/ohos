@@ -29,11 +29,10 @@ namespace OpenHome.Os.IntegrationTests
             Console.Error.WriteLine("Name={0}, State={1}, PendingUpdate={2}, PendingDelete={3}, Udn={4}", aAppInfo.Name, aAppInfo.State, aAppInfo.PendingUpdate, aAppInfo.PendingDelete, aAppInfo.Udn);
         }
 
-        static int Main(string[] aArgs)
+        static int Main()
         {
             BasicConfigurator.Configure();
-            InitParams initParams = new InitParams();
-            initParams.UseLoopbackNetworkAdapter = true;
+            InitParams initParams = new InitParams {UseLoopbackNetworkAdapter = true};
             string nodeGuid = Guid.NewGuid().ToString();
             using (Library library = Library.Create(initParams))
             {
@@ -42,9 +41,11 @@ namespace OpenHome.Os.IntegrationTests
                 uint subnet = nif.Subnet();
                 subnetList.Dispose();
                 var combinedStack = library.StartCombined(subnet);
-                AppServices services = new AppServices();
-                services.NodeRebooter = new NullNodeRebooter();
-                services.DeviceFactory = new DvDeviceFactory(combinedStack.DeviceStack);
+                AppServices services = new AppServices
+                                           {
+                                               NodeRebooter = new NullNodeRebooter(),
+                                               DeviceFactory = new DvDeviceFactory(combinedStack.DeviceStack)
+                                           };
                 string exePath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
                 string storePath = Path.Combine(exePath, "test-store");
                 ConfigFileCollection config = new ConfigFileCollection(new string[] { });
@@ -63,7 +64,7 @@ namespace OpenHome.Os.IntegrationTests
                 {
                     installModule.AppShell.Start();
 
-                    installModule.AppShell.Install(System.IO.Path.Combine(exePath, "ohOs.TestApp1.zip"));
+                    installModule.AppShell.Install(Path.Combine(exePath, "ohOs.TestApp1.zip"));
 
                     List<AppInfo> apps = installModule.AppShell.GetApps().ToList();
                     if (apps.Count!=1)

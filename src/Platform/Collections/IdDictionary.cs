@@ -14,7 +14,7 @@ namespace OpenHome.Os.Platform.Collections
     public class UintIdDispenser<TKey, TValue> : IIdDispenser<TKey, uint, TValue>
     {
         private readonly Queue<uint> iFreeIds = new Queue<uint>();
-        protected uint iNextId = 0;
+        protected uint iNextId;
         public virtual uint AllocId(TKey aKey, TValue aValue)
         {
             if (iFreeIds.Count==0)

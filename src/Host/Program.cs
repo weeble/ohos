@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 using Node;
-using ohWidget.Utils;
 using OpenHome.Os.Apps;
 using OpenHome.Os.Host.Guardians;
 using OpenHome.Os.Platform;
@@ -309,7 +308,7 @@ namespace OpenHome.Os.Host
 
                     using (var nodeDevice = new NodeDevice(nodeGuid))
                     {
-                        AppServices services = new AppServices()
+                        AppServices services = new AppServices
                                                    {
                                                        //StorePath = storeDirectory,
                                                        NodeInformation = new NodeInformation
@@ -331,7 +330,7 @@ namespace OpenHome.Os.Host
                         Console.WriteLine(storeDirectory);
                         using (var appModule = new AppShellModule(services, config, nodeGuid))
                         {
-                            services.RegisterService<IAppShell>(appModule.AppShell);
+                            services.RegisterService(appModule.AppShell);
                             var appManager = appModule.AppShell;
                             if (aOptions.InstallFile.Value != null)
                             {

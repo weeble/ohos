@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using OpenHome.Os.Platform;
 using OpenHome.Os.Platform.Threading;
 
-namespace ohWidget.Utils
+namespace OpenHome.Os.Platform
 {
     public class Command
     {
@@ -76,7 +74,7 @@ namespace ohWidget.Utils
         public string DescribeAllCommands()
         {
             StringBuilder sb = new StringBuilder();
-            foreach (var kvp in iCommands.OrderBy((aItem) => aItem.Key))
+            foreach (var kvp in iCommands.OrderBy(aItem => aItem.Key))
             {
                 sb.AppendFormat("{0}:\n    {1}\n", kvp.Key, kvp.Value.Description);
             }
@@ -141,8 +139,7 @@ namespace ohWidget.Utils
                         Console.Write(prompt);
                         commandChannel.Send(Console.ReadLine());
                     }
-                });
-            consoleThread.IsBackground = true;
+                }) {IsBackground = true};
             consoleThread.Start();
             while (Running)
             {
