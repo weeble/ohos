@@ -5,12 +5,33 @@ using System.Text;
 
 namespace OpenHome.Widget.Nodes
 {
+    public enum UpdateEventType
+    {
+        UpdateAvailable,
+        DownloadFail,
+        DownloadComplete,
+        UpdateFail,
+        UpdateComplete
+    }
+
+    public class UpdateEventArgs : EventArgs
+    {
+        public readonly UpdateEventType eventType;
+
+        public UpdateEventArgs(UpdateEventType type)
+        {
+            eventType = type;
+        }
+    }
+
     public interface IUpdateService : IDisposable
     {
         bool UpdateAvailable { get; }
-        void TriggerUpdate();
+        void DownloadUpdate();
+        void DoUpdate();
         void CheckForUpdate();
-        event EventHandler UpdatesAvailableChanged;
+        void Reboot();
+        event EventHandler<UpdateEventArgs> UpdateEventHandler;
         void Start();
         void Stop();
         
@@ -21,16 +42,12 @@ namespace OpenHome.Widget.Nodes
     {
         public bool UpdateAvailable { get { return false; } }
         public void CheckForUpdate() { }
-        public event EventHandler UpdatesAvailableChanged { add { } remove { } }
-        public void Start()
-        {
-        }
-
-        public void Stop()
-        {
-        }
-
-        public void TriggerUpdate() { }
+        public event EventHandler<UpdateEventArgs> UpdateEventHandler { add { } remove { } }
+        public void Start() { }
+        public void Stop() { }
+        public void DownloadUpdate() { }
+        public void DoUpdate() { }
+        public void Reboot() { }
         public void Refresh() { }
         public void Dispose() { }
 
