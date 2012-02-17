@@ -244,6 +244,11 @@ namespace OpenHome.Os.AppManager
                     throw new ActionError("No such app.");
                 }
 
+                if (!managedApp.DownloadAvailable)
+                {
+                    throw new ActionError("No update available.");
+                }
+
                 string url = managedApp.Info.UpdateUrl;
                 string name = managedApp.Info.Name;
                 iDownloadManager.StartDownload(
