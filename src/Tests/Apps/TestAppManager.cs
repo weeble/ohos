@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -134,10 +135,34 @@ namespace OpenHome.Os.Apps
     public abstract class WhenAnAppIsInstalledContext : AppManagerTestContext
     {
         protected abstract IEnumerable<ZipEntry> ZipContents { get; }
+        class ZipContent : IZipContent
+        {
+            IEnumerable<ZipEntry> iContent;
+
+            public ZipContent(IEnumerable<ZipEntry> aContent)
+            {
+                iContent = aContent;
+            }
+
+
+            public IEnumerator<ZipEntry> GetEnumerator()
+            {
+                return iContent.GetEnumerator();
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return GetEnumerator();
+            }
+
+            public void Dispose()
+            {
+            }
+        }
         protected override void PrepareMocks()
         {
             base.PrepareMocks();
-            iZipReaderMock.Setup(x => x.Open(It.IsAny<string>())).Returns(ZipContents);
+            iZipReaderMock.Setup(x => x.Open(It.IsAny<string>())).Returns(new ZipContent(ZipContents));
         }
         public void InstallAnApp()
         {
