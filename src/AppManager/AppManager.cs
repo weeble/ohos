@@ -97,6 +97,11 @@ namespace OpenHome.Os.AppManager
             HashSet<string> unseenApps = new HashSet<string>(iApps.ItemsByKey.Select(aKvp => aKvp.Key));
             foreach (var app in iAppShell.GetApps())
             {
+                // Ignore apps pending delete.
+                if (app.PendingDelete)
+                {
+                    continue;
+                }
                 unseenApps.Remove(app.Name);
                 ManagedApp managedApp;
                 if (!iApps.TryGetValueByKey(app.Name, out managedApp))
