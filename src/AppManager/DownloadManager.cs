@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using OpenHome.Net.Device;
 using OpenHome.Os.Platform.Threading;
+using log4net;
 
 namespace OpenHome.Os.AppManager
 {
@@ -12,8 +13,18 @@ namespace OpenHome.Os.AppManager
     {
         public string Url { get; set; }
         public bool Cancel { get; set; }
-        public Action<string> CompleteCallback { get; set; }
+        public Action<string, DateTime> CompleteCallback { get; set; }
         public Action FailedCallback { get; set; }
+    }
+
+    class PollInstruction
+    {
+        public string Url { get; set; }
+        public bool Cancel { get; set; }
+        public DateTime LastModified { get; set; }
+        public Action AvailableCallback { get; set; }
+        public Action ErrorCallback { get; set; }
+        public string AppName { get; set; }
     }
 
     class DownloadResult
@@ -64,6 +75,152 @@ namespace OpenHome.Os.AppManager
 
     class DownloadThread : QuittableThread
     {
+        class PollingUrl
+        {
+            readonly string iUrl;
+            readonly DateTime iLastModified;
+            readonly Action iReadyAction;
+            readonly Action iFailedAction;
+            bool iCancelled;
+
+            public PollingUrl(string aUrl, DateTime aLastModified, Action aReadyAction, Action aFailedAction)
+            {
+                iUrl = aUrl;
+                iLastModified = aLastModified;
+                iReadyAction = aReadyAction;
+                iFailedAction = aFailedAction;
+                iCancelled = false;
+            }
+
+            public bool Cancelled { get { return iCancelled; } set { iCancelled = value; } }
+
+            public void PollNow()
+            {
+                if (iCancelled) return;
+                try
+                {
+                    Logger.DebugFormat("Polling URL for app update: {0}", iUrl);
+                    var request = WebRequest.Create(iUrl);
+                    request.Method = "HEAD";
+                    using (var response = request.GetResponse())
+                    {
+                        var httpResponse = response as HttpWebResponse;
+                        if (httpResponse == null)
+                        {
+                            iFailedAction();
+                            return;
+                        }
+                        Logger.DebugFormat("Poll succeeded, available={0}, have={1}, same={2}", httpResponse.LastModified, iLastModified, httpResponse.LastModified == iLastModified);
+                        if (httpResponse.LastModified != iLastModified)
+                        {
+                            iReadyAction();
+                            return;
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    iFailedAction();
+                }
+            }
+        }
+
+        class PollManager
+        {
+            
+            /// <summary>
+            /// Interval to wait before polling the same app again. Apps will be polled
+            /// round-robin, with this interval determining the period over which every
+            /// app will be polled once, unless that would breach MinPollingInterval.
+            /// </summary>
+            public TimeSpan MaxAppPollingInterval { get; set; }
+            /// <summary>
+            /// Minimum interval between any two polling attempts.
+            /// </summary>
+            public TimeSpan MinPollingInterval { get; set; }
+            public TimeSpan PollingInterval
+            {
+                get
+                {
+                    if (iPollingUrls.Count == 0)
+                    {
+                        return MaxAppPollingInterval;
+                    }
+                    long ticks = MaxAppPollingInterval.Ticks / iPollingUrls.Count;
+                    ticks = Math.Max(MinPollingInterval.Ticks, ticks);
+                    return TimeSpan.FromTicks(ticks);
+                }
+            }
+            public bool Empty { get { return iPollingUrls.Count==0; } }
+
+            readonly Dictionary<string, PollingUrl> iPollingUrls = new Dictionary<string, PollingUrl>();
+            Queue<PollingUrl> iPollingOrder = new Queue<PollingUrl>();
+
+            public PollManager()
+            {
+                MinPollingInterval = TimeSpan.FromSeconds(15);
+                MaxAppPollingInterval = TimeSpan.FromMinutes(5); // TODO: Lengthen polling interval for normal use.
+            }
+
+            public void StartPollingApp(string aAppName, string aUrl, DateTime aLastModified, Action aReadyAction, Action aFailedAction)
+            {
+                PollingUrl pollingUrl;
+                if (iPollingUrls.TryGetValue(aAppName, out pollingUrl))
+                {
+                    pollingUrl.Cancelled = true;
+                }
+                pollingUrl = new PollingUrl(aUrl, aLastModified, aReadyAction, aFailedAction);
+                iPollingUrls[aAppName] = pollingUrl;
+                iPollingOrder.Enqueue(pollingUrl);
+            }
+
+            public void PollNext()
+            {
+                if (iPollingUrls.Count > 0)
+                {
+                    for (; ; )
+                    {
+                        var pollingUrl = iPollingOrder.Dequeue();
+                        if (pollingUrl.Cancelled)
+                        {
+                            continue;
+                        }
+                        iPollingOrder.Enqueue(pollingUrl);
+                        pollingUrl.PollNow();
+                        break;
+                    }
+                }
+            }
+
+            public void CancelPollingApp(string aAppName)
+            {
+                PollingUrl pollingUrl;
+                if (iPollingUrls.TryGetValue(aAppName, out pollingUrl))
+                {
+                    pollingUrl.Cancelled = true;
+                    iPollingUrls.Remove(aAppName);
+                    // Normally we mark URLs as cancelled, but don't bother to remove them
+                    // from the queue until they come up during polling. However, if we
+                    // add and remove items far more often than polling occurs, we will
+                    // end up with a silly number of cancelled entries in the queue. In
+                    // that case, purge them whenever there are too many.
+                    if (iPollingUrls.Count == 0)
+                    {
+                        iPollingOrder.Clear();
+                    }
+                    if (iPollingUrls.Count * 2 < iPollingOrder.Count)
+                    {
+                        CleanPollingOrder();
+                    }
+                }
+            }
+
+            void CleanPollingOrder()
+            {
+                iPollingOrder = new Queue<PollingUrl>(iPollingOrder.Where(aPollingUrl => !aPollingUrl.Cancelled));
+            }
+        }
+
         class Download
         {
             readonly string iUrl;
@@ -72,12 +229,13 @@ namespace OpenHome.Os.AppManager
             readonly Channel<DownloadProgress> iProgressChannel;
             readonly string iFilename;
             long iOffset;
-            WebResponse iResponse;
+            HttpWebResponse iResponse;
             Stream iResponseStream;
-            public Action<string> CompletedCallback { get; private set; }
-            public Action FailedCallback { get; set; }
+            public DateTime LastModified { get; private set; }
+            public Action<string, DateTime> CompletedCallback { get; private set; }
+            public Action FailedCallback { get; private set; }
 
-            public Download(string aUrl, int aBufferSize, FileStream aOutStream, Channel<DownloadProgress> aProgressChannel, Action<string> aCompletedCallback, Action aFailedCallback)
+            public Download(string aUrl, int aBufferSize, FileStream aOutStream, Channel<DownloadProgress> aProgressChannel, Action<string, DateTime> aCompletedCallback, Action aFailedCallback)
             {
                 CompletedCallback = aCompletedCallback;
                 FailedCallback = aFailedCallback;
@@ -93,7 +251,13 @@ namespace OpenHome.Os.AppManager
                 try
                 {
                     WebRequest request = WebRequest.Create(iUrl);
-                    iResponse = request.GetResponse();
+                    iResponse = request.GetResponse() as HttpWebResponse;
+                    if (iResponse == null)
+                    {
+                        iProgressChannel.Send(DownloadProgress.CreateFailed(iUrl));
+                        return;
+                    }
+                    LastModified = iResponse.LastModified;
                     iResponseStream = iResponse.GetResponseStream();
                     iOffset = 0;
                     BeginRead();
@@ -165,7 +329,10 @@ namespace OpenHome.Os.AppManager
             public DownloadProgress DownloadProgress { get; set; }
         }
 
+        static readonly ILog Logger = LogManager.GetLogger(typeof(DownloadThread));
+
         readonly Channel<DownloadInstruction> iInstructionChannel;
+        readonly Channel<PollInstruction> iPollInstructionChannel;
         readonly Dictionary<string, Download> iDownloads = new Dictionary<string, Download>();
         readonly IDownloadDirectory iDownloadDirectory;
         readonly Dictionary<string, DownloadProgress> iPublicDownloadInfo = new Dictionary<string, DownloadProgress>();
@@ -173,12 +340,16 @@ namespace OpenHome.Os.AppManager
         readonly object iPublicDownloadsLock = new object();
         public TimeSpan FailureTimeout { get; set; }
         public event EventHandler DownloadChanged;
+        Channel<DownloadProgress> iInternalProgressChannel;
+        readonly PollManager iPollManager;
 
-        public DownloadThread(IDownloadDirectory aDownloadDirectory, Channel<DownloadInstruction> aInstructionChannel)
+        public DownloadThread(IDownloadDirectory aDownloadDirectory, Channel<DownloadInstruction> aInstructionChannel, Channel<PollInstruction> aPollInstructionChannel)
         {
             iInstructionChannel = aInstructionChannel;
+            iPollInstructionChannel = aPollInstructionChannel;
             iDownloadDirectory = aDownloadDirectory;
             FailureTimeout = TimeSpan.FromSeconds(10);
+            iPollManager = new PollManager();
         }
 
         public void InvokeDownloadChanged(EventArgs aE)
@@ -195,6 +366,24 @@ namespace OpenHome.Os.AppManager
                 downloads.AddRange(iPublicFailedDownloads.Select(aFailure => aFailure.DownloadProgress));
                 return downloads;
             }
+        }
+
+        DateTime? iLastPollTime;
+
+        int GetMillisecondsUntilPollingRequired()
+        {
+            if (iLastPollTime == null)
+            {
+                return 0;
+            }
+            var now = DateTime.UtcNow;
+            var timeForNextPoll = iLastPollTime.Value + iPollManager.PollingInterval;
+            var timeUntilNextPoll = timeForNextPoll - now;
+            if (timeUntilNextPoll <= TimeSpan.Zero)
+            {
+                return 0;
+            }
+            return (int)Math.Ceiling(timeUntilNextPoll.TotalMilliseconds);
         }
 
         int GetMillisecondsUntilCleanupRequired()
@@ -217,6 +406,15 @@ namespace OpenHome.Os.AppManager
             }
         }
 
+        int GetMillisecondsUntilActionRequired()
+        {
+            int cleanupTime = GetMillisecondsUntilCleanupRequired();
+            int pollTime = GetMillisecondsUntilPollingRequired();
+            if (cleanupTime == -1) return pollTime;
+            if (pollTime == -1) return -1;
+            return Math.Min(cleanupTime, pollTime);
+        }
+
         void CleanupFailedDownloads()
         {
             bool cleanedUp = false;
@@ -236,44 +434,61 @@ namespace OpenHome.Os.AppManager
             }
         }
 
+        
+
+        void ReceiveDownloadInstruction(DownloadInstruction aInstruction)
+        {
+            string url = aInstruction.Url;
+            bool cancel = aInstruction.Cancel;
+            if (cancel)
+            {
+                if (iDownloads.ContainsKey(url))
+                {
+                    iDownloads[url].Cancel();
+                }
+            }
+            else
+            {
+                if (!iDownloads.ContainsKey(url))
+                {
+                    FileStream fileStream = iDownloadDirectory.CreateFile();
+                    Download download = new Download(url, 8192, fileStream, iInternalProgressChannel, aInstruction.CompleteCallback, aInstruction.FailedCallback);
+                    iDownloads[url] = download;
+                    lock (iPublicDownloadInfo)
+                    {
+                        iPublicDownloadInfo[url] = DownloadProgress.CreateJustStarted(url);
+                    }
+                    InvokeDownloadChanged(EventArgs.Empty);
+                    download.Start();
+                }
+            }
+        }
+
+        void ReceivePollInstruction(PollInstruction aInstruction)
+        {
+            if (aInstruction.Cancel)
+            {
+                iPollManager.CancelPollingApp(aInstruction.AppName);
+            }
+            else
+            {
+                iPollManager.StartPollingApp(aInstruction.AppName, aInstruction.Url, aInstruction.LastModified, aInstruction.AvailableCallback, aInstruction.ErrorCallback);
+            }
+        }
+
         protected override void Run()
         {
-            using (Channel<DownloadProgress> internalProgressChannel = new Channel<DownloadProgress>(1))
+            using (iInternalProgressChannel = new Channel<DownloadProgress>(1))
             {
                 while (!Abandoned)
                 {
                     CleanupFailedDownloads();
+                    PollIfRequired();
                     SelectWithTimeout(
-                        GetMillisecondsUntilCleanupRequired(),
-                        iInstructionChannel.CaseReceive(
-                            aInstruction =>
-                            {
-                                string url = aInstruction.Url;
-                                bool cancel = aInstruction.Cancel;
-                                if (cancel)
-                                {
-                                    if (iDownloads.ContainsKey(url))
-                                    {
-                                        iDownloads[url].Cancel();
-                                    }
-                                }
-                                else
-                                {
-                                    if (!iDownloads.ContainsKey(url))
-                                    {
-                                        FileStream fileStream = iDownloadDirectory.CreateFile();
-                                        Download download = new Download(url, 8192, fileStream, internalProgressChannel, aInstruction.CompleteCallback, aInstruction.FailedCallback);
-                                        iDownloads[url] = download;
-                                        lock (iPublicDownloadInfo)
-                                        {
-                                            iPublicDownloadInfo[url] = DownloadProgress.CreateJustStarted(url);
-                                        }
-                                        InvokeDownloadChanged(EventArgs.Empty);
-                                        download.Start();
-                                    }
-                                }
-                            }),
-                        internalProgressChannel.CaseReceive(
+                        GetMillisecondsUntilActionRequired(),
+                        iInstructionChannel.CaseReceive(ReceiveDownloadInstruction),
+                        iPollInstructionChannel.CaseReceive(ReceivePollInstruction),
+                        iInternalProgressChannel.CaseReceive(
                             aMessage =>
                             {
                                 string url = aMessage.Uri;
@@ -295,7 +510,7 @@ namespace OpenHome.Os.AppManager
                                 }
                                 else if (aMessage.HasCompleted)
                                 {
-                                    iDownloads[url].CompletedCallback(aMessage.LocalPath);
+                                    iDownloads[url].CompletedCallback(aMessage.LocalPath, iDownloads[url].LastModified);
                                     iDownloads.Remove(url);
                                     lock (iPublicDownloadsLock)
                                     {
@@ -320,12 +535,21 @@ namespace OpenHome.Os.AppManager
                 }
                 while (iDownloads.Count>0)
                 {
-                    var result = internalProgressChannel.Receive();
+                    var result = iInternalProgressChannel.Receive();
                     if (result.HasFailed || result.HasCompleted)
                     {
                         iDownloads.Remove(result.Uri);
                     }
                 }
+            }
+        }
+
+        void PollIfRequired()
+        {
+            if (!iPollManager.Empty && GetMillisecondsUntilPollingRequired() == 0)
+            {
+                iPollManager.PollNext();
+                iLastPollTime = DateTime.UtcNow;
             }
         }
     }
@@ -334,9 +558,11 @@ namespace OpenHome.Os.AppManager
     {
         int MaxSimultaneousDownloads { get; set; }
         event EventHandler DownloadCountChanged;
-        void StartDownload(string aUrl, Action<string> aCallback);
+        void StartDownload(string aUrl, Action<string, DateTime> aCallback);
         IEnumerable<DownloadProgress> GetDownloadsStatus();
         void CancelDownload(string aAppUrl);
+        void StartPollingForAppUpdate(string aAppName, string aUrl, Action aAvailableAction, Action aFailedAction, DateTime aLastModified);
+        void StopPollingForAppUpdate(string aAppName);
     }
 
     public class DownloadManager : IDownloadManager
@@ -344,6 +570,7 @@ namespace OpenHome.Os.AppManager
         readonly DownloadThread iDownloadThread;
         readonly IDownloadDirectory iDownloadDirectory;
         readonly Channel<DownloadInstruction> iInstructionChannel;
+        readonly Channel<PollInstruction> iPollInstructionChannel;
         public int MaxSimultaneousDownloads { get; set; }
         public event EventHandler DownloadCountChanged
         {
@@ -355,11 +582,22 @@ namespace OpenHome.Os.AppManager
         {
             iDownloadDirectory = aDownloadDirectory;
             iInstructionChannel = new Channel<DownloadInstruction>(2);
-            iDownloadThread = new DownloadThread(iDownloadDirectory, iInstructionChannel);
+            iPollInstructionChannel = new Channel<PollInstruction>(2);
+            iDownloadThread = new DownloadThread(iDownloadDirectory, iInstructionChannel, iPollInstructionChannel);
             iDownloadThread.Start();
         }
 
-        public void StartDownload(string aUrl, Action<string> aCallback)
+        public void StartPollingForAppUpdate(string aAppName, string aUrl, Action aAvailableAction, Action aFailedAction, DateTime aLastModified)
+        {
+            iPollInstructionChannel.Send(new PollInstruction { AppName = aAppName, Url = aUrl, AvailableCallback = aAvailableAction, Cancel = false, ErrorCallback = aFailedAction, LastModified = aLastModified });
+        }
+
+        public void StopPollingForAppUpdate(string aAppName)
+        {
+            iPollInstructionChannel.Send(new PollInstruction { AppName = aAppName, Cancel = true });
+        }
+
+        public void StartDownload(string aUrl, Action<string, DateTime> aCallback)
         {
             if (!iInstructionChannel.NonBlockingSend(new DownloadInstruction
                                                      {

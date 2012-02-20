@@ -38,18 +38,20 @@ namespace OpenHome.Os.Apps
             HashSet<string> topLevelDirectories = new HashSet<string>();
             try
             {
-                var zf = iZipReader.Open(aZipFile);
-                foreach (ZipEntry entry in zf)
+                using (var zf = iZipReader.Open(aZipFile))
                 {
-                    string fname = entry.Name;
-                    Debug.Assert(fname != null); // Zip library should assure this.
-                    if (Path.IsPathRooted(fname))
+                    foreach (ZipEntry entry in zf)
                     {
-                        throw new BadPluginException("Bad plugin: contains absolute paths.");
-                    }
+                        string fname = entry.Name;
+                        Debug.Assert(fname != null); // Zip library should assure this.
+                        if (Path.IsPathRooted(fname))
+                        {
+                            throw new BadPluginException("Bad plugin: contains absolute paths.");
+                        }
 
-                    string topLevelDirectory = VerifyPluginZipEntry(fname);
-                    topLevelDirectories.Add(topLevelDirectory);
+                        string topLevelDirectory = VerifyPluginZipEntry(fname);
+                        topLevelDirectories.Add(topLevelDirectory);
+                    }
                 }
             }
             catch (ZipException)
