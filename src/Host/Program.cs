@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Security.Policy;
 using System.Xml.Linq;
 using Node;
 using OpenHome.Os.Apps;
@@ -399,10 +401,50 @@ namespace OpenHome.Os.Host
             //DirectoryInfo storeDirectory = Directory.CreateDirectory(path);
         }
 
+        const string ConfigExtension = ".ohconfig.xml";
+
         static void LoadConfig(Options aOptions, out ConfigFileCollection aConfig, out IConfigFileCollection aSysConfig)
         {
-            string configFilename = aOptions.ConfigFile.Value ?? Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + Path.DirectorySeparatorChar + "ohOs" + Path.DirectorySeparatorChar + "ohos.config.xml";
-            aConfig = new ConfigFileCollection(new[] { configFilename });
+            string exeDir;
+            string exeName;
+            string exeConfigFilename;
+            try
+            {
+                string assemblyPath = new Uri(Assembly.GetEntryAssembly().CodeBase).LocalPath;
+                exeDir = Path.GetDirectoryName(assemblyPath);
+                exeName = Path.GetFileNameWithoutExtension(assemblyPath);
+            }
+            catch (InvalidOperationException)
+            {
+                exeDir = null;
+                exeName = "ohOs.Host";
+            }
+
+            if (exeDir == null)
+            {
+                exeConfigFilename = null;
+            }
+            else
+            {
+                exeConfigFilename = Path.Combine(exeDir, exeName + ConfigExtension);
+            }
+            
+            string userConfigFilename = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + Path.DirectorySeparatorChar + "ohOs" + Path.DirectorySeparatorChar + exeName + ConfigExtension;
+
+            List<string> configFiles = new List<string>();
+            if (aOptions.ConfigFile.Value != null)
+            {
+                configFiles.Add(aOptions.ConfigFile.Value);
+            }
+            else if (!string.IsNullOrEmpty(exeConfigFilename) && File.Exists(exeConfigFilename))
+            {
+                configFiles.Add(exeConfigFilename);
+            }
+            else if (File.Exists(userConfigFilename))
+            {
+                configFiles.Add(userConfigFilename);
+            }
+            aConfig = new ConfigFileCollection(configFiles);
             aSysConfig = aConfig.GetSubcollection(e=>e.Element("system-settings"));
         }
 

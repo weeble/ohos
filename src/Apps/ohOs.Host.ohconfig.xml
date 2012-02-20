@@ -35,6 +35,7 @@
             <drivers>BinaryLight, DimmableLight, Thermometer, TestDataTypes, Curtains, BinarySwitch</drivers>
         </simple-upnp>
         <web-ui enable="yes"/>
+        <system-updates enable="no"/>
     </app-settings>
 
     <app-settings name="TestApp1">
