@@ -74,7 +74,9 @@ oh.app.applist.prototype.setupSequenceNumberChanged = function () {
         var _this = this;
         this.appProxy.AppSequenceNumberArray_Changed(
         function (state) {
-            _this.appSeqNums = oh.widget.util.hasSeqNumChanged(_this.appSeqNums, state, _this.appIds, _this.appChanged);
+            _this.appSeqNums = oh.widget.util.hasSeqNumChanged(_this.appSeqNums, state, _this.appIds, function(seq) {
+                                       	_this.appChanged.call(_this,seq);
+                                 });
         });
     }
     catch (e) {
@@ -181,8 +183,8 @@ oh.app.applist.prototype.appAdded = function (seq) {
 
 oh.app.applist.prototype.appChanged = function (seq) {
     var _this = this;
-
     this.appProxy.GetAppStatus(seq, function (result) {
+  
         var xml = result.AppListXml;
         var appListObj = oh.util.dataformat.xmlStringToJson(xml);
 
@@ -205,6 +207,10 @@ oh.app.applist.prototype.appRemoved = function (seq) {
 
 oh.app.applist.prototype.remove = function (seq,successFunction, errorFunction) {
     this.appProxy.RemoveApp(seq,successFunction,errorFunction);
+}
+
+oh.app.applist.prototype.update = function (seq,successFunction, errorFunction) {
+    this.appProxy.UpdateApp(seq,successFunction,errorFunction);
 }
 
 
