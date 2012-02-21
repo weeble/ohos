@@ -442,6 +442,7 @@ csharp_projects = [
             references=[
                 'DvOpenhomeOrgApp1',
                 'ohOs.Apps',
+                'ohOs.AppManager.App',
                 'ohOs.Platform',
             ]),
     ]
