@@ -372,6 +372,10 @@ namespace OpenHome.Os.AppManager
 
         int GetMillisecondsUntilPollingRequired()
         {
+            if (iPollManager.Empty)
+            {
+                return -1;
+            }
             if (iLastPollTime == null)
             {
                 return 0;
