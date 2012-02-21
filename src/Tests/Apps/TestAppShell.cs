@@ -13,7 +13,7 @@ using OpenHome.Os.Platform;
 namespace OpenHome.Os.Apps
 {
 
-    public class AppManagerTestContext
+    public class AppShellTestContext
     {
         public interface IProviderConstructor
         {
@@ -128,11 +128,11 @@ namespace OpenHome.Os.Apps
         //}
     }
 
-    public class WhenTheAppManagerIsStartedAfterAnAppIsInstalled : AppManagerTestContext
+    public class WhenTheAppShellIsStartedAfterAnAppIsInstalled : AppShellTestContext
     {
     }
 
-    public abstract class WhenAnAppIsInstalledContext : AppManagerTestContext
+    public abstract class WhenAnAppIsInstalledContext : AppShellTestContext
     {
         protected abstract IEnumerable<ZipEntry> ZipContents { get; }
         class ZipContent : IZipContent
@@ -272,10 +272,10 @@ namespace OpenHome.Os.Apps
         }
     }
 
-    public class WhenTheAppManagerIsStartedContext : AppManagerTestContext
+    public class WhenTheAppShellIsStartedContext : AppShellTestContext
     {
         [SetUp]
-        public void StartAppManager()
+        public void StartAppShell()
         {
             iAddinManagerMock
                 .Setup(x=>x.UpdateRegistry(It.IsAny<Action<DirectoryInfo, IApp>>(), It.IsAny<Action<DirectoryInfo, IApp>>()))
@@ -285,7 +285,7 @@ namespace OpenHome.Os.Apps
     }
 
 
-    public class WhenTheAppManagerIsStarted : WhenTheAppManagerIsStartedContext
+    public class WhenTheAppShellIsStarted : WhenTheAppShellIsStartedContext
     {
         [Test]
         public void TheAddinManagerIsUpdatedOnce()
