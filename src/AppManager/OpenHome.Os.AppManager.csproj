@@ -36,6 +36,8 @@
     <Compile Include="AppManager.cs" />
     <Compile Include="DownloadDirectory.cs" />
     <Compile Include="DownloadManager.cs" />
+    <Compile Include="DefaultUrlPoller.cs" />
+    <Compile Include="PollManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Apps\OpenHome.Os.Apps.csproj">

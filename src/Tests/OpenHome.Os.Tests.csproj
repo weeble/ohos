@@ -33,7 +33,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Apps\TestAppManager.cs" />
+    <Compile Include="Apps\TestAppShell.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Apps\OpenHome.Os.Apps.csproj">
