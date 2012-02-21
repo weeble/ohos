@@ -25,6 +25,7 @@
         <websockets port="54321"/>
         <!-- Enable or disable multinode. -->
         <multinode enable="no"/>
+        <!-- Enable or disable multinode. -->
     </system-settings>
 
     <app-settings name="OhWidget">
@@ -36,6 +37,7 @@
         </simple-upnp>
         <web-ui enable="yes"/>
         <system-updates enable="no"/>
+        <remote-access-server>http://remoteaccess-dev.linn.co.uk:2001/</remote-access-server>
     </app-settings>
 
     <app-settings name="TestApp1">
