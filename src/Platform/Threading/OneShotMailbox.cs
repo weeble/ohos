@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace OpenHome.Widget.Nodes.Threading
+namespace OpenHome.Os.Platform.Threading
 {
     /// <summary>
     /// Simple synchronisation device to communicate one item between threads
@@ -9,9 +9,9 @@ namespace OpenHome.Widget.Nodes.Threading
     /// <typeparam name="T"></typeparam>
     public class OneShotMailbox<T>
     {
-        private object iMonitor = new object();
-        private bool iSealed = false;
-        private bool iPosted = false;
+        private readonly object iMonitor = new object();
+        private bool iSealed;
+        private bool iPosted;
         private T iItem;
         /// <summary>
         /// Wait for the mailbox to receive its item, or for a timeout to pass.

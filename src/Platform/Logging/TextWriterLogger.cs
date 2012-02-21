@@ -1,8 +1,8 @@
-﻿namespace OpenHome.Widget.Nodes.Logging
+﻿namespace OpenHome.Os.Platform.Logging
 {
     public class TextWriterLogger : ILogger
     {
-        private System.IO.TextWriter iWriter;
+        private readonly System.IO.TextWriter iWriter;
         public TextWriterLogger(System.IO.TextWriter aWriter)
         {
             iWriter = aWriter;

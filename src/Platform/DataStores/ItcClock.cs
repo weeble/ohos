@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace OpenHome.Widget.Nodes.DataStores
+﻿
+namespace OpenHome.Os.Platform.DataStores
 {
     public class ItcClock : IDistributedClock<ItcStamp>
     {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace OpenHome.Widget.Nodes
+namespace OpenHome.Os.Platform
 {
     public enum UpdateEventType
     {

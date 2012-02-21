@@ -2,7 +2,7 @@ using System;
 using System.Text;
 using System.Collections.Generic;
 
-namespace OpenHome.Widget.Utils
+namespace OpenHome.Os.Platform
 {
     public class OptionParser
     {

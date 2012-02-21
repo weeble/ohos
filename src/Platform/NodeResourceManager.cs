@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using OpenHome.Net.Device;
 
 namespace OpenHome.Os.Platform
@@ -93,12 +91,12 @@ namespace OpenHome.Os.Platform
             return result;
         }
 
-        private bool TryWriteFile(string aResDir, string aLangDir, string aFileName, IResourceWriter aWriter)
+        private static bool TryWriteFile(string aResDir, string aLangDir, string aFileName, IResourceWriter aWriter)
         {
             string fullPath = Path.Combine(Path.Combine(aResDir, aLangDir), aFileName);
             return TryWriteFile(fullPath, aWriter);
         }
-        private bool TryWriteFile(string aFullName, IResourceWriter aWriter)
+        private static bool TryWriteFile(string aFullName, IResourceWriter aWriter)
         {
             if (!File.Exists(aFullName))
                 return false;

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -7,8 +8,8 @@ using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Schema;
 using log4net;
-using OpenHome.Widget.Nodes.IO;
-using OpenHome.Widget.Nodes.Logging;
+using OpenHome.Os.Platform.IO;
+using OpenHome.Os.Platform.Logging;
 
 namespace OpenHome.Os.Apps
 {
@@ -23,6 +24,7 @@ namespace OpenHome.Os.Apps
         public List<string> GrantedPermissions { get; set; }
         public string Udn { get; set; }
         public string FriendlyName { get; set; }
+        public DateTime? LastModified { get; set; }
 
         public AppMetadata Clone()
         {
@@ -36,7 +38,8 @@ namespace OpenHome.Os.Apps
                 Udn = Udn,
                 AutoUpdate = AutoUpdate,
                 UpdateUrl = UpdateUrl,
-                FriendlyName = FriendlyName
+                FriendlyName = FriendlyName,
+                LastModified = LastModified
             };
         }
     }
@@ -51,6 +54,7 @@ namespace OpenHome.Os.Apps
 
     class AppMetadataStore : IAppMetadataStore
     {
+        const string TimeFormat = "yyyy-MM-ddTHH:mm:ss";
         // Schema
         const string AppMetadataSchemaXml =
               @"<?xml version=""1.0"" encoding=""utf-8"" ?>
@@ -74,6 +78,7 @@ namespace OpenHome.Os.Apps
                       </xs:element>
                       <xs:element name=""udn"" type=""xs:string"" minOccurs=""0""/>
                       <xs:element name=""friendlyName"" type=""xs:string"" minOccurs=""0""/>
+                      <xs:element name=""lastModified"" type=""xs:string"" minOccurs=""0""/>
                     </xs:sequence>
                   </xs:complexType>
                 </xs:schema>";
@@ -87,10 +92,14 @@ namespace OpenHome.Os.Apps
             string udn = (udnElement==null) ? null : udnElement.Value;
             var autoUpdateElement = aAppElement.Element("autoUpdate");
             bool autoUpdate = (autoUpdateElement == null) ? false : (bool)autoUpdateElement;
+
             var updateUrlElement = aAppElement.Element("updateUrl");
             string updateUrl = (updateUrlElement == null) ? "" : updateUrlElement.Value;
+
             var friendlyNameElement = aAppElement.Element("friendlyName");
             string friendlyName = (friendlyNameElement == null) ? "" : friendlyNameElement.Value;
+
+            DateTime? lastModified = ParseLastModifiedElement(aAppElement);
             return
                 new AppMetadata
                 {
@@ -103,7 +112,41 @@ namespace OpenHome.Os.Apps
                     GrantedPermissions = aAppElement.Element("grantedPermissions").Elements().Select(aE=>(string)aE).ToList(),
                     Udn = udn,
                     FriendlyName = friendlyName,
+                    LastModified = lastModified
                 };
+        }
+
+        static DateTime? ParseLastModifiedElement(XElement aAppElement)
+        {
+            DateTime? lastModified;
+            var lastModifiedElement = aAppElement.Element("lastModified");
+            DateTime parsedTime;
+            if (lastModifiedElement!=null &&
+                DateTime.TryParseExact(
+                    lastModifiedElement.Value,
+                    TimeFormat,
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.AssumeUniversal|DateTimeStyles.AdjustToUniversal,
+                    out parsedTime))
+            {
+                lastModified = parsedTime;
+            }
+            else
+            {
+                lastModified = null;
+            }
+            return lastModified;
+        }
+
+        static XElement FormatLastModifiedElement(DateTime? aLastModified)
+        {
+            if (aLastModified == null)
+            {
+                // Note: XElement constructors deliberately accept and ignore
+                // null elements.
+                return null;
+            }
+            return new XElement("lastModified", aLastModified.Value.ToString(TimeFormat));
         }
 
         // object -> XML
@@ -120,7 +163,8 @@ namespace OpenHome.Os.Apps
                     new XElement("grantedPermissions",
                         aApp.GrantedPermissions.Select(aPermission=>new XElement("permission", aPermission))),
                     new XElement("udn", aApp.Udn),
-                    new XElement("friendlyName", aApp.FriendlyName));
+                    new XElement("friendlyName", aApp.FriendlyName),
+                    FormatLastModifiedElement(aApp.LastModified));
         }
 
         static XmlSchemaSet MakeSchemaSet(string aSchemaXml)

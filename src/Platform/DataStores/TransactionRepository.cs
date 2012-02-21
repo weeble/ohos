@@ -6,7 +6,7 @@ using System.Xml;
 using System.Xml.Linq;
 using OpenHome.Os.Platform.Collections;
 
-namespace OpenHome.Widget.Nodes.DataStores
+namespace OpenHome.Os.Platform.DataStores
 {
 
     // TODO : Review use of generics - Graham isn't keen on these.

@@ -4,15 +4,15 @@ using System.Linq;
 using System.Threading;
 using log4net;
 using OpenHome.Os.Platform.Collections;
-using OpenHome.Widget.Nodes.Threading;
+using OpenHome.Os.Platform.Threading;
 using OpenHome.Net.ControlPoint;
 using OpenHome.Net.Device;
 
-namespace OpenHome.Widget.Nodes.Proxies
+namespace OpenHome.Os.Platform.Proxies
 {
     public class ProxyList<T> : IDisposable where T : IDisposable
     {
-        static readonly ILog Logger = LogManager.GetLogger(String.Format("OpenHome.Widget.Nodes.Proxies.ProxyList<{0}>", typeof(T).Name));
+        static readonly ILog Logger = LogManager.GetLogger(String.Format("OpenHome.Os.Platform.Proxies.ProxyList<{0}>", typeof(T).Name));
         private const int MaxCallbacks = 8;
         private class ProxyRecord : IDeviceDisappearanceWatcher
         {

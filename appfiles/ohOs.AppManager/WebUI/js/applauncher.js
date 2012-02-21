@@ -108,6 +108,7 @@ $().ready(function () {
 
 function addGhostApp(input)
 {
+	
 	var ghostIndex = ghostApps.length;
     var applauncher = parseTemplate($("#tpl_app_ghost").html(), {
         url: input,
@@ -116,7 +117,6 @@ function addGhostApp(input)
     hasApp = true;
     $(".help").hide();
     ghostApps.push(input);
-
     $('.app-detailedlist').prepend(applauncher);
     $('#ghostapp_' + ghostIndex).ohanimate({
         animate: 'bounceIn'
@@ -132,9 +132,10 @@ function addGhostApp(input)
 function appListUpdateProgress(handle, isGhost, url,progressPercent, progressBytes, totalBytes) {
     setTimeout(function () {
         var app;
-      
+      	console.log(isGhost);
         if (isGhost) {
-        	var index = ghostApps.indexOf(handle);
+        	
+        	var index = ghostApps.indexOf(url);
         	if(index== -1)
         	{
         		addGhostApp(url);
@@ -169,13 +170,13 @@ function appListUpdateProgress(handle, isGhost, url,progressPercent, progressByt
 
 function appListUpdateFailed(handle,isGhost) {
     if (isGhost) {
-        var app = $('#ghostapp_' + ghostApps.indexOf(appid));
+        var app = $('#ghostapp_' + ghostApps.indexOf(handle));
         app.data('ohanimate').animate('bounceOut');
         setTimeout(function () {
             app.remove();
             $('#drawer').data('ohdrawer').showError('App failed to download');
         }, 500);
-        ghostApps[ghostApps.indexOf(appid)] = null;
+        ghostApps[ghostApps.indexOf(handle)] = null;
     }
     else {
         $('#detailedapp_' + handle).data('ohanimate').animate('bounceIn');
@@ -187,12 +188,10 @@ function appListUpdateFailed(handle,isGhost) {
 
 
 function updateApp(handle, app) {
-    
     $('#app_' + handle + ' .text').html(app.name);
 
     if (app.updateStatus && app.updateStatus == "available") {
         $('#detailedapp_' + handle + ' .btn-app-update').show();
-	
     } 
 
 
@@ -214,7 +213,6 @@ function addApp(app) {
     $("#page-appmanager .page-loader").hide();
     hasApp = true;
     $(".help").hide();
-
     var ghost = ghostApps.indexOf(app.updateUrl);
 
     if (ghost != -1) {
@@ -247,16 +245,19 @@ function addApp(app) {
         $('.app-detailedlist').append(appmanager);
     }
 	$('#detailedapp_' + app.handle + ' .btn-app-update').hide();
+	
+	
 	$('#app_' + app.handle).ohanimate({
 		animate : 'bounceIn'
-	});
-
-    $('#detailedapp_' + app.handle + ' .btn-app-remove').ohanimate({
-		speed : 1000
 	});
     $('#detailedapp_' + app.handle).ohanimate({
 		animate : 'bounceIn'
 	});
+	
+    $('#detailedapp_' + app.handle + ' .btn-app-remove').ohanimate({
+		speed : 1000
+	});
+
 
 	$('#detailedapp_' + app.handle + ' .btn-app-remove').bind(hit, function () {
 	    $('#drawer').data('ohdrawer').showWarning(
@@ -277,12 +278,18 @@ function addApp(app) {
 	});
 
 	$('#detailedapp_' + app.handle + ' .btn-app-update').bind(hit, function () {
-	    appListUpdateProgress(app.handle, false);
+		applist.update(app.handle,function() {
+			appListUpdateProgress(app.handle, false);
+		});
 	    return false;
 	});
 	if (ghost != -1) {
 	    $("#drawer").data("ohdrawer").showSuccess('App has been installed');
 	}   
+	
+	if (app.updateStatus && app.updateStatus == "available") {
+        $('#detailedapp_' + app.handle + ' .btn-app-update').show();
+    } 
 //$('#progress_' + app.id).ohprogressbar({
 //		speed : 2000
 //	});

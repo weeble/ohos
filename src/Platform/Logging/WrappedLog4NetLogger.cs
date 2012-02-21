@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using log4net;
+﻿using log4net;
 
-namespace OpenHome.Widget.Nodes.Logging
+namespace OpenHome.Os.Platform.Logging
 {
     public class WrappedLog4NetLogger : ILogger
     {

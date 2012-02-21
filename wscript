@@ -451,8 +451,8 @@ files_to_copy = [
             source='src/Apps/App.addins',
             target='App.addins'),
         CopyFile(
-            source='src/Apps/ohos.config.xml',
-            target='ohos.config.xml'),
+            source='src/Apps/ohOs.Host.ohconfig.xml',
+            target='ohOs.Host.ohconfig.xml'),
     ]
 
 ohos_apps = [

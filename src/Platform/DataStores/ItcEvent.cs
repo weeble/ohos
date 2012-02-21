@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace OpenHome.Widget.Nodes.DataStores
+namespace OpenHome.Os.Platform.DataStores
 {
     public abstract class ItcEvent
     {

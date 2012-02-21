@@ -50,13 +50,14 @@ namespace OpenHome.Os.Remote
         private const string kTagPassword = "password";
         private const string kTagPublicUrl = "url";
         private const string kSshServerUserName = "ohnode";
-        private const string kWebServiceAddress = "http://remoteaccess-dev.linn.co.uk:2001/";
+        private const string kDefaultWebServiceAddress = "http://remoteaccess-dev.linn.co.uk:2001/";
         private const int kConnectionCheckIntervalMs = 5 * 60 * 1000; // 5 minutes
         private static readonly ILog Logger = LogManager.GetLogger(typeof(ProviderRemoteAccess));
         private readonly string iDeviceUdn;
         private readonly string iStoreDir;
         private readonly string iNetworkAdapter;
         private string iPassword;
+        private readonly string iWebServiceHostName;
         private readonly ProxyServer iProxyServer;
         private SshClient iSshClient;
         private ForwardedPortRemote iForwardedPortRemote;
@@ -70,11 +71,16 @@ namespace OpenHome.Os.Remote
         private bool iQuit;
         private readonly System.Timers.Timer iConnectionCheckTimer;
 
-        public ProviderRemoteAccess(DvDevice aDevice, string aStoreDir, ProxyServer aProxyServer, string aNetworkAdapter)
+        public ProviderRemoteAccess(DvDevice aDevice, string aStoreDir, string aWebServiceHostName, ProxyServer aProxyServer, string aNetworkAdapter)
             : base(aDevice)
         {
             iDeviceUdn = aDevice.Udn();
             iStoreDir = aStoreDir;
+            iWebServiceHostName = (aWebServiceHostName ?? kDefaultWebServiceAddress);
+            if (!iWebServiceHostName.StartsWith("http://"))
+                iWebServiceHostName = "http://" + iWebServiceHostName;
+            if (!iWebServiceHostName.EndsWith("/"))
+                iWebServiceHostName += "/";
             iProxyServer = aProxyServer;
             iNetworkAdapter = aNetworkAdapter;
             iThread = new Thread(RunThread);
@@ -378,7 +384,7 @@ namespace OpenHome.Os.Remote
                     cmd = iCommands[0];
                     iCommands.RemoveAt(0);
                 }
-                string url = kWebServiceAddress + cmd.Path;
+                string url = iWebServiceHostName + cmd.Path;
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
                 request.Method = "POST";
                 try

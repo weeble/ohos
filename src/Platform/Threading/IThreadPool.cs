@@ -1,6 +1,6 @@
 ﻿using System.Threading;
 
-namespace OpenHome.Widget.Nodes.Threading
+namespace OpenHome.Os.Platform.Threading
 {
     public interface IThreadPool
     {

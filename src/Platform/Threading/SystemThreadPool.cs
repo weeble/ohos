@@ -1,4 +1,4 @@
-﻿namespace OpenHome.Widget.Nodes.Threading
+﻿namespace OpenHome.Os.Platform.Threading
 {
     public class SystemThreadPool : IThreadPool
     {

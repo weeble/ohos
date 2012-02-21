@@ -1,12 +1,12 @@
 ﻿using System;
 
-namespace OpenHome.Widget.Nodes.Threading
+namespace OpenHome.Os.Platform.Threading
 {
     public class SafeCallbackTracker
     {
-        private object iMonitor = new object();
-        private bool iTerminating = false;
-        private int iInflight = 0;
+        private readonly object iMonitor = new object();
+        private bool iTerminating;
+        private int iInflight;
 
         /// <summary>
         /// Perform aAction, unless Close() has been called. Guarantee that

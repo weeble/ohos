@@ -1,4 +1,4 @@
-﻿namespace OpenHome.Widget.Nodes.Logging
+﻿namespace OpenHome.Os.Platform.Logging
 {
     public interface ILogger
     {

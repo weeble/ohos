@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,13 +11,39 @@ using OpenHome.Os.Platform;
 
 namespace OpenHome.Os.Apps
 {
+
     public class DefaultZipReader : IZipReader
     {
+        class ZipContent : IZipContent
+        {
+            readonly ZipFile iZipFile;
 
-        public IEnumerable<ZipEntry> Open(string aZipName)
+            public ZipContent(ZipFile aZipFile)
+            {
+                iZipFile = aZipFile;
+            }
+
+            public IEnumerator<ZipEntry> GetEnumerator()
+            {
+                return iZipFile.Cast<ZipEntry>().GetEnumerator();
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return GetEnumerator();
+            }
+
+            public void Dispose()
+            {
+                iZipFile.Close();
+            }
+        }
+
+
+        public IZipContent Open(string aZipName)
         {
             ZipFile zipFile = new ZipFile(aZipName);
-            return zipFile.Cast<ZipEntry>();
+            return new ZipContent(zipFile);
         }
     }
 

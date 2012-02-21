@@ -3,23 +3,20 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Security.Policy;
 using System.Xml.Linq;
 using Node;
-using ohWidget.Utils;
 using OpenHome.Os.Apps;
 using OpenHome.Os.Host.Guardians;
 using OpenHome.Os.Platform;
-using OpenHome.Widget.Nodes;
-using OpenHome.Widget.Nodes.Logging;
+using OpenHome.Os.Platform.Logging;
 using OpenHome.Net.ControlPoint;
 using OpenHome.Net.Core;
-using OpenHome.Widget.Nodes.Threading;
-using OpenHome.Widget.Utils;
+using OpenHome.Os.Platform.Threading;
 using OpenHome.Net.Device;
 using log4net;
 //using Mono.Addins;
-//using OpenHome.Widget.Nodes.Combined;
-//using OpenHome.Widget.Protocols.SimpleUpnp;
 
 //[assembly: AddinRoot("ohOs", "1.1")]
 
@@ -312,7 +309,7 @@ namespace OpenHome.Os.Host
 
                     using (var nodeDevice = new NodeDevice(nodeGuid))
                     {
-                        AppServices services = new AppServices()
+                        AppServices services = new AppServices
                                                    {
                                                        //StorePath = storeDirectory,
                                                        NodeInformation = new NodeInformation
@@ -334,7 +331,7 @@ namespace OpenHome.Os.Host
                         Console.WriteLine(storeDirectory);
                         using (var appModule = new AppShellModule(services, config, nodeGuid))
                         {
-                            services.RegisterService<IAppShell>(appModule.AppShell);
+                            services.RegisterService(appModule.AppShell);
                             var appManager = appModule.AppShell;
                             if (aOptions.InstallFile.Value != null)
                             {
@@ -383,7 +380,7 @@ namespace OpenHome.Os.Host
             string exeDirectory = Path.GetDirectoryName(
                 System.Reflection.Assembly.GetExecutingAssembly().Location);
             string logConfigFile = Path.Combine(exeDirectory, "Log4Net.config");
-            var logSystem = OpenHome.Widget.Nodes.Logging.Log4Net.SetupLog4NetLogging(
+            var logSystem = Log4Net.SetupLog4NetLogging(
                 logConfigFile,
                 Path.Combine(Path.Combine(storeDirectory, "logging"), "ohos.log"),
                 Path.Combine(Path.Combine(storeDirectory, "logging"), "loglevels.xml"));
@@ -403,10 +400,50 @@ namespace OpenHome.Os.Host
             //DirectoryInfo storeDirectory = Directory.CreateDirectory(path);
         }
 
+        const string ConfigExtension = ".ohconfig.xml";
+
         static void LoadConfig(Options aOptions, out ConfigFileCollection aConfig, out IConfigFileCollection aSysConfig)
         {
-            string configFilename = aOptions.ConfigFile.Value ?? Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + Path.DirectorySeparatorChar + "ohOs" + Path.DirectorySeparatorChar + "ohos.config.xml";
-            aConfig = new ConfigFileCollection(new[] { configFilename });
+            string exeDir;
+            string exeName;
+            string exeConfigFilename;
+            try
+            {
+                string assemblyPath = new Uri(Assembly.GetEntryAssembly().CodeBase).LocalPath;
+                exeDir = Path.GetDirectoryName(assemblyPath);
+                exeName = Path.GetFileNameWithoutExtension(assemblyPath);
+            }
+            catch (InvalidOperationException)
+            {
+                exeDir = null;
+                exeName = "ohOs.Host";
+            }
+
+            if (exeDir == null)
+            {
+                exeConfigFilename = null;
+            }
+            else
+            {
+                exeConfigFilename = Path.Combine(exeDir, exeName + ConfigExtension);
+            }
+            
+            string userConfigFilename = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + Path.DirectorySeparatorChar + "ohOs" + Path.DirectorySeparatorChar + exeName + ConfigExtension;
+
+            List<string> configFiles = new List<string>();
+            if (aOptions.ConfigFile.Value != null)
+            {
+                configFiles.Add(aOptions.ConfigFile.Value);
+            }
+            else if (!string.IsNullOrEmpty(exeConfigFilename) && File.Exists(exeConfigFilename))
+            {
+                configFiles.Add(exeConfigFilename);
+            }
+            else if (File.Exists(userConfigFilename))
+            {
+                configFiles.Add(userConfigFilename);
+            }
+            aConfig = new ConfigFileCollection(configFiles);
             aSysConfig = aConfig.GetSubcollection(e=>e.Element("system-settings"));
         }
 
