@@ -27,9 +27,10 @@ namespace OpenHome.Widget.Nodes
     public interface IUpdateService : IDisposable
     {
         bool UpdateAvailable { get; }
-        void DownloadUpdate();
-        void DoUpdate();
-        void CheckForUpdate();
+        bool DownloadUpdate();
+        bool DoUpdate();
+        bool CheckForUpdate();
+        void CancelUpdate();
         void Reboot();
         event EventHandler<UpdateEventArgs> UpdateEventHandler;
         void Start();
@@ -41,12 +42,13 @@ namespace OpenHome.Widget.Nodes
     public class NullUpdateService : IUpdateService, IDisposable
     {
         public bool UpdateAvailable { get { return false; } }
-        public void CheckForUpdate() { }
+        public bool CheckForUpdate() { return false; }
         public event EventHandler<UpdateEventArgs> UpdateEventHandler { add { } remove { } }
         public void Start() { }
         public void Stop() { }
-        public void DownloadUpdate() { }
-        public void DoUpdate() { }
+        public bool DownloadUpdate() { return false; }
+        public bool DoUpdate() { return false; }
+        public void CancelUpdate() { }
         public void Reboot() { }
         public void Refresh() { }
         public void Dispose() { }
