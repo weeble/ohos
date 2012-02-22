@@ -161,7 +161,7 @@ namespace OpenHome.Os.AppManager
         {
             Mock<IAction>[] availableMocks = new Mock<IAction>[3];
             Mock<IAction>[] failedMocks = new Mock<IAction>[3];
-            StartPollingApp("appzero", "http://domain.invalid", new DateTime(2000, 06, 01), out availableMocks[0], out failedMocks[1]);
+            StartPollingApp("appzero", "http://domain.invalid", new DateTime(2000, 06, 01), out availableMocks[0], out failedMocks[0]);
             StartPollingApp("appone", "http://domain.invalid", new DateTime(2000, 06, 01), out availableMocks[1], out failedMocks[1]);
             StartPollingApp("apptwo", "http://domain.invalid", new DateTime(2000, 06, 01), out availableMocks[2], out failedMocks[2]);
 
@@ -178,7 +178,7 @@ namespace OpenHome.Os.AppManager
         {
             Mock<IAction>[] availableMocks = new Mock<IAction>[3];
             Mock<IAction>[] failedMocks = new Mock<IAction>[3];
-            StartPollingApp("appzero", "http://appone.invalid", new DateTime(2000, 06, 01), out availableMocks[0], out failedMocks[1]);
+            StartPollingApp("appzero", "http://appone.invalid", new DateTime(2000, 06, 01), out availableMocks[0], out failedMocks[0]);
             StartPollingApp("appone", "http://apptwo.invalid", new DateTime(2000, 06, 01), out availableMocks[1], out failedMocks[1]);
             StartPollingApp("apptwo", "http://appthree.invalid", new DateTime(2000, 06, 01), out availableMocks[2], out failedMocks[2]);
 
@@ -195,5 +195,48 @@ namespace OpenHome.Os.AppManager
             Assert.That(order, Is.EqualTo(new[] { 0, 1, 2 }));
         }
 
+        [Test]
+        public void TestPollTimeForZeroApps()
+        {
+            iPollManager.MaxAppPollingInterval = TimeSpan.FromSeconds(100);
+            Assert.That(iPollManager.PollingInterval, Is.EqualTo(TimeSpan.FromSeconds(100)));
+        }
+
+        [Test]
+        public void TestPollTimeForOneApps()
+        {
+            iPollManager.MinPollingInterval = TimeSpan.FromSeconds(10);
+            iPollManager.MaxAppPollingInterval = TimeSpan.FromSeconds(100);
+            StartPollingApp("appfoo", "http://domain.invalid", new DateTime(2000, 06, 01));
+            Assert.That(iPollManager.PollingInterval, Is.EqualTo(TimeSpan.FromSeconds(100)));
+        }
+
+        [Test]
+        public void TestPollTimeForTwoApps()
+        {
+            iPollManager.MinPollingInterval = TimeSpan.FromSeconds(10);
+            iPollManager.MaxAppPollingInterval = TimeSpan.FromSeconds(100);
+            StartPollingApp("app1", "http://domain.invalid", new DateTime(2000, 06, 01));
+            StartPollingApp("app2", "http://domain.invalid", new DateTime(2000, 06, 01));
+            Assert.That(iPollManager.PollingInterval, Is.EqualTo(TimeSpan.FromSeconds(50)));
+        }
+
+        [Test]
+        public void TestAppsAreNotPolledAfterRemoval()
+        {
+            Mock<IAction>[] availableMocks = new Mock<IAction>[3];
+            Mock<IAction>[] failedMocks = new Mock<IAction>[3];
+            StartPollingApp("appzero", "http://appone.invalid", new DateTime(2000, 06, 01), out availableMocks[0], out failedMocks[0]);
+            StartPollingApp("appone", "http://apptwo.invalid", new DateTime(2000, 06, 01), out availableMocks[1], out failedMocks[1]);
+            StartPollingApp("apptwo", "http://appthree.invalid", new DateTime(2000, 06, 01), out availableMocks[2], out failedMocks[2]);
+            CancelPollingApp("appzero");
+            CancelPollingApp("apptwo");
+            iMockUrlPoller.Setup(x => x.Poll(It.IsAny<string>(), It.IsAny<DateTime>())).Returns(DownloadAvailableState.Available);
+            PollNext();
+            PollNext();
+            availableMocks[0].Verify(x => x.Invoke(), Times.Never());
+            availableMocks[1].Verify(x => x.Invoke(), Times.Exactly(2));
+            availableMocks[2].Verify(x => x.Invoke(), Times.Never());
+        }
     }
 }
