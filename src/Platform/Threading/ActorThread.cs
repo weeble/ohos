@@ -4,6 +4,49 @@ using System.Threading;
 namespace OpenHome.Os.Platform.Threading
 {
     /// <summary>
+    /// Interface for provided by CommunicatorThread to the code
+    /// it runs to allow communication over channels.
+    /// </summary>
+    public interface IThreadCommunicator
+    {
+        bool Abandoned { get; }
+        bool CheckAbandoned();
+        bool SelectWithTimeout(
+            int aTimeoutMilliseconds,
+            params ChannelAction[] aActions);
+        void Select(params ChannelAction[] aActions);
+    }
+
+    public class CommunicatorThread : QuittableThread, IThreadCommunicator
+    {
+        Action<IThreadCommunicator> iRunMethod;
+
+        public CommunicatorThread(
+            Action<IThreadCommunicator> aRunMethod,
+            string aName)
+            :base(aName)
+        {
+            iRunMethod = aRunMethod;
+        }
+
+        protected override void Run ()
+        {
+            iRunMethod(this);
+        }
+
+        bool IThreadCommunicator.Abandoned { get { return Abandoned; } }
+        bool IThreadCommunicator.CheckAbandoned() { return CheckAbandoned(); }
+        bool IThreadCommunicator.SelectWithTimeout(int aTimeoutMilliseconds, params ChannelAction[] aActions)
+        {
+            return SelectWithTimeout(aTimeoutMilliseconds, aActions);
+        }
+        void IThreadCommunicator.Select(params ChannelAction[] aActions)
+        {
+            Select(aActions);
+        }
+    }
+
+    /// <summary>
     /// A thread that can perform blocking channel operations with Channel.Select
     /// which can also be cancelled "nicely".
     /// </summary>
@@ -25,6 +68,7 @@ namespace OpenHome.Os.Platform.Threading
         {
             get { return iAbandoned; }
         }
+
         protected bool CheckAbandoned()
         {
             if (Abandoned) { return true; }
@@ -41,11 +85,17 @@ namespace OpenHome.Os.Platform.Threading
             iQuitChannel = new Channel<int>(1);
             iThread = new Thread(ThreadMethod);
         }
+        protected QuittableThread(string aName)
+            :this()
+        {
+            iThread.Name = aName;
+        }
         private void ThreadMethod()
         {
             Run();
         }
         protected abstract void Run();
+
         protected bool SelectWithTimeout(
             int aTimeoutMilliseconds,
 

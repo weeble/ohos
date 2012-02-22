@@ -73,7 +73,7 @@ namespace OpenHome.Os.AppManager
     }
 
 
-    class DownloadThread : QuittableThread
+    class Downloader
     {
         class Download
         {
@@ -196,8 +196,9 @@ namespace OpenHome.Os.AppManager
         public event EventHandler DownloadChanged;
         Channel<DownloadProgress> iInternalProgressChannel;
         readonly PollManager iPollManager;
+        IThreadCommunicator iThread;
 
-        public DownloadThread(IDownloadDirectory aDownloadDirectory, Channel<DownloadInstruction> aInstructionChannel, Channel<PollInstruction> aPollInstructionChannel)
+        public Downloader(IDownloadDirectory aDownloadDirectory, Channel<DownloadInstruction> aInstructionChannel, Channel<PollInstruction> aPollInstructionChannel)
         {
             iInstructionChannel = aInstructionChannel;
             iPollInstructionChannel = aPollInstructionChannel;
@@ -335,15 +336,16 @@ namespace OpenHome.Os.AppManager
             }
         }
 
-        protected override void Run()
+        public void Run(IThreadCommunicator aThread)
         {
+            iThread = aThread;
             using (iInternalProgressChannel = new Channel<DownloadProgress>(1))
             {
-                while (!Abandoned)
+                while (!iThread.Abandoned)
                 {
                     CleanupFailedDownloads();
                     PollIfRequired();
-                    SelectWithTimeout(
+                    iThread.SelectWithTimeout(
                         GetMillisecondsUntilActionRequired(),
                         iInstructionChannel.CaseReceive(ReceiveDownloadInstruction),
                         iPollInstructionChannel.CaseReceive(ReceivePollInstruction),
@@ -426,15 +428,16 @@ namespace OpenHome.Os.AppManager
 
     public class DownloadManager : IDownloadManager
     {
-        readonly DownloadThread iDownloadThread;
+        readonly CommunicatorThread iDownloadThread;
+        readonly Downloader iDownloader;
         readonly IDownloadDirectory iDownloadDirectory;
         readonly Channel<DownloadInstruction> iInstructionChannel;
         readonly Channel<PollInstruction> iPollInstructionChannel;
         public int MaxSimultaneousDownloads { get; set; }
         public event EventHandler DownloadCountChanged
         {
-            add { iDownloadThread.DownloadChanged += value; }
-            remove { iDownloadThread.DownloadChanged -= value; }
+            add { iDownloader.DownloadChanged += value; }
+            remove { iDownloader.DownloadChanged -= value; }
         }
 
         public DownloadManager(IDownloadDirectory aDownloadDirectory)
@@ -442,7 +445,8 @@ namespace OpenHome.Os.AppManager
             iDownloadDirectory = aDownloadDirectory;
             iInstructionChannel = new Channel<DownloadInstruction>(2);
             iPollInstructionChannel = new Channel<PollInstruction>(2);
-            iDownloadThread = new DownloadThread(iDownloadDirectory, iInstructionChannel, iPollInstructionChannel);
+            iDownloader = new Downloader(iDownloadDirectory, iInstructionChannel, iPollInstructionChannel);
+            iDownloadThread = new CommunicatorThread(iDownloader.Run, "DownloadManager");
             iDownloadThread.Start();
         }
 
@@ -472,7 +476,7 @@ namespace OpenHome.Os.AppManager
 
         public IEnumerable<DownloadProgress> GetDownloadsStatus()
         {
-            return iDownloadThread.GetDownloadStatus();
+            return iDownloader.GetDownloadStatus();
         }
 
         public void CancelDownload(string aAppUrl)
