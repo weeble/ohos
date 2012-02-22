@@ -183,7 +183,7 @@ namespace OpenHome.Os.AppManager
             public DownloadProgress DownloadProgress { get; set; }
         }
 
-        static readonly ILog Logger = LogManager.GetLogger(typeof(DownloadThread));
+        //static readonly ILog Logger = LogManager.GetLogger(typeof(DownloadThread));
 
         readonly Channel<DownloadInstruction> iInstructionChannel;
         readonly Channel<PollInstruction> iPollInstructionChannel;
