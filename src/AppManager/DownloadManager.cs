@@ -9,7 +9,7 @@ using log4net;
 
 namespace OpenHome.Os.AppManager
 {
-    class DownloadInstruction
+    public class DownloadInstruction
     {
         public string Url { get; set; }
         public bool Cancel { get; set; }
@@ -17,7 +17,7 @@ namespace OpenHome.Os.AppManager
         public Action FailedCallback { get; set; }
     }
 
-    class PollInstruction
+    public class PollInstruction
     {
         public string Url { get; set; }
         public bool Cancel { get; set; }
@@ -73,142 +73,46 @@ namespace OpenHome.Os.AppManager
     }
 
 
-    class Downloader
+    public class Downloader
     {
-        class Download
-        {
-            readonly string iUrl;
-            readonly FileStream iOutStream;
-            readonly byte[] iBuffer;
-            readonly Channel<DownloadProgress> iProgressChannel;
-            readonly string iFilename;
-            long iOffset;
-            HttpWebResponse iResponse;
-            Stream iResponseStream;
-            public DateTime LastModified { get; private set; }
-            public Action<string, DateTime> CompletedCallback { get; private set; }
-            public Action FailedCallback { get; private set; }
-
-            public Download(string aUrl, int aBufferSize, FileStream aOutStream, Channel<DownloadProgress> aProgressChannel, Action<string, DateTime> aCompletedCallback, Action aFailedCallback)
-            {
-                CompletedCallback = aCompletedCallback;
-                FailedCallback = aFailedCallback;
-                iUrl = aUrl;
-                iFilename = aOutStream.Name;
-                iProgressChannel = aProgressChannel;
-                iOutStream = aOutStream;
-                iBuffer = new byte[aBufferSize];
-            }
-
-            public void Start()
-            {
-                try
-                {
-                    WebRequest request = WebRequest.Create(iUrl);
-                    iResponse = request.GetResponse() as HttpWebResponse;
-                    if (iResponse == null)
-                    {
-                        iProgressChannel.Send(DownloadProgress.CreateFailed(iUrl));
-                        return;
-                    }
-                    LastModified = iResponse.LastModified;
-                    iResponseStream = iResponse.GetResponseStream();
-                    iOffset = 0;
-                    BeginRead();
-                }
-                catch (Exception)
-                {
-                    iProgressChannel.Send(DownloadProgress.CreateFailed(iUrl));
-                    if (iResponseStream != null)
-                    {
-                        iResponseStream.Dispose();
-                    }
-                }
-            }
-
-            public void Cancel()
-            {
-                // One of four situations exist:
-                //    1. Start failed and sent a failure message already.
-                //    2. The download has already completed and success was sent.
-                //    3. Start completed, but a read failed, the stream was closed and a failure was sent.
-                //    4. Start completed, reads are ongoing.
-                // In 1-3, a double-dispose is safe and harmless.
-                // In 4, the dispose will trigger OnReadComplete to finish, will cause an exception in
-                // EndRead, and that will send a failure message.
-                if (iResponseStream != null)
-                {
-                    iResponseStream.Dispose();
-                }
-            }
-
-            void BeginRead()
-            {
-                iResponseStream.BeginRead(iBuffer, 0, iBuffer.Length, OnReadComplete, null);
-            }
-
-            void OnReadComplete(IAsyncResult aAr)
-            {
-                int count;
-                try
-                {
-                    count = iResponseStream.EndRead(aAr);
-                }
-                catch (Exception)
-                {
-                    iResponseStream.Close();
-                    iOutStream.Close();
-                    iProgressChannel.Send(DownloadProgress.CreateFailed(iUrl));
-                    return;
-                }
-                if (count == 0)
-                {
-                    iResponseStream.Dispose();
-                    iOutStream.Close();
-                    iProgressChannel.Send(DownloadProgress.CreateComplete(iUrl, (int)iOffset, iFilename));
-                }
-                else
-                {
-                    iOutStream.Write(iBuffer, 0, count);
-                    iOffset += count;
-                    BeginRead();
-                    iProgressChannel.NonBlockingSend(DownloadProgress.CreateInProgress(iUrl, (int)iOffset, (int)iResponse.ContentLength));
-                }
-            }
-        }
-
         class FailedDownload
         {
             public DateTime TimeOfFailure { get; set; }
             public DownloadProgress DownloadProgress { get; set; }
         }
 
-        //static readonly ILog Logger = LogManager.GetLogger(typeof(DownloadThread));
-
         readonly Channel<DownloadInstruction> iInstructionChannel;
         readonly Channel<PollInstruction> iPollInstructionChannel;
-        readonly Dictionary<string, Download> iDownloads = new Dictionary<string, Download>();
+        readonly Dictionary<string, DownloadListener> iDownloads = new Dictionary<string, DownloadListener>();
         readonly IDownloadDirectory iDownloadDirectory;
         readonly Dictionary<string, DownloadProgress> iPublicDownloadInfo = new Dictionary<string, DownloadProgress>();
         readonly Queue<FailedDownload> iPublicFailedDownloads = new Queue<FailedDownload>();
         readonly object iPublicDownloadsLock = new object();
+        readonly IPollManager iPollManager;
         public TimeSpan FailureTimeout { get; set; }
         public event EventHandler DownloadChanged;
         Channel<DownloadProgress> iInternalProgressChannel;
-        readonly PollManager iPollManager;
         IThreadCommunicator iThread;
+        DateTime? iLastPollTime;
+        IUrlFetcher iUrlFetcher;
 
-        public Downloader(IDownloadDirectory aDownloadDirectory, Channel<DownloadInstruction> aInstructionChannel, Channel<PollInstruction> aPollInstructionChannel)
+
+        public Downloader(
+            IDownloadDirectory aDownloadDirectory,
+            Channel<DownloadInstruction> aInstructionChannel,
+            Channel<PollInstruction> aPollInstructionChannel,
+            IPollManager aPollManager,
+            IUrlFetcher aUrlFetcher)
         {
             iInstructionChannel = aInstructionChannel;
             iPollInstructionChannel = aPollInstructionChannel;
             iDownloadDirectory = aDownloadDirectory;
+            iPollManager = aPollManager;
+            iUrlFetcher = aUrlFetcher;
             FailureTimeout = TimeSpan.FromSeconds(10);
-            var urlPoller = new DefaultUrlPoller();
-            iPollManager = new PollManager(urlPoller);
         }
 
-        public void InvokeDownloadChanged(EventArgs aE)
+        void InvokeDownloadChanged(EventArgs aE)
         {
             EventHandler handler = DownloadChanged;
             if (handler != null) handler(this, aE);
@@ -223,8 +127,6 @@ namespace OpenHome.Os.AppManager
                 return downloads;
             }
         }
-
-        DateTime? iLastPollTime;
 
         int GetMillisecondsUntilPollingRequired()
         {
@@ -294,9 +196,55 @@ namespace OpenHome.Os.AppManager
             }
         }
 
-        
 
-        void ReceiveDownloadInstruction(DownloadInstruction aInstruction)
+        /// <summary>
+        /// Receives notifications from asynchronous downloads and queues them back
+        /// to the downloader thread.
+        /// </summary>
+        class DownloadListener : IDownloadListener
+        {
+            Downloader iParent;
+            string iUri;
+            string iLocalPath;
+            public Action<string, DateTime> CompletedCallback { get; private set; }
+            public Action FailedCallback { get; private set; }
+            public IDisposable Download { get; set; }
+            public DateTime LastModified { get; private set; }
+
+            public DownloadListener(Downloader aParent, string aUri, string aLocalPath)
+            {
+                iParent = aParent;
+                iUri = aUri;
+                iLocalPath = aLocalPath;
+            }
+
+            public void Cancel()
+            {
+                if (Download != null)
+                {
+                    Download.Dispose();
+                }
+            }
+
+            public void Complete(DateTime aLastModified)
+            {
+                LastModified = aLastModified;
+                iParent.iInternalProgressChannel.Send(DownloadProgress.CreateComplete(iUri, 0, iLocalPath));
+            }
+
+            public void Failed()
+            {
+                iParent.iInternalProgressChannel.Send(DownloadProgress.CreateFailed(iUri));
+            }
+
+            public void Progress(int aBytes, int aBytesTotal)
+            {
+                iParent.iInternalProgressChannel.NonBlockingSend(
+                    DownloadProgress.CreateInProgress(iUri, aBytes, aBytesTotal));
+            }
+        }
+
+        public void ReceiveDownloadInstruction(DownloadInstruction aInstruction)
         {
             string url = aInstruction.Url;
             bool cancel = aInstruction.Cancel;
@@ -312,19 +260,19 @@ namespace OpenHome.Os.AppManager
                 if (!iDownloads.ContainsKey(url))
                 {
                     FileStream fileStream = iDownloadDirectory.CreateFile();
-                    Download download = new Download(url, 8192, fileStream, iInternalProgressChannel, aInstruction.CompleteCallback, aInstruction.FailedCallback);
-                    iDownloads[url] = download;
+                    var downloadListener = new DownloadListener(this, url, fileStream.Name);
+                    downloadListener.Download = iUrlFetcher.Fetch(url, fileStream, downloadListener);
+                    iDownloads[url] = downloadListener;
                     lock (iPublicDownloadInfo)
                     {
                         iPublicDownloadInfo[url] = DownloadProgress.CreateJustStarted(url);
                     }
                     InvokeDownloadChanged(EventArgs.Empty);
-                    download.Start();
                 }
             }
         }
 
-        void ReceivePollInstruction(PollInstruction aInstruction)
+        public void ReceivePollInstruction(PollInstruction aInstruction)
         {
             if (aInstruction.Cancel)
             {
@@ -333,6 +281,44 @@ namespace OpenHome.Os.AppManager
             else
             {
                 iPollManager.StartPollingApp(aInstruction.AppName, aInstruction.Url, aInstruction.LastModified, aInstruction.AvailableCallback, aInstruction.ErrorCallback);
+            }
+        }
+
+        public void ReceiveInternalProgressMessage(DownloadProgress aMessage)
+        {
+            string url = aMessage.Uri;
+            if (!iDownloads.ContainsKey(url))
+            {
+                return;
+            }
+
+            if (aMessage.HasFailed)
+            {
+                iDownloads[url].FailedCallback();
+                iDownloads.Remove(url);
+                lock (iPublicDownloadsLock)
+                {
+                    iPublicDownloadInfo.Remove(url);
+                }
+                iPublicFailedDownloads.Enqueue(new FailedDownload { TimeOfFailure = DateTime.UtcNow, DownloadProgress = aMessage });
+                InvokeDownloadChanged(EventArgs.Empty);
+            }
+            else if (aMessage.HasCompleted)
+            {
+                iDownloads[url].CompletedCallback(aMessage.LocalPath, iDownloads[url].LastModified);
+                iDownloads.Remove(url);
+                lock (iPublicDownloadsLock)
+                {
+                    iPublicDownloadInfo.Remove(url);
+                }
+                InvokeDownloadChanged(EventArgs.Empty);
+            }
+            else
+            {
+                lock (iPublicDownloadsLock)
+                {
+                    iPublicDownloadInfo[aMessage.Uri] = aMessage;
+                }
             }
         }
 
@@ -349,44 +335,7 @@ namespace OpenHome.Os.AppManager
                         GetMillisecondsUntilActionRequired(),
                         iInstructionChannel.CaseReceive(ReceiveDownloadInstruction),
                         iPollInstructionChannel.CaseReceive(ReceivePollInstruction),
-                        iInternalProgressChannel.CaseReceive(
-                            aMessage =>
-                            {
-                                string url = aMessage.Uri;
-                                if (!iDownloads.ContainsKey(url))
-                                {
-                                    return;
-                                }
-
-                                if (aMessage.HasFailed)
-                                {
-                                    iDownloads[url].FailedCallback();
-                                    iDownloads.Remove(url);
-                                    lock (iPublicDownloadsLock)
-                                    {
-                                        iPublicDownloadInfo.Remove(url);
-                                    }
-                                    iPublicFailedDownloads.Enqueue(new FailedDownload { TimeOfFailure = DateTime.UtcNow, DownloadProgress = aMessage });
-                                    InvokeDownloadChanged(EventArgs.Empty);
-                                }
-                                else if (aMessage.HasCompleted)
-                                {
-                                    iDownloads[url].CompletedCallback(aMessage.LocalPath, iDownloads[url].LastModified);
-                                    iDownloads.Remove(url);
-                                    lock (iPublicDownloadsLock)
-                                    {
-                                        iPublicDownloadInfo.Remove(url);
-                                    }
-                                    InvokeDownloadChanged(EventArgs.Empty);
-                                }
-                                else
-                                {
-                                    lock (iPublicDownloadsLock)
-                                    {
-                                        iPublicDownloadInfo[aMessage.Uri] = aMessage;
-                                    }
-                                }
-                            })
+                        iInternalProgressChannel.CaseReceive(ReceiveInternalProgressMessage)
                         );
                     
                 }
@@ -440,12 +389,14 @@ namespace OpenHome.Os.AppManager
             remove { iDownloader.DownloadChanged -= value; }
         }
 
-        public DownloadManager(IDownloadDirectory aDownloadDirectory)
+        public DownloadManager(IDownloadDirectory aDownloadDirectory, IUrlFetcher aUrlFetcher)
         {
             iDownloadDirectory = aDownloadDirectory;
             iInstructionChannel = new Channel<DownloadInstruction>(2);
             iPollInstructionChannel = new Channel<PollInstruction>(2);
-            iDownloader = new Downloader(iDownloadDirectory, iInstructionChannel, iPollInstructionChannel);
+            var urlPoller = new DefaultUrlPoller();
+            var pollManager = new PollManager(urlPoller);
+            iDownloader = new Downloader(iDownloadDirectory, iInstructionChannel, iPollInstructionChannel, pollManager, aUrlFetcher);
             iDownloadThread = new CommunicatorThread(iDownloader.Run, "DownloadManager");
             iDownloadThread.Start();
         }

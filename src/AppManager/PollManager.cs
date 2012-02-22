@@ -5,7 +5,18 @@ using System.Net;
 
 namespace OpenHome.Os.AppManager
 {
-    public class PollManager
+    public interface IPollManager
+    {
+        TimeSpan MaxAppPollingInterval { get; set; }
+        TimeSpan MinPollingInterval { get; set; }
+        TimeSpan PollingInterval { get; }
+        bool Empty { get; }
+        void StartPollingApp(string aAppName, string aUrl, DateTime aLastModified, Action aReadyAction, Action aFailedAction);
+        void PollNext();
+        void CancelPollingApp(string aAppName);
+    }
+
+    public class PollManager : IPollManager
     {
         class PollingUrl
         {
