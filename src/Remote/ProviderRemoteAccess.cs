@@ -6,6 +6,7 @@ using System.Xml.Linq;
 using System.Net;
 using System.Threading;
 using System.Collections.Generic;
+using System.Diagnostics;
 using OpenHome.Net.Device;
 using OpenHome.Net.Device.Providers;
 using log4net;
@@ -65,6 +66,7 @@ namespace OpenHome.Os.Remote
         private int iSshServerPort;
         private string iPortForwardAddress;
         private uint iPortForwardPort;
+        private Process iSshClientNative;
         private readonly Thread iThread;
         private readonly List<QueuedCommand> iCommands;
         private readonly Semaphore iCommandSem;
@@ -146,10 +148,10 @@ namespace OpenHome.Os.Remote
                     if (Environment.OSVersion.Platform.ToString() == "Unix")
                     {
                         string generatedPrivateKey = FileFullName(kFileKeyBase);
-                        System.Diagnostics.Process process = new System.Diagnostics.Process();
-                        System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo
+                        Process process = new Process();
+                        ProcessStartInfo startInfo = new ProcessStartInfo
                         {
-                            WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden,
+                            WindowStyle = ProcessWindowStyle.Hidden,
                             FileName = "ssh-keygen",
                             Arguments = String.Format("-t rsa -f {0} -N \"\" -C \"\"", generatedPrivateKey)
                         };
@@ -157,13 +159,12 @@ namespace OpenHome.Os.Remote
                         process.Start();
                         process.WaitForExit();
                         File.Move(generatedPrivateKey, privateKeyFileName);
-                        Console.WriteLine("Completed key generation!\n");
                     }
                     if (!File.Exists(privateKeyFileName))
                     {
                         Console.WriteLine("No ssh key pair found.  Currently have to create these ourselves.");
                         Console.WriteLine("You can generate a key from the Linux command line using");
-                        Console.WriteLine("\tssh-keygen -t rsa -f key -C\"\"");
+                        Console.WriteLine("\tssh-keygen -t rsa -f key -N \"\" -C \"\"");
                         Console.WriteLine("...then copy to ohWidget's 'remote' dir, renaming key to key.priv");
                         throw new ActionError();
                     }
@@ -289,13 +290,33 @@ namespace OpenHome.Os.Remote
             XElement portForwardElement = successElement.Element("portforward");
             iPortForwardAddress = portForwardElement.Element("address").Value;
             iPortForwardPort = (uint)Convert.ToInt32(portForwardElement.Element("port").Value);
-            PrivateKeyFile pkf = new PrivateKeyFile(FileFullName(kFilePrivateKey));
-            iSshClient = new SshClient(iSshServerHost, iSshServerPort, kSshServerUserName, pkf);
-            iSshClient.Connect();
-            Logger.InfoFormat("Connected to ssh server at {0}:{1}", iSshServerHost, iSshServerPort);
-            iForwardedPortRemote = new ForwardedPortRemote(iPortForwardAddress, iPortForwardPort, iNetworkAdapter, iProxyServer.Port);
-            iSshClient.AddForwardedPort(iForwardedPortRemote);
-            iForwardedPortRemote.Start();
+
+            if (Environment.OSVersion.Platform.ToString() == "Unix")
+            {
+                iSshClientNative = new Process();
+                ProcessStartInfo startInfo = new ProcessStartInfo
+                                                 {
+                                                     WindowStyle = ProcessWindowStyle.Hidden,
+                                                     FileName = "ssh",
+                                                     Arguments = String.Format(
+                                                             "-i {0} -p {1} -R {2}:{3}:{4}:{5} -N {6}@{2} -o StrictHostKeyChecking=no",
+                                                             FileFullName(kFilePrivateKey), iSshServerPort, iPortForwardAddress,
+                                                             iPortForwardPort, iNetworkAdapter, iProxyServer.Port, kSshServerUserName)
+                                                 };
+                iSshClientNative.StartInfo = startInfo;
+                iSshClientNative.Start();
+            }
+            else
+            {
+                PrivateKeyFile pkf = new PrivateKeyFile(FileFullName(kFilePrivateKey));
+                iSshClient = new SshClient(iSshServerHost, iSshServerPort, kSshServerUserName, pkf);
+                iSshClient.Connect();
+                Logger.InfoFormat("Connected to ssh server at {0}:{1}", iSshServerHost, iSshServerPort);
+                iForwardedPortRemote = new ForwardedPortRemote(iPortForwardAddress, iPortForwardPort, iNetworkAdapter, iProxyServer.Port);
+                iSshClient.AddForwardedPort(iForwardedPortRemote);
+                iForwardedPortRemote.Start();
+            }
+
             Logger.InfoFormat("Forwarded remote port {0}:{1} to {2}:{3}", iPortForwardAddress, iPortForwardPort, iNetworkAdapter, iProxyServer.Port);
             // connection checking is disabled until HaProxy is more stable
             // iConnectionCheckTimer.Enabled = true;
@@ -314,6 +335,12 @@ namespace OpenHome.Os.Remote
                 }
                 iSshClient.Dispose();
                 iSshClient = null;
+            }
+            if (iSshClientNative != null)
+            {
+                iSshClientNative.Kill();
+                iSshClientNative.Dispose();
+                iSshClientNative = null;
             }
         }
         private bool TryRemoveUserName()
