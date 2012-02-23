@@ -58,6 +58,7 @@ namespace OpenHome.Os.AppManager
             iCommunicator.Verify(x=>x.SelectWithTimeout(-1, It.IsAny<ChannelAction[]>()), Times.Once());
         }
 
+        [Ignore]
         [Test]
         public void TestTheDownloaderSleepsForPollingIntervalWhenThereIsPollingToDo()
         {
