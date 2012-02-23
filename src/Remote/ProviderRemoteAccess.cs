@@ -50,7 +50,7 @@ namespace OpenHome.Os.Remote
         private const string kTagPassword = "password";
         private const string kTagPublicUrl = "url";
         private const string kSshServerUserName = "ohnode";
-        private const string kDefaultWebServiceAddress = "http://remoteaccess-dev.linn.co.uk:2001/";
+        private const string kDefaultWebServiceAddress = "login.remote.linn.co.uk/";
         private const int kConnectionCheckIntervalMs = 5 * 60 * 1000; // 5 minutes
         private static readonly ILog Logger = LogManager.GetLogger(typeof(ProviderRemoteAccess));
         private readonly string iDeviceUdn;
@@ -77,8 +77,8 @@ namespace OpenHome.Os.Remote
             iDeviceUdn = aDevice.Udn();
             iStoreDir = aStoreDir;
             iWebServiceHostName = (aWebServiceHostName ?? kDefaultWebServiceAddress);
-            if (!iWebServiceHostName.StartsWith("http://"))
-                iWebServiceHostName = "http://" + iWebServiceHostName;
+            if (!iWebServiceHostName.StartsWith("https://"))
+                iWebServiceHostName = "https://" + iWebServiceHostName;
             if (!iWebServiceHostName.EndsWith("/"))
                 iWebServiceHostName += "/";
             iProxyServer = aProxyServer;
@@ -89,6 +89,8 @@ namespace OpenHome.Os.Remote
             iThread.Start(this);
             iConnectionCheckTimer = new System.Timers.Timer { AutoReset = true, Enabled = false, Interval = kConnectionCheckIntervalMs };
             iConnectionCheckTimer.Elapsed += CheckConnection;
+            ServicePointManager.ServerCertificateValidationCallback += delegate { return true; };
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3;
 
             EnablePropertyUserName();
             EnablePropertyPublicUri();

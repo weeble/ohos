@@ -130,10 +130,7 @@ namespace OpenHome.Os.Remote
                 }
                 aResponse.AppendCookie(new Cookie(kAuthCookieName, guid));
                 aResponse.StatusCode = (int)HttpStatusCode.OK;
-                location = aRequest.Headers.GetValues("HOST")[0];
-                if (!location.StartsWith("http"))
-                    location = "http://" + location;
-                aResponse.ContentLength64 = location.Length + 2;
+                location = "/";
                 byte[] buf = Encoding.UTF8.GetBytes(location + "\r\n");
                 aResponse.OutputStream.Write(buf, 0, buf.Length);
                 Logger.InfoFormat("Authenticated! Redirecting: {0} to {1}", pathAndQuery, location);
@@ -150,10 +147,7 @@ namespace OpenHome.Os.Remote
                     // A path of /{iForwardUdn} is a special case (see docs on our use of HaProxy) which needs to be redirected to "/"
                     if (pathAndQuery == String.Format("/{0}", iForwardUdn))
                     {
-                        location = aRequest.Headers.GetValues("HOST")[0];
-                        if (!location.StartsWith("http"))
-                            location = "http://" + location;
-                        aResponse.Redirect(location);
+                        aResponse.Redirect("/");
                         aResponse.Close();
                         return true;
                     }
@@ -166,12 +160,7 @@ namespace OpenHome.Os.Remote
                 return false;
 
             // redirect any other requests to the login page
-            location = aRequest.Headers.GetValues("HOST")[0];
-            if (!location.StartsWith("http"))
-                location = "http://" + location;
-            if (!location.EndsWith("/"))
-                location += "/";
-            location += "login.html";
+            location = "/login.html";
             aResponse.Redirect(location);
             aResponse.Close();
             Logger.InfoFormat("Redirecting: {0} to {1}", pathAndQuery, location);
@@ -312,7 +301,7 @@ namespace OpenHome.Os.Remote
                 aProxiedResponse.ContentType != null && 
                 !(aProxiedResponse.ContentType.Contains("image/png") || aProxiedResponse.ContentType.Contains("image/jpeg")))
                 // no point in wasting time zipping a format that is already compressed
-                useGzip = true;
+                useGzip = false;
             Stream clientRespStream = aResponse.OutputStream;
             using (Stream respStream = aProxiedResponse.GetResponseStream())
             {
