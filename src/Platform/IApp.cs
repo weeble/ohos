@@ -2,7 +2,6 @@ using System;
 using Mono.Addins;
 using OpenHome.Net.ControlPoint;
 using OpenHome.Net.Device;
-using OpenHome.Widget.Nodes;
 using OpenHome.Os.Platform.Logging;
 
 [assembly: AddinRoot("ohOs", "1.4")]

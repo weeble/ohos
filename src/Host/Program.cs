@@ -10,7 +10,6 @@ using Node;
 using OpenHome.Os.Apps;
 using OpenHome.Os.Host.Guardians;
 using OpenHome.Os.Platform;
-using OpenHome.Widget.Nodes;
 using OpenHome.Os.Platform.Logging;
 using OpenHome.Net.ControlPoint;
 using OpenHome.Net.Core;

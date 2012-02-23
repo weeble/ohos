@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using OpenHome.Net.Device.Providers;
 using OpenHome.Os.Platform;
 using OpenHome.Os.Platform.Collections;
-using OpenHome.Widget.Nodes;
 
 // !!!! need IOsContext definition
 // !!!! which may include interface to proxy for InstallManager service
