@@ -6,7 +6,7 @@ namespace OpenHome.Os.AppManager
     public interface IDownloadDirectory
     {
         void Clear();
-        FileStream CreateFile();
+        void CreateFile(out FileStream aFile, out string aName);
     }
 
     public class DownloadDirectory : IDownloadDirectory
@@ -31,10 +31,11 @@ namespace OpenHome.Os.AppManager
             }
         }
 
-        public FileStream CreateFile()
+        public void CreateFile(out FileStream aFile, out string aName)
         {
             string filepath = Path.Combine(iPath, Guid.NewGuid() + ".download");
-            return File.Create(filepath);
+            aFile = File.Create(filepath);
+            aName = filepath;
         }
     }
 }

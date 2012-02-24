@@ -242,6 +242,16 @@ namespace OpenHome.Os.Platform.Threading
             InternalSend(aItem);
         }
 
+        public bool SendWithTimeout(T aItem, int aMillisecondsTimeout)
+        {
+            if (iWriteSemaphore.WaitOne(aMillisecondsTimeout))
+            {
+                InternalSend(aItem);
+                return true;
+            }
+            return false;
+        }
+
         /// <summary>
         /// If there is space in the channel, enqueue the item and return
         /// true immediately. Otherwise, return false immediately.
