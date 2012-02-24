@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using OpenHome.Os.Platform.Threading;
 using NUnit.Framework;
 using Moq;
@@ -81,6 +82,42 @@ namespace OpenHome.Os.AppManager
         }
 
         [Test]
+        public void TestStartingADownloadAddsItToDownloadStatus()
+        {
+            iDownloader.StartDownload(
+                "http://test.test",
+                (aName, aModified)=>{},
+                ()=>{});
+            var downloads = iDownloader.GetDownloadStatus().ToList();
+            Assert.That(downloads.Count, Is.EqualTo(1));
+            Assert.That(downloads[0].Uri, Is.EqualTo("http://test.test"));
+        }
+
+        [Test]
+        public void TestStartingADownloadSetsItTo0Bytes()
+        {
+            iDownloader.StartDownload(
+                "http://test.test",
+                (aName, aModified)=>{},
+                ()=>{});
+            var downloads = iDownloader.GetDownloadStatus().ToList();
+            Assert.That(downloads.Count, Is.EqualTo(1));
+            Assert.That(downloads[0].DownloadedBytes, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void TestStartingADownloadSetsItToUnknownSize()
+        {
+            iDownloader.StartDownload(
+                "http://test.test",
+                (aName, aModified)=>{},
+                ()=>{});
+            var downloads = iDownloader.GetDownloadStatus().ToList();
+            Assert.That(downloads.Count, Is.EqualTo(1));
+            Assert.That(downloads[0].HasTotalBytes, Is.EqualTo(false));
+        }
+
+        [Test]
         public void TestStartingADownloadTriggersAnEvent()
         {
             bool gotEvent = false;
@@ -144,6 +181,39 @@ namespace OpenHome.Os.AppManager
             iDownloader.DownloadChanged += (aSender, aEvent) => { gotEvent = true; };
             iMessageQueue.Receive()(iDownloader);
             Assert.That(gotEvent, Is.False);
+        }
+
+        [Test]
+        public void TestCancelDownloadDisposesDownload()
+        {
+            Mock<IDisposable> iDownload = new Mock<IDisposable>();
+            iUrlFetcher.Setup(x=>x.Fetch(It.IsAny<string>(), It.IsAny<FileStream>(), It.IsAny<IDownloadListener>())).Returns(iDownload.Object);
+            iDownloader.StartDownload(
+                "http://test.test",
+                (aName, aModified)=>{},
+                ()=>{});
+            iDownloader.CancelDownload("http://test.test");
+            iDownload.Verify(x => x.Dispose());
+        }
+
+        [Test]
+        public void TestCancelAllDownloadsDisposesAllDownloads()
+        {
+            Mock<IDisposable>[] downloads = Enumerable.Range(0, 4).Select(x=>new Mock<IDisposable>()).ToArray();
+            string[] urls = Enumerable.Range(0, 4).Select(x => String.Format("http://test{0}.test", x)).ToArray();
+            foreach (var pair in urls.Zip(downloads, (url, download) => new { Url = url, Download = download }))
+            {
+                iUrlFetcher.Setup(x => x.Fetch(pair.Url, It.IsAny<FileStream>(), It.IsAny<IDownloadListener>())).Returns(pair.Download.Object);
+            }
+            foreach (var url in urls)
+            {
+                iDownloader.StartDownload(url, (aName, aModified) => { }, () => { });
+            }
+            iDownloader.CancelAllDownloads();
+            foreach (var download in downloads)
+            {
+                download.Verify(x => x.Dispose());
+            }
         }
 
         //[Test]

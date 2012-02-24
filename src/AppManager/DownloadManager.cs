@@ -35,11 +35,11 @@ namespace OpenHome.Os.AppManager
         
         public static DownloadProgress CreateFailed(string aUri)
         {
-            return new DownloadProgress(aUri, 0, 0, true);
+            return new DownloadProgress(aUri, 0, -1, true);
         }
         public static DownloadProgress CreateJustStarted(string aUri)
         {
-            return new DownloadProgress(aUri, 0, 0, false);
+            return new DownloadProgress(aUri, 0, -1, false);
         }
     }
 
