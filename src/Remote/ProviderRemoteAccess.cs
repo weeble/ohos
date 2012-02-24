@@ -51,7 +51,7 @@ namespace OpenHome.Os.Remote
         private const string kTagPassword = "password";
         private const string kTagPublicUrl = "url";
         private const string kSshServerUserName = "ohnode";
-        private const string kDefaultWebServiceAddress = "login.remote.linn.co.uk/";
+        private const string kDefaultWebServiceAddress = "login.remote.openhome.org";
         private const int kConnectionCheckIntervalMs = 5 * 60 * 1000; // 5 minutes
         private static readonly ILog Logger = LogManager.GetLogger(typeof(ProviderRemoteAccess));
         private readonly string iDeviceUdn;
