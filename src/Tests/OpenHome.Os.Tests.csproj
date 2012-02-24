@@ -33,9 +33,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AppManager\DownloaderTests.cs" />
+    <Compile Include="AppManager\PollManagerTests.cs" />
     <Compile Include="Apps\TestAppShell.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\AppManager\OpenHome.Os.AppManager.csproj">
+      <Project>{6180166A-BBEA-415E-8E10-9BB17389D6A7}</Project>
+      <Name>OpenHome.Os.AppManager</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Apps\OpenHome.Os.Apps.csproj">
       <Project>{AB03D699-04CE-48D6-B75C-A13E3AD75C1B}</Project>
       <Name>OpenHome.Os.Apps</Name>

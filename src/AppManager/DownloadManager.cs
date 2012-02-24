@@ -2,78 +2,57 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
 using OpenHome.Net.Device;
 using OpenHome.Os.Platform.Threading;
-using log4net;
 
 namespace OpenHome.Os.AppManager
 {
-    public class DownloadInstruction
-    {
-        public string Url { get; set; }
-        public bool Cancel { get; set; }
-        public Action<string, DateTime> CompleteCallback { get; set; }
-        public Action FailedCallback { get; set; }
-    }
 
-    public class PollInstruction
+    public interface IDownloadThread
     {
-        public string Url { get; set; }
-        public bool Cancel { get; set; }
-        public DateTime LastModified { get; set; }
-        public Action AvailableCallback { get; set; }
-        public Action ErrorCallback { get; set; }
-        public string AppName { get; set; }
-    }
-
-    class DownloadResult
-    {
-        public string Url { get; set; }
-        public string FileName { get; set; }
-        public bool Success { get; set; }
+        void StartDownload(string aUrl, Action<string, DateTime> aCompleteCallback, Action aFailedCallback);
+        void CancelDownload(string aUrl);
+        void StartPollingUrl(string aId, string aUrl, DateTime aLastModified, Action aAvailableCallback, Action aErrorCallback);
+        void StopPollingUrl(string aId);
+        void NotifyDownloadFailed(string aUrl);
+        void NotifyDownloadComplete(string aUrl, int aBytes, string aLocalPath);
+        void NotifyDownloadProgress(string aUrl, int aBytes, int aTotalBytes);
     }
 
     public class DownloadProgress
     {
         public string Uri { get; private set; }
-        public string LocalPath { get; private set; }
         public int DownloadedBytes { get; private set; }
         public int TotalBytes { get; private set; }
-        public bool HasTotalBytes { get; private set; }
+        public bool HasTotalBytes { get { return TotalBytes != -1; } }
         public bool HasFailed { get; private set; }
-        public bool HasCompleted { get; private set; }
 
-        public DownloadProgress(string aUri, string aLocalPath, int aDownloadedBytes, int aTotalBytes, bool aHasTotalBytes, bool aHasFailed, bool aHasCompleted)
+        public DownloadProgress(string aUri, int aDownloadedBytes, int aTotalBytes, bool aHasFailed)
         {
             Uri = aUri;
-            LocalPath = aLocalPath;
             DownloadedBytes = aDownloadedBytes;
             TotalBytes = aTotalBytes;
-            HasTotalBytes = aHasTotalBytes;
             HasFailed = aHasFailed;
-            HasCompleted = aHasCompleted;
         }
+        
         public static DownloadProgress CreateFailed(string aUri)
         {
-            return new DownloadProgress(aUri, "", 0, -1, false, true, false);
-        }
-        public static DownloadProgress CreateComplete(string aUri, int aBytes, string aLocalPath)
-        {
-            return new DownloadProgress(aUri, aLocalPath, aBytes, aBytes, true, false, true);
-        }
-        public static DownloadProgress CreateInProgress(string aUri, int aBytes, int aBytesTotal)
-        {
-            return new DownloadProgress(aUri, "", aBytes, aBytesTotal, aBytesTotal != -1, false, false);
+            return new DownloadProgress(aUri, 0, 0, true);
         }
         public static DownloadProgress CreateJustStarted(string aUri)
         {
-            return new DownloadProgress(aUri, "", 0, -1, false, false, false);
+            return new DownloadProgress(aUri, 0, 0, false);
         }
     }
 
-
-    public class Downloader
+    /// <summary>
+    /// Note: only public for test purposes.
+    /// Runs on a thread and carries out downloads and polling that we don't
+    /// want to block provider threads. (Even asynchronous web requests can
+    /// block for a long time on DNS resolution and establishing a connection
+    /// before they start transferring data asynchronously.)
+    /// </summary>
+    public class Downloader : IDownloadThread
     {
         class FailedDownload
         {
@@ -81,31 +60,43 @@ namespace OpenHome.Os.AppManager
             public DownloadProgress DownloadProgress { get; set; }
         }
 
-        readonly Channel<DownloadInstruction> iInstructionChannel;
-        readonly Channel<PollInstruction> iPollInstructionChannel;
-        readonly Dictionary<string, DownloadListener> iDownloads = new Dictionary<string, DownloadListener>();
         readonly IDownloadDirectory iDownloadDirectory;
+        readonly IPollManager iPollManager;
+        readonly IUrlFetcher iUrlFetcher;
+        readonly Channel<Action<IDownloadThread>> iMessageQueue;
+
+        readonly Dictionary<string, DownloadListener> iDownloads = new Dictionary<string, DownloadListener>();
         readonly Dictionary<string, DownloadProgress> iPublicDownloadInfo = new Dictionary<string, DownloadProgress>();
         readonly Queue<FailedDownload> iPublicFailedDownloads = new Queue<FailedDownload>();
         readonly object iPublicDownloadsLock = new object();
-        readonly IPollManager iPollManager;
+
         public TimeSpan FailureTimeout { get; set; }
         public event EventHandler DownloadChanged;
-        Channel<DownloadProgress> iInternalProgressChannel;
         IThreadCommunicator iThread;
         DateTime? iLastPollTime;
-        IUrlFetcher iUrlFetcher;
+        bool iIgnoreRequests;
 
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="aDownloadDirectory"></param>
+        /// <param name="aMessageQueue">
+        /// Message queue holding actions for the thread to perform in sequence.
+        /// </param>
+        /// <param name="aPollManager">
+        /// Performs URL polling to see if an update is available.
+        /// </param>
+        /// <param name="aUrlFetcher">
+        /// Performs URL fetching.
+        /// </param>
         public Downloader(
             IDownloadDirectory aDownloadDirectory,
-            Channel<DownloadInstruction> aInstructionChannel,
-            Channel<PollInstruction> aPollInstructionChannel,
+            Channel<Action<IDownloadThread>> aMessageQueue,
             IPollManager aPollManager,
             IUrlFetcher aUrlFetcher)
         {
-            iInstructionChannel = aInstructionChannel;
-            iPollInstructionChannel = aPollInstructionChannel;
+            iMessageQueue = aMessageQueue;
             iDownloadDirectory = aDownloadDirectory;
             iPollManager = aPollManager;
             iUrlFetcher = aUrlFetcher;
@@ -203,19 +194,21 @@ namespace OpenHome.Os.AppManager
         /// </summary>
         class DownloadListener : IDownloadListener
         {
-            Downloader iParent;
-            string iUri;
-            string iLocalPath;
+            readonly Downloader iParent;
+            readonly string iUri;
+            readonly string iLocalPath;
             public Action<string, DateTime> CompletedCallback { get; private set; }
             public Action FailedCallback { get; private set; }
-            public IDisposable Download { get; set; }
+            public IDisposable Download { private get; set; }
             public DateTime LastModified { get; private set; }
 
-            public DownloadListener(Downloader aParent, string aUri, string aLocalPath)
+            public DownloadListener(Downloader aParent, string aUri, string aLocalPath, Action<string, DateTime> aCompletedCallback, Action aFailedCallback)
             {
                 iParent = aParent;
                 iUri = aUri;
                 iLocalPath = aLocalPath;
+                CompletedCallback = aCompletedCallback;
+                FailedCallback = aFailedCallback;
             }
 
             public void Cancel()
@@ -229,129 +222,137 @@ namespace OpenHome.Os.AppManager
             public void Complete(DateTime aLastModified)
             {
                 LastModified = aLastModified;
-                iParent.iInternalProgressChannel.Send(DownloadProgress.CreateComplete(iUri, 0, iLocalPath));
+                iParent.iMessageQueue.Send(aThread => aThread.NotifyDownloadComplete(iUri, 0, iLocalPath));
             }
 
             public void Failed()
             {
-                iParent.iInternalProgressChannel.Send(DownloadProgress.CreateFailed(iUri));
+                iParent.iMessageQueue.Send(aThread => aThread.NotifyDownloadFailed(iUri));
             }
 
             public void Progress(int aBytes, int aBytesTotal)
             {
-                iParent.iInternalProgressChannel.NonBlockingSend(
-                    DownloadProgress.CreateInProgress(iUri, aBytes, aBytesTotal));
+                iParent.iMessageQueue.NonBlockingSend(aThread => aThread.NotifyDownloadProgress(iUri, aBytes, aBytesTotal));
             }
         }
 
-        public void ReceiveDownloadInstruction(DownloadInstruction aInstruction)
+        public void StartDownload(string aUrl, Action<string, DateTime> aCompleteCallback, Action aFailedCallback)
         {
-            string url = aInstruction.Url;
-            bool cancel = aInstruction.Cancel;
-            if (cancel)
+            if (!iDownloads.ContainsKey(aUrl))
             {
-                if (iDownloads.ContainsKey(url))
+                FileStream fileStream;
+                string fileName;
+                iDownloadDirectory.CreateFile(out fileStream, out fileName);
+                var downloadListener = new DownloadListener(this, aUrl, fileName, aCompleteCallback, aFailedCallback);
+                iDownloads[aUrl] = downloadListener;
+                downloadListener.Download = iUrlFetcher.Fetch(aUrl, fileStream, downloadListener);
+                lock (iPublicDownloadInfo)
                 {
-                    iDownloads[url].Cancel();
+                    iPublicDownloadInfo[aUrl] = DownloadProgress.CreateJustStarted(aUrl);
                 }
-            }
-            else
-            {
-                if (!iDownloads.ContainsKey(url))
-                {
-                    FileStream fileStream = iDownloadDirectory.CreateFile();
-                    var downloadListener = new DownloadListener(this, url, fileStream.Name);
-                    downloadListener.Download = iUrlFetcher.Fetch(url, fileStream, downloadListener);
-                    iDownloads[url] = downloadListener;
-                    lock (iPublicDownloadInfo)
-                    {
-                        iPublicDownloadInfo[url] = DownloadProgress.CreateJustStarted(url);
-                    }
-                    InvokeDownloadChanged(EventArgs.Empty);
-                }
+                InvokeDownloadChanged(EventArgs.Empty);
             }
         }
 
-        public void ReceivePollInstruction(PollInstruction aInstruction)
+        public void CancelDownload(string aUrl)
         {
-            if (aInstruction.Cancel)
+            if (iDownloads.ContainsKey(aUrl))
             {
-                iPollManager.CancelPollingApp(aInstruction.AppName);
-            }
-            else
-            {
-                iPollManager.StartPollingApp(aInstruction.AppName, aInstruction.Url, aInstruction.LastModified, aInstruction.AvailableCallback, aInstruction.ErrorCallback);
+                iDownloads[aUrl].Cancel();
             }
         }
 
-        public void ReceiveInternalProgressMessage(DownloadProgress aMessage)
+        public void StartPollingUrl(string aId, string aUrl, DateTime aLastModified, Action aAvailableCallback, Action aErrorCallback)
         {
-            string url = aMessage.Uri;
-            if (!iDownloads.ContainsKey(url))
+            if (iIgnoreRequests) return;
+            iPollManager.StartPollingApp(aId, aUrl, aLastModified, aAvailableCallback, aErrorCallback);
+        }
+
+        public void StopPollingUrl(string aId)
+        {
+            if (iIgnoreRequests) return;
+            iPollManager.CancelPollingApp(aId);
+        }
+
+        public void NotifyDownloadFailed(string aUrl)
+        {
+            if (!iDownloads.ContainsKey(aUrl))
             {
                 return;
             }
+            iDownloads[aUrl].FailedCallback();
+            iDownloads.Remove(aUrl);
+            lock (iPublicDownloadsLock)
+            {
+                iPublicDownloadInfo.Remove(aUrl);
+            }
+            iPublicFailedDownloads.Enqueue(new FailedDownload { TimeOfFailure = DateTime.UtcNow, DownloadProgress = DownloadProgress.CreateFailed(aUrl) });
+            InvokeDownloadChanged(EventArgs.Empty);
+        }
 
-            if (aMessage.HasFailed)
+        public void NotifyDownloadComplete(string aUrl, int aBytes, string aLocalPath)
+        {
+            if (!iDownloads.ContainsKey(aUrl))
             {
-                iDownloads[url].FailedCallback();
-                iDownloads.Remove(url);
-                lock (iPublicDownloadsLock)
-                {
-                    iPublicDownloadInfo.Remove(url);
-                }
-                iPublicFailedDownloads.Enqueue(new FailedDownload { TimeOfFailure = DateTime.UtcNow, DownloadProgress = aMessage });
-                InvokeDownloadChanged(EventArgs.Empty);
+                return;
             }
-            else if (aMessage.HasCompleted)
+            iDownloads[aUrl].CompletedCallback(aLocalPath, iDownloads[aUrl].LastModified);
+            iDownloads.Remove(aUrl);
+            lock (iPublicDownloadsLock)
             {
-                iDownloads[url].CompletedCallback(aMessage.LocalPath, iDownloads[url].LastModified);
-                iDownloads.Remove(url);
-                lock (iPublicDownloadsLock)
-                {
-                    iPublicDownloadInfo.Remove(url);
-                }
-                InvokeDownloadChanged(EventArgs.Empty);
+                iPublicDownloadInfo.Remove(aUrl);
             }
-            else
+            InvokeDownloadChanged(EventArgs.Empty);
+        }
+
+        public void NotifyDownloadProgress(string aUrl, int aBytes, int aTotalBytes)
+        {
+            if (!iDownloads.ContainsKey(aUrl))
             {
-                lock (iPublicDownloadsLock)
-                {
-                    iPublicDownloadInfo[aMessage.Uri] = aMessage;
-                }
+                return;
+            }
+            lock (iPublicDownloadsLock)
+            {
+                iPublicDownloadInfo[aUrl] = new DownloadProgress(aUrl, aBytes, aTotalBytes, false);
+            }
+        }
+
+        public void Step()
+        {
+            CleanupFailedDownloads();
+            PollIfRequired();
+            iThread.SelectWithTimeout(
+                GetMillisecondsUntilActionRequired(),
+                iMessageQueue.CaseReceive(aAction=>aAction(this))
+                );
+        }
+
+        public void CancelAllDownloads()
+        {
+            foreach (var download in iDownloads.Values)
+            {
+                download.Cancel();
+            }
+        }
+
+        public void WaitForAllDownloads()
+        {
+            iIgnoreRequests = true;
+            while (iDownloads.Count>0)
+            {
+                iMessageQueue.Receive()(this);
             }
         }
 
         public void Run(IThreadCommunicator aThread)
         {
             iThread = aThread;
-            using (iInternalProgressChannel = new Channel<DownloadProgress>(1))
+            while (!iThread.Abandoned)
             {
-                while (!iThread.Abandoned)
-                {
-                    CleanupFailedDownloads();
-                    PollIfRequired();
-                    iThread.SelectWithTimeout(
-                        GetMillisecondsUntilActionRequired(),
-                        iInstructionChannel.CaseReceive(ReceiveDownloadInstruction),
-                        iPollInstructionChannel.CaseReceive(ReceivePollInstruction),
-                        iInternalProgressChannel.CaseReceive(ReceiveInternalProgressMessage)
-                        );
-                    
-                }
-                foreach (var download in iDownloads.Values)
-                {
-                    download.Cancel();
-                }
-                while (iDownloads.Count>0)
-                {
-                    var result = iInternalProgressChannel.Receive();
-                    if (result.HasFailed || result.HasCompleted)
-                    {
-                        iDownloads.Remove(result.Uri);
-                    }
-                }
+                Step();
             }
+            CancelAllDownloads();
+            WaitForAllDownloads();
         }
 
         void PollIfRequired()
@@ -380,8 +381,7 @@ namespace OpenHome.Os.AppManager
         readonly CommunicatorThread iDownloadThread;
         readonly Downloader iDownloader;
         readonly IDownloadDirectory iDownloadDirectory;
-        readonly Channel<DownloadInstruction> iInstructionChannel;
-        readonly Channel<PollInstruction> iPollInstructionChannel;
+        readonly Channel<Action<IDownloadThread>> iMessageQueue;
         public int MaxSimultaneousDownloads { get; set; }
         public event EventHandler DownloadCountChanged
         {
@@ -392,34 +392,27 @@ namespace OpenHome.Os.AppManager
         public DownloadManager(IDownloadDirectory aDownloadDirectory, IUrlFetcher aUrlFetcher)
         {
             iDownloadDirectory = aDownloadDirectory;
-            iInstructionChannel = new Channel<DownloadInstruction>(2);
-            iPollInstructionChannel = new Channel<PollInstruction>(2);
+            iMessageQueue = new Channel<Action<IDownloadThread>>(5);
             var urlPoller = new DefaultUrlPoller();
             var pollManager = new PollManager(urlPoller);
-            iDownloader = new Downloader(iDownloadDirectory, iInstructionChannel, iPollInstructionChannel, pollManager, aUrlFetcher);
+            iDownloader = new Downloader(iDownloadDirectory, iMessageQueue, pollManager, aUrlFetcher);
             iDownloadThread = new CommunicatorThread(iDownloader.Run, "DownloadManager");
             iDownloadThread.Start();
         }
 
         public void StartPollingForAppUpdate(string aAppName, string aUrl, Action aAvailableAction, Action aFailedAction, DateTime aLastModified)
         {
-            iPollInstructionChannel.Send(new PollInstruction { AppName = aAppName, Url = aUrl, AvailableCallback = aAvailableAction, Cancel = false, ErrorCallback = aFailedAction, LastModified = aLastModified });
+            iMessageQueue.Send(aThread => aThread.StartPollingUrl(aAppName, aUrl, aLastModified, aAvailableAction, aFailedAction));
         }
 
         public void StopPollingForAppUpdate(string aAppName)
         {
-            iPollInstructionChannel.Send(new PollInstruction { AppName = aAppName, Cancel = true });
+            iMessageQueue.Send(aThread => aThread.StopPollingUrl(aAppName));
         }
 
         public void StartDownload(string aUrl, Action<string, DateTime> aCallback)
         {
-            if (!iInstructionChannel.NonBlockingSend(new DownloadInstruction
-                                                     {
-                                                         Cancel = false,
-                                                         Url = aUrl,
-                                                         CompleteCallback = aCallback,
-                                                         FailedCallback = () => { }
-                                                     }))
+            if (!iMessageQueue.NonBlockingSend(aThread => aThread.StartDownload(aUrl, aCallback, () => { })))
             {
                 throw new ActionError("Too busy.");
             }
@@ -432,7 +425,7 @@ namespace OpenHome.Os.AppManager
 
         public void CancelDownload(string aAppUrl)
         {
-            if (!iInstructionChannel.NonBlockingSend(new DownloadInstruction{Cancel=false, Url=aAppUrl}))
+            if (!iMessageQueue.NonBlockingSend(aThread => aThread.CancelDownload(aAppUrl)))
             {
                 throw new ActionError("Too busy.");
             }
@@ -441,6 +434,7 @@ namespace OpenHome.Os.AppManager
         public void Dispose()
         {
             iDownloadThread.Dispose();
+            iMessageQueue.Dispose();
         }
     }
 }
