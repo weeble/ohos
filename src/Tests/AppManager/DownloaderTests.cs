@@ -55,7 +55,6 @@ namespace OpenHome.Os.AppManager
             iCommunicator.Verify(x=>x.SelectWithTimeout(-1, It.IsAny<ChannelAction[]>()), Times.Once());
         }
 
-        [Ignore]
         [Test]
         public void TestTheDownloaderSleepsForPollingIntervalWhenThereIsPollingToDo()
         {
@@ -67,6 +66,7 @@ namespace OpenHome.Os.AppManager
 
             // Slight time-dependent. A small amount of time will pass between the first poll and
             // the calculation of how long to sleep. The actual time should be very close to 1250.
+            // Ideally we would mock out DateTime.UtcNow, but that seems like overkill.
             iCommunicator.Verify(x=>x.SelectWithTimeout(It.IsInRange(1000, 1251, Range.Inclusive), It.IsAny<ChannelAction[]>()), Times.Once());
         }
 
