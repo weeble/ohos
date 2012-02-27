@@ -72,12 +72,12 @@ namespace OpenHome.Os.AppManager
         [Test]
         public void TestWhenAppsAreModifiedTheSequenceNumbersUpdate()
         {
-            List<uint> handles = null;
+            // List<uint> handles = null;
             List<uint> seqNos = null;
             iProvider.Setup(x => x.SetAppHandles(It.IsAny<List<uint>>(), It.IsAny<List<uint>>())).Callback(
                 (List<uint> aHandles, List<uint> aSeqNos) =>
                 {
-                    handles = aHandles;
+                    // handles = aHandles;
                     seqNos = aSeqNos;
                 });
             SetAppInfo(2);
