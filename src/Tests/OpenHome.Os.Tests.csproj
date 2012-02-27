@@ -20,6 +20,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="DvOpenhomeOrgApp1, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
+    <Reference Include="DvOpenhomeOrgAppManager1, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
     <Reference Include="ICSharpCode.SharpZipLib, Version=2.84.0.0, Culture=neutral, PublicKeyToken=1b03e6acf1164f73, processorArchitecture=MSIL" />
     <Reference Include="Mono.Addins, Version=0.6.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL" />
     <Reference Include="Moq, Version=4.0.10827.0, Culture=neutral, PublicKeyToken=69f491c39445e920, processorArchitecture=MSIL" />
@@ -33,9 +34,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AppManager\AppManagerTests.cs" />
     <Compile Include="AppManager\DownloaderTests.cs" />
     <Compile Include="AppManager\PollManagerTests.cs" />
     <Compile Include="Apps\TestAppShell.cs" />
+    <Compile Include="Mocks.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AppManager\OpenHome.Os.AppManager.csproj">

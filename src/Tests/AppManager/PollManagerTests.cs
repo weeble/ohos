@@ -7,54 +7,6 @@ using NUnit.Framework;
 
 namespace OpenHome.Os.AppManager
 {
-    public interface IAction
-    {
-        void Invoke();
-    }
-
-    public interface IAction<T>
-    {
-        void Invoke(T aArg1);
-    }
-    
-    public interface IFunc<T>
-    {
-        T Invoke();
-    }
-
-
-    public class ActionMock
-    {
-        public Action Action { get; private set; }
-        public Mock<IAction> Mock { get; private set; }
-        public ActionMock()
-        {
-            Mock = new Mock<IAction>();
-            Action = Mock.Object.Invoke;
-        }
-    }
-
-    public class ActionMock<T>
-    {
-        public Action<T> Action { get; private set; }
-        public Mock<IAction<T>> Mock { get; private set; }
-        public ActionMock()
-        {
-            Mock = new Mock<IAction<T>>();
-            Action = Mock.Object.Invoke;
-        }
-    }
-
-    public class FuncMock<T>
-    {
-        public Func<T> Func { get; private set; }
-        public Mock<IFunc<T>> Mock { get; private set; }
-        public FuncMock()
-        {
-            Mock = new Mock<IFunc<T>>();
-            Func = Mock.Object.Invoke;
-        }
-    }
 
     [TestFixture]
     public class PollManagerTests

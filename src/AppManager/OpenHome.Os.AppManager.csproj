@@ -35,6 +35,7 @@
     <Compile Include="AppManagerProvider.cs" />
     <Compile Include="AppManager.cs" />
     <Compile Include="DownloadDirectory.cs" />
+    <Compile Include="Downloader.cs" />
     <Compile Include="DownloadManager.cs" />
     <Compile Include="DefaultUrlPoller.cs" />
     <Compile Include="PollManager.cs" />

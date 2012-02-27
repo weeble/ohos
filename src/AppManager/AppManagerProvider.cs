@@ -5,7 +5,7 @@ using OpenHome.Os.Platform;
 
 namespace OpenHome.Os.AppManager
 {
-    interface IAppManagerActionHandler
+    public interface IAppManagerActionHandler
     {
         string GetAppStatus(uint aAppHandle);
         void CancelDownload(string aAppUrl);
@@ -15,7 +15,8 @@ namespace OpenHome.Os.AppManager
         void InstallAppFromUrl(string aAppUrl);
         void RemoveApp(uint aAppHandle);
     }
-    interface IAppManagerProvider : IDvProviderOpenhomeOrgAppManager1
+
+    public interface IAppManagerProvider : IDvProviderOpenhomeOrgAppManager1
     {
         void SetAppHandles(List<uint> aAppHandles, List<uint> aSequenceNumbers);
         void SetDownloadCount(uint aCount);

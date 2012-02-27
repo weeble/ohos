@@ -47,7 +47,7 @@ namespace OpenHome.Os.AppManager
     {
         int MaxSimultaneousDownloads { get; set; }
         event EventHandler DownloadCountChanged;
-        void StartDownload(string aUrl, Action<string, DateTime> aCallback);
+        void StartDownload(string aUrl, Action<string, DateTime> aCallback, Action aFailureCallback);
         IEnumerable<DownloadProgress> GetDownloadsStatus();
         void CancelDownload(string aAppUrl);
         void StartPollingForAppUpdate(string aAppName, string aUrl, Action aAvailableAction, Action aFailedAction, DateTime aLastModified);
@@ -88,9 +88,9 @@ namespace OpenHome.Os.AppManager
             iMessageQueue.Send(aThread => aThread.StopPollingUrl(aAppName));
         }
 
-        public void StartDownload(string aUrl, Action<string, DateTime> aCallback)
+        public void StartDownload(string aUrl, Action<string, DateTime> aSuccessCallback, Action aFailureCallback)
         {
-            if (!iMessageQueue.NonBlockingSend(aThread => aThread.StartDownload(aUrl, aCallback, () => { })))
+            if (!iMessageQueue.NonBlockingSend(aThread => aThread.StartDownload(aUrl, aSuccessCallback, aFailureCallback)))
             {
                 throw new ActionError("Too busy.");
             }

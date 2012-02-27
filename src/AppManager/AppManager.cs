@@ -15,7 +15,7 @@ namespace OpenHome.Os.AppManager
     /// High level management of apps. Checks for updates, coordinates downloads, provides UPnP
     /// control over apps.
     /// </summary>
-    class AppManager : IAppManagerActionHandler, IDisposable
+    public class AppManager : IAppManagerActionHandler, IDisposable
     {
         class ManagedApp
         {
@@ -35,6 +35,7 @@ namespace OpenHome.Os.AppManager
         readonly SafeCallbackTracker iCallbackTracker = new SafeCallbackTracker();
         readonly IdDictionary<string, ManagedApp> iApps = new IdDictionary<string, ManagedApp>();
         readonly IDownloadManager iDownloadManager;
+        readonly Bimap<string, string> iUpgradeAppNamesToUrls = new Bimap<string, string>();
 
         public AppManager(
             string aResourceUri,
@@ -51,7 +52,7 @@ namespace OpenHome.Os.AppManager
             RefreshApps();
         }
 
-        void OnDownloadCountChanged(object aSender, EventArgs aE)
+        public void OnDownloadCountChanged(object aSender, EventArgs aE)
         {
             iCallbackTracker.PreventClose(() =>
             {
@@ -74,7 +75,7 @@ namespace OpenHome.Os.AppManager
             }
         }
 
-        void OnAppAvailableForDownload(string aAppName)
+        public void OnAppAvailableForDownload(string aAppName)
         {
             Logger.InfoFormat("App update available: {0}", aAppName);
             iCallbackTracker.PreventClose(() =>
@@ -141,7 +142,7 @@ namespace OpenHome.Os.AppManager
             Logger.InfoFormat("Poll for app update received error: {0}", aAppName);
         }
 
-        void OnAppStatusChanged(object aSender, AppStatusChangeEventArgs aE)
+        public void OnAppStatusChanged(object aSender, AppStatusChangeEventArgs aE)
         {
             iCallbackTracker.PreventClose(() =>
             {
@@ -188,8 +189,19 @@ namespace OpenHome.Os.AppManager
 
         XElement DownloadProgressToXElement(DownloadProgress aDownload)
         {
+            XElement appHandleElement = null;
+            XElement appIdElement = null;
+            string appName;
+            if (iUpgradeAppNamesToUrls.Backward.TryGetValue(aDownload.Uri, out appName))
+            {
+                uint appHandle = iApps.GetIdForKey(appName);
+                appHandleElement = new XElement("appHandle", appHandle);
+                appIdElement = new XElement("appId", appName);
+            }
             XElement element = new XElement("download",
                 new XElement("status", aDownload.HasFailed ? "failed" : "downloading"),
+                appHandleElement,
+                appIdElement,
                 new XElement("url", aDownload.Uri),
                 new XElement("progressBytes", aDownload.DownloadedBytes));
             if (aDownload.HasTotalBytes)
@@ -235,6 +247,7 @@ namespace OpenHome.Os.AppManager
                     ManagedApp app;
                     if (iApps.TryGetValueById(handle, out app))
                     {
+                        bool isUpdating = iUpgradeAppNamesToUrls.Forward.ContainsKey(app.Info.Name);
                         var element =
                             new XElement("app",
                                 new XElement("handle", app.Handle),
@@ -244,7 +257,10 @@ namespace OpenHome.Os.AppManager
                                 new XElement("updateUrl", app.Info.UpdateUrl),
                                 new XElement("autoUpdate", app.Info.AutoUpdate),
                                 new XElement("status", app.Info.State == AppState.Running ? "running" : "broken"),
-                                new XElement("updateStatus", app.DownloadAvailable ? "available" : "noUpdate"));
+                                new XElement("updateStatus",
+                                    isUpdating ? "downloading" :
+                                    app.DownloadAvailable ? "available" :
+                                    "noUpdate"));
                         if (!string.IsNullOrEmpty(app.Info.Udn))
                         {
                             element.Add(new XElement("url", String.Format("/{0}/Upnp/resource/", app.Info.Udn)));
@@ -277,10 +293,19 @@ namespace OpenHome.Os.AppManager
 
                 string url = managedApp.Info.UpdateUrl;
                 string name = managedApp.Info.Name;
+                if (iUpgradeAppNamesToUrls.Forward.ContainsKey(name))
+                {
+                    return;
+                }
+                iUpgradeAppNamesToUrls.Forward[name] = url;
                 iDownloadManager.StartDownload(
                     url,
                     (aLocalFile, aLastModified) =>
                     {
+                        lock (iLock)
+                        {
+                            iUpgradeAppNamesToUrls.Forward.Remove(name);
+                        }
                         try
                         {
                             iAppShell.Upgrade(name, aLocalFile, url, aLastModified);
@@ -290,7 +315,15 @@ namespace OpenHome.Os.AppManager
                             // TODO: Update download status to record failure.
                             Logger.Warn("Update failed: bad plugin.");
                         }
-                    });
+                    },
+                    () =>
+                    {
+                        lock (iLock)
+                        {
+                            iUpgradeAppNamesToUrls.Forward.Remove(name);
+                        }
+                    }
+                    );
                 managedApp.Downloading = true;
             }
         }
@@ -311,7 +344,8 @@ namespace OpenHome.Os.AppManager
                         // TODO: Update download status to record failure.
                         Logger.Warn("Install failed: bad plugin.");
                     }
-                });
+                },
+                () => { });
         }
 
         public void RemoveApp(uint aAppHandle)

@@ -22,17 +22,17 @@ namespace OpenHome.Os.Apps
 
     public class AppInfo
     {
-        public string Name { get; private set; }
-        public AppState State { get; private set; }
-        public bool PendingUpdate { get; private set; }
-        public bool PendingDelete { get; private set; }
-        public string Udn { get; private set; }
-        public string FriendlyName { get; private set; }
-        public bool AutoUpdate { get; private set; }
-        public string UpdateUrl { get; private set; }
-        public string IconUrl { get; private set; }
-        public AppVersion Version { get; private set; }
-        public DateTime? DownloadLastModified { get; private set; }
+        public string Name { get; set; }
+        public AppState State { get; set; }
+        public bool PendingUpdate { get; set; }
+        public bool PendingDelete { get; set; }
+        public string Udn { get; set; }
+        public string FriendlyName { get; set; }
+        public bool AutoUpdate { get; set; }
+        public string UpdateUrl { get; set; }
+        public string IconUrl { get; set; }
+        public AppVersion Version { get; set; }
+        public DateTime? DownloadLastModified { get; set; }
 
         public AppInfo(
             string aName,

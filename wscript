@@ -441,6 +441,7 @@ csharp_projects = [
             packages=['ohnet', 'mono-addins', 'nunit', 'moq', 'sharpziplib'],
             references=[
                 'DvOpenhomeOrgApp1',
+                'DvOpenhomeOrgAppManager1',
                 'ohOs.Apps',
                 'ohOs.AppManager.App',
                 'ohOs.Platform',
