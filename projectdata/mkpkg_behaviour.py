@@ -12,6 +12,7 @@ oh_rsync_host = "openhome.org"
 username = "repo-incoming"
 
 # Command-line options. See documentation for Python's optparse module.
+add_option("-t", "--target", help="Target platform. One of Windows-x86, Windows-x64, Linux-x86, Linux-x64, Linux-ARM.")
 add_option("-a", "--artifacts", help="Build artifacts directory. Used to fetch dependencies.")
 add_bool_option("--no-publish", help="Don't publish the packages.")
 
