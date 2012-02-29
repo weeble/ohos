@@ -40,6 +40,6 @@
         </simple-upnp>
         <web-ui enable="yes"/>
         <system-updates enable="{ohos__app-settings__OhWidget__system-updates__enable}"/>
-        <remote-access-server>http://remoteaccess-dev.linn.co.uk:2001/</remote-access-server>
-    </app-settings>
-</ohos>
+        <remote-access-server>login.remote.openhome.org</remote-access-server>
+
+    </app-settings></ohos>
