@@ -299,9 +299,10 @@ namespace OpenHome.Os.Remote
                                                      WindowStyle = ProcessWindowStyle.Hidden,
                                                      FileName = "ssh",
                                                      Arguments = String.Format(
-                                                             "-i {0} -p {1} -R {2}:{3}:{4}:{5} -N {6}@{2} -o StrictHostKeyChecking=no",
+                                                             "-i {0} -p {1} -R {2}:{3}:{4}:{5} -N {6}@{7} -o StrictHostKeyChecking=no",
                                                              FileFullName(kFilePrivateKey), iSshServerPort, iPortForwardAddress,
-                                                             iPortForwardPort, iNetworkAdapter, iProxyServer.Port, kSshServerUserName)
+                                                             iPortForwardPort, iNetworkAdapter, iProxyServer.Port, kSshServerUserName,
+                                                             iSshServerHost)
                                                  };
                 iSshClientNative.StartInfo = startInfo;
                 iSshClientNative.Start();
