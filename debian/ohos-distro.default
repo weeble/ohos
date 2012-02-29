@@ -1,0 +1,13 @@
+# Defaults for ohnode initscript
+# sourced by /etc/init.d/ohnode
+# installed at /etc/default/ohnode by the maintainer scripts
+
+#
+# This is a POSIX shell fragment
+#
+
+# Additional options that are passed to the Daemon.
+
+[ -r /mnt/ohwidget.settings ] && . /mnt/ohwidget.settings
+
+DAEMON_OPTS="--publish --ui-dir /usr/var/ohwidget/WebUi/ --mdns --update-dir /usr/var/ohwidget --reboot-on-update --zwave-serial /dev/zwave --store /usr/var/ohwidget/store ${PERSISTENT_OHWIDGET_ARGS}"
