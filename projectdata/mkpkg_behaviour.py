@@ -32,6 +32,23 @@ def process_optional_steps(context):
     if context.options.no_publish:
         select_optional_steps("-publish")
 
+# Unconditional build step. Choose a platform and set the
+# appropriate environment variable.
+@build_step()
+def choose_platform(context):
+    if context.options.target:
+        context.env["OH_PLATFORM"] = context.options.target
+    elif "slave" in context.env:
+        context.env["OH_PLATFORM"] = {
+                "windows-x86" : "Windows-x86",
+                "windows-x64" : "Windows-x64",
+                "linux-x86" : "Linux-x86",
+                "linux-x64" : "Linux-x64",
+                "arm" : "Linux-ARM",
+            }[context.env["slave"]]
+    else:
+        context.env["OH_PLATFORM"] = default_platform()
+
 @build_step()
 def set_arch_vars(context):
     all_arch_vars = {
