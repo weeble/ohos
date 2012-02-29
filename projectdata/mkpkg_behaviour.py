@@ -77,6 +77,17 @@ def set_arch_vars(context):
     context.arch_vars = all_arch_vars[target]
     print "selected target arch of:", target
 
+# Universal build configuration.
+@build_step()
+def setup_universal(context):
+    env = context.env
+    env.update(
+        OHNET_ARTIFACTS=context.options.artifacts or 'http://www.openhome.org/releases/artifacts',
+        OHOS_PUBLISH="releases@www.openhome.org:/home/releases/www/artifacts/ohOs",
+        BUILDDIR='buildhudson',
+        WAFLOCK='.lock-wafbuildhudson')
+    context.configure_args = get_dependency_args(ALL_DEPENDENCIES)
+
 # Principal build steps.
 @build_step("fetch", optional=True)
 def fetch(context):
