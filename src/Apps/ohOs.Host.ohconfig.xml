@@ -37,7 +37,7 @@
         </simple-upnp>
         <web-ui enable="yes"/>
         <system-updates enable="no"/>
-        <remote-access-server>http://remoteaccess-dev.linn.co.uk:2001/</remote-access-server>
+        <remote-access-server>login.remote.openhome.org</remote-access-server>
     </app-settings>
 
     <app-settings name="TestApp1">

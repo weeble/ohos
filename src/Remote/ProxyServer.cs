@@ -3,6 +3,7 @@ using System.Net;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Threading;
 using System.Xml.Linq;
 using System.Text;
 using log4net;
@@ -83,7 +84,7 @@ namespace OpenHome.Os.Remote
                 clientResp.Close();
                 return;
             }
-            Logger.InfoFormat("Method: {0}, url: {1}", clientReq.HttpMethod, targetUrl);
+            Logger.InfoFormat("Method: {0}, url: {1}, thread: {2}", clientReq.HttpMethod, targetUrl, Thread.CurrentThread.ManagedThreadId);
             HttpWebRequest forwardedReq = (HttpWebRequest)WebRequest.Create(targetUrl);
             bool connectionClose;
             bool connectionKeepAlive;
@@ -98,6 +99,8 @@ namespace OpenHome.Os.Remote
                 resp = (HttpWebResponse)e.Response;
                 Logger.ErrorFormat("ERROR: {0} for {1}", (int)resp.StatusCode, targetUrl);
             }
+            if (clientReq.HttpMethod == "POST")
+                Logger.InfoFormat("Completing request.  url: {0}, thread: {1}", targetUrl, Thread.CurrentThread.ManagedThreadId);
             WriteResponse(resp, clientResp);
             // docs suggest following is unnecessary - we only have to close one from clientRespStream / clientResp
             if (connectionClose)
