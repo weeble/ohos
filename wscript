@@ -302,7 +302,8 @@ def create_csharp_tasks(bld, projects, csharp_dependencies):
             gen=outputname,
             use=project.references + pkg_assemblies,
             csflags=csharp_dependencies.get_csflags_for_packages(bld, project.packages),
-            name=project.name)
+            name=project.name,
+            install_path=None)
 
 def ziprule(task):
     zf = zipfile.ZipFile(task.outputs[0].abspath(),'w')
@@ -360,6 +361,16 @@ def create_tgz_task(bld, tgzfile, sourceroot, tgzroot, sourcefiles):
                 target=tgzfile,
                 tgzroot=tgzroot)
         task.deps_man = [tgzroot, sourceroot]
+
+# Simple templating for small files using str.format().
+def file_template_task(task):
+    with open(task.inputs[0].abspath(),'r') as f:
+        template = f.read()
+    output = template.format(**task.generator.substitutions)
+    with open(task.outputs[0].abspath(),'w') as f2:
+        f2.write(output)
+    if hasattr(task.generator, 'chmod'):
+        os.chmod(task.outputs[0].abspath(), task.generator.chmod)
 
 
 # == Build rules ==
@@ -452,9 +463,6 @@ files_to_copy = [
         CopyFile(
             source='src/Apps/App.addins',
             target='App.addins'),
-        CopyFile(
-            source='src/Apps/ohOs.Host.ohconfig.xml',
-            target='ohOs.Host.ohconfig.xml'),
     ]
 
 ohos_apps = [
@@ -480,14 +488,6 @@ def build(bld):
     active_dependencies = get_active_dependencies(bld.env)
     active_dependencies.load_from_env(bld.env)
     active_dependencies.read_csshlibs(bld)
-
-    if getattr(bld, 'is_install', None):
-        # Waf's default install behaviour is a bit useless. It tries to install
-        # everything and it puts .exes into /bin, which isn't what we want. So
-        # if we're doing "install" don't bother with any of the normal build
-        # definition and just do special install stuff:
-        do_install(bld)
-        return
 
     active_dependencies.create_copy_assembly_tasks(bld)
 
@@ -558,7 +558,64 @@ def build(bld):
                 use=csharp_dependencies.get_assembly_names_for_packages(bld, ['ohnet']),
                 gen=prefix + service.target + '.dll',
                 type='library',
-                name=prefix + service.target)
+                name=prefix + service.target,
+                install_path=None)
+
+    # Shell script
+
+    # TODO: Don't require mono to be in system path.
+    bld(
+            rule=file_template_task,
+            source='src/Host/Host.shellscript.template',
+            target='ohos',
+            substitutions={
+                'libpath':os.path.join(bld.env['PREFIX'], 'lib/ohos'),
+                'mono':'mono',
+                'config':'/etc/ohos/ohos.ohconfig.xml',
+            },
+            # To avoid breaking incremental builds, we need to make
+            # waf aware that this task depends on the value of $PREFIX:
+            vars=['PREFIX']
+        )
+    bld.install_as(
+            '${PREFIX}/sbin/ohos',
+            'ohos',
+            chmod=0o755)
+
+    # Generate and install config file.
+
+    # Installed (proper) config file:
+    bld(
+            rule=file_template_task,
+            source='src/Host/Host.ohconfig.xml.template',
+            target='ohos.ohconfig.xml',
+            substitutions={
+                'ohos__system-settings__store':'/var/ohos/store',
+                'ohos__system-settings__installed-apps':'/var/ohos/installed-apps',
+                'ohos__system-settings__uuid':'',
+                'ohos__system-settings__console__attributes':'input="yes" output="yes" prompt="yes"',
+                'ohos__system-settings__mdns__enable':'yes',
+                'ohos__app-settings__OhWidget__system-updates__enable':'no'
+            },
+            install_path='/etc/ohos'
+        )
+    # Build directory (dev) config file:
+    bld(
+            rule=file_template_task,
+            source='src/Host/Host.ohconfig.xml.template',
+            target='ohOs.Host.ohconfig.xml',
+            substitutions={
+                'ohos__system-settings__store':'./store',
+                'ohos__system-settings__installed-apps':'./installed-apps',
+                'ohos__system-settings__uuid':'',
+                'ohos__system-settings__console__attributes':'input="no" output="no" prompt="no"',
+                'ohos__system-settings__mdns__enable':'no',
+                'ohos__app-settings__OhWidget__system-updates__enable':'yes'
+            },
+            install_path=None
+        )
+
+    #
 
     # We can probably do a nicer job of assembling the list of all output files here:
     def get_dependency_files(d):
@@ -587,50 +644,20 @@ def build(bld):
                 for (prefix, suffix) in [('Cp', '.dll'), ('Dv', '.dll'), ('Cp', '.js')]
             ])).targets_flattened()
 
-    ohos_main_transfer = (dependencies_transfer + ohos_core_transfer).targets_prefixed('main')
+    ohos_main_transfer = (dependencies_transfer + ohos_core_transfer)
+
+    ohos_main_transfer.targets_prefixed('${PREFIX}/lib/ohos').install_files_preserving_permissions(bld)
+    all_apps_transfer.targets_prefixed('/var/ohos/installed-apps').install_files(bld)
 
 
-    apps_transfer = all_apps_transfer.targets_prefixed('apps')
-    
-    ohos_transfer = ohos_main_transfer + apps_transfer
+    #apps_transfer = all_apps_transfer.targets_prefixed('apps')
+
+    ohos_transfer = (
+            ohos_main_transfer.targets_prefixed('main') +
+            all_apps_transfer.targets_prefixed('apps'))
 
     ohos_transfer.targets_prefixed('ohos').create_tgz_task(bld, 'ohos.tar.gz')
     ohos_transfer.create_copy_tasks(bld)
-
-    '''
-    create_tgz_task(
-            bld,
-            "ohos.tar.gz",
-            ".",
-            "ohos",
-            [
-                "ohOs.Host.exe",
-                "ohOs.Apps.dll",
-                "ohOs.Platform.dll",
-                "ohOs.Remote.dll",
-                "App.addins",
-            ] +
-            get_dependency_files(ohnet) +
-            get_dependency_files(sharpziplib) +
-            get_dependency_files(monoaddins) +
-            get_dependency_files(log4net) +
-            get_dependency_files(sshnet)
-            )
-    '''
-
-def do_install(bld):
-    bld.install_files(
-        '${PREFIX}/lib/ohos/',
-        [
-            'ohOs.Apps.dll'
-        ])
-    bld.install_files(
-        '${PREFIX}/lib/ohos/',
-        [
-            'ohNet.dll',
-            'ohNet.net.dll'
-        ])
-
 
 # == Command for invoking unit tests ==
 

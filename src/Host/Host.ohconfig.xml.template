@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<ohos>
+    <system-settings>
+        <!-- Directory for the store, relative to this file. -->
+        <store>{ohos__system-settings__store}</store>
+        <!-- Directory for installed apps, relative to this file. -->
+        <installed-apps>{ohos__system-settings__installed-apps}</installed-apps>
+        <!-- UUID for this node. Chosen randomly if empty. -->
+        <uuid>{ohos__system-settings__uuid}</uuid>
+        <!-- Network settings. -->
+        <network loopback="no"/>
+        <!-- Control how errors are handled -->
+        <errors>
+            <native dialog="no"/> <!-- Windows-only. Set to 'no' to prevent dialogs popping up for access violations. -->
+        </errors>
+        <!-- Update process settings. -->
+        <update enable="yes" reboot="yes">
+            <location></location>
+        </update>
+        <!-- Control usage of console. Set everything to 'no' if running as a daemon. -->
+        <console {ohos__system-settings__console__attributes}/>
+        <!-- MDNS settings. -->
+        <mdns enable="{ohos__system-settings__mdns__enable}"/>
+        <!-- Websockets settings. -->
+        <websockets port="54321"/>
+        <!-- Enable or disable multinode. -->
+        <multinode enable="no"/>
+    </system-settings>
+
+    <app-settings name="OhWidget">
+        <!-- Example serial values: COM3, COM4, /dev/ttyUSB0 -->
+        <!-- If unspecified, behaviour varies by platform: -->
+        <!--    Windows: Disable zwave/zigbee -->
+        <!--    Linux: Look for /dev/zwave or /dev/ttyUSB0 to use as Zwave serial device. -->
+        <!--           Look for /dev/zigbee to use as Zigbee serial device. -->
+        <!-- <zwave enable="no" serial=""/> -->
+        <!-- <zigbee enable="no" serial=""/> -->
+        <simple-upnp enable="yes">
+            <drivers>BinaryLight, DimmableLight, Thermometer, TestDataTypes, Curtains, BinarySwitch</drivers>
+        </simple-upnp>
+        <web-ui enable="yes"/>
+        <system-updates enable="{ohos__app-settings__OhWidget__system-updates__enable}"/>
+        <remote-access-server>http://remoteaccess-dev.linn.co.uk:2001/</remote-access-server>
+    </app-settings>
+</ohos>

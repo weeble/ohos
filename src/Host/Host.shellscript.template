@@ -1,0 +1,2 @@
+#!/bin/bash
+LD_LIBRARY_PATH={libpath} exec {mono} {libpath}/ohOs.Host.exe --config {config}
