@@ -19,6 +19,7 @@ endif
 builder:
 	@echo "doing nothing for build stage.."
 	python waf configure --notests --nogui --with-csc-binary=/usr/bin/dmcs --prefix=$(prefix) --platform=$(ohosplatform)
+	python waf build
 
 install:
 	@echo "copy scripts to the correct locations"
