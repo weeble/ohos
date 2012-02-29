@@ -13,19 +13,24 @@ use Expect;
 #$Expect::Exp_Internal = 1;
 #$Expect::Debug = 1;
 
+my $DOWNLOAD_FIRMWARE = 1;
+
 my $HOST_NETIF = "eth0";
 
 my $DL_DIR = "/tmp";
-my $DATA_DIR = "/var/lib/ohsheeva";
+my $DATA_DIR = "/var/lib/oh-sheeva-setup";
 
 my $PORT = "/dev/ttyUSB0";
+
 my $USERNAME = "root";
-my $PASSWD = "openhome";
 
 my $UPDATE_URL = "http://10.201.0.13/openhome/nightly/main";
 my $UBOOT_FILE = "u-boot.kwb";
 my $KERNEL_FILE = "main.uImage";
 my $ROOTFS_FILE = "main.ubi.img";
+my $RAMDISK_FILE = "rootfs.ext2.gz";
+
+my $UBOOT_PROMPT_REGEX = qr'Marvell>>\s+$';
 
 my $DL_ADDR_0 = "0x800000";
 my $DL_ADDR_1 = "0xB00000";
@@ -53,19 +58,21 @@ print "\n";
 print "Host: $host_ip[0]\n";
 print "Serial device: $PORT\n";
 print "Download dir: $DL_DIR\n";
-print "Firmware URL: $UPDATE_URL\n";
-
 
 #
 # Download firmware images
 #
-print "\nDownloading firmware files. This may take a while ...\n";
-my ($file, $status);
-foreach $file ($UBOOT_FILE, $KERNEL_FILE, $ROOTFS_FILE) {
-    $status = getstore("$UPDATE_URL/$file", "$DL_DIR/$file");
-    die "Firmware download failed with error: ", $status, "\n" if is_error($status);
+if ($DOWNLOAD_FIRMWARE)
+{
+    print "Firmware URL: $UPDATE_URL\n";
+    print "\nDownloading firmware files. This may take a while ...\n";
+    my ($file, $status);
+    foreach $file ($UBOOT_FILE, $KERNEL_FILE, $ROOTFS_FILE) {
+        $status = getstore("$UPDATE_URL/$file", "$DL_DIR/$file");
+        die "Firmware download failed with error: ", $status, "\n" if is_error($status);
+    }
 }
-exit 0;
+
 
 #
 # Prompt the user to get started
@@ -86,15 +93,13 @@ sleep(1);
 #
 $s_obj = new Device::SerialPort($PORT);
 
-$s_obj->baudrate(115200) || die "failed setting baudrate"; 
-$s_obj->parity("none") || die "failed setting parity"; 
-$s_obj->databits(8) || die "failed setting databits"; 
+$s_obj->baudrate(115200) || die "failed setting baudrate";
+$s_obj->parity("none") || die "failed setting parity";
+$s_obj->databits(8) || die "failed setting databits";
 $s_obj->stopbits(1) || die "failed setting stopbits";
-$s_obj->handshake("none") || die "failed setting handshake"; 
+$s_obj->handshake("none") || die "failed setting handshake";
 
-$s_obj->write_settings || die "no settings"; 
-
-undef $s_obj;
+$s_obj->write_settings || die "no settings";
 
 open(FD, "+<$PORT") or die "Failed to open port: $PORT";
 FD->autoflush(1);
@@ -114,20 +119,20 @@ $exp->log_group(1);
 # Breaks into the U-Boot prompt
 sub get_uboot_prompt
 {
-
     $exp->expect($REBOOT_TIMEOUT,
-             [ qr/U-Boot +((20\d{2}\.\d{2})|(\d\.\d\.\d))\S*/i, sub { my $fh = shift;
+             [ qr/U-Boot\s+((20\d{2}\.\d{2})|(\d\.\d\.\d))\S*\s+/i, sub { my $fh = shift;
                                          print "Bootloader: ", $fh->match, "\n";
                                          exp_continue; } ],
              [ qr/Hit\s+any\skey\s+to\s+stop\s+autoboot/i, sub { my $fh = shift;
-                                                        $fh->send("\n"); 
+                                                        $fh->send("\n");
                                                         exp_continue_timeout; } ],
              [ eof => sub { die "ERROR: EOF trying to get U-Boot prompt.\n"; } ],
              [ timeout => sub { die "ERROR: timeout trying to get U-Boot prompt.\n"; } ],
-             '-re', 'Marvell>> $'
+             '-re', $UBOOT_PROMPT_REGEX
           );
     $exp->clear_accum; 
 }
+
 
 # Function for the TFTP server thread
 sub tftp_server 
@@ -153,41 +158,42 @@ sub tftp_server
 # Upload a file to the Sheevaplug using TFTP and U-Boot
 sub tftp_upload
 {
-    my $file = shift;
+    my $dl_file = shift;
     my $dl_addr = shift;
-    my $file_stat = stat($file)
-                    or die "Could not stat $file\n";
+    my $file_stat = stat($dl_file)
+                    or die "Could not stat $dl_file\n";
+
+    print ("Uploading $dl_file ...\n");
     # Enable DHCP on the unit
     $exp->send("dhcp\n");
     $exp->expect($CMD_TIMEOUT,
-                 [ qr'(\d{1,2}\.){3}\d{1,2}', sub { exp_continue; } ],
                  [ eof => sub { die "ERROR: EOF trying to enable Sheeva DHCP.\n"; } ],
                  [ timeout => sub { die "ERROR: timeout trying to enable Sheeva DHCP.\n"; } ],
-                 '-re', 'Marvell>> $'
+                 '-re', '(\d{1,2}\.){3}\d{1,2}'
              );
-    $exp->clear_accum;
+    get_uboot_prompt;
     # Start the TFTP server thread
-    my $srv_thr = new Thread \&tftp_server, $file
+    my $srv_thr = new Thread \&tftp_server, $dl_file
                or die "Failed to create TFTP server thread\n"; 
     sleep(1);
     # Transfer the file
-    $exp->send("tftp $dl_addr $host_ip[0]:$file\n");
+    $exp->send("tftp $dl_addr $host_ip[0]:$dl_file\n");
     $exp->expect($CMD_TIMEOUT,
                  [ qr'done\s+$', sub { exp_continue_timeout; } ],
-                 [ qr/Bytes\s+transferred\s*=\s*\d+/i, sub { my $fh = shift;
+                 [ qr/Bytes\s+transferred\s*=\s*\d+\s+/i, sub { my $fh = shift;
                                                              $fh->match =~ /\s*=\s*(\d+)/;
-                                                             unless ($1 == $file_stat->size) {
+                                                             my $dl_bytes = $1;
+                                                             unless ($dl_bytes == $file_stat->size) {
                                                                 $srv_thr->join;
-                                                                die "Failed to upload file (", $1, "/", $file_stat->size, ")\n";
+                                                                die "Failed to upload file (", $dl_bytes, "/", $file_stat->size, ")\n";
                                                              }  
-                                                             print "Done: $1 bytes transferred\n";
-                                                             exp_continue_timeout; } ],
+                                                             print "Done: $dl_bytes bytes transferred\n"; } ],
                  [ eof => sub {  $srv_thr->join; die "ERROR: EOF uploading file.\n"; } ],
                  [ timeout => sub { $srv_thr->join; die "ERROR: timeout uploading file.\n"; } ],
-                 '-re', 'Marvell>>\s+$'
              );
-    $exp->clear_accum;
+    get_uboot_prompt;
     $srv_thr->join;
+    undef $srv_thr;
 }
 
 
@@ -203,13 +209,11 @@ $exp->send("printenv ethaddr\n");
 $exp->expect($CMD_TIMEOUT,
              [ qr/([0-9a-f]{2}:){5}[0-9a-f]{2}/i, sub { my $fh = shift;
                                                         $mac_addr = $fh->match;
-                                                        print "MAC: $mac_addr\n";
-                                                        exp_continue_timeout; } ],
+                                                        print "MAC: $mac_addr\n"; } ],
              [ eof => sub { die "ERROR: EOF trying to get MAC address.\n"; } ],
-             [ timeout => sub { die "ERROR: timeout trying to get MAC address.\n"; } ],
-             '-re', 'Marvell>> $'
+             [ timeout => sub { die "ERROR: timeout trying to get MAC address.\n"; } ]
          );
-$exp->clear_accum;
+get_uboot_prompt;
 
 #
 # Upgrade U-Boot using TFTP
@@ -220,21 +224,19 @@ tftp_upload "$DL_DIR/$UBOOT_FILE", $DL_ADDR_0;
 print "Reprogramming bootloader flash partition ...\n";
 $exp->send("nand erase 0x0 0x80000\n");
 $exp->expect($CMD_TIMEOUT,
-             [ qr'OK\s+$', sub { exp_continue_timeout; } ],
              [ eof => sub {  die "ERROR: EOF erasing bootloader partition.\n"; } ],
              [ timeout => sub { die "ERROR: timeout erasing bootloader partition.\n"; } ],
-             '-re', 'Marvell>>\s+$'
+             '-re', 'OK\s+$'
             );
-$exp->clear_accum;
+get_uboot_prompt;
 # Program NAND with the new u-boot image
 $exp->send("nand write $DL_ADDR_0 0x0 0x60000\n");
 $exp->expect($CMD_TIMEOUT,
-             [ qr'OK\s+$', sub { exp_continue_timeout; } ],
              [ eof => sub {  die "ERROR: EOF programming bootloader partition.\n"; } ],
              [ timeout => sub { die "ERROR: timeout programming bootloader partition.\n"; } ],
-             '-re', 'Marvell>>\s+$'
+             '-re', 'OK\s+$'
             );
-$exp->clear_accum;
+get_uboot_prompt;
 print "Success!\n";
 # Reboot into the new version
 print "Starting the new bootloader ...\n";
@@ -252,39 +254,45 @@ $exp->send("printenv ethaddr\n");
 $exp->expect($CMD_TIMEOUT,
              [ qr/([0-9a-f]{2}:){5}[0-9a-f]{2}/i, sub { my $fh = shift;
                                                         die "Failed to restore unit MAC address\n"
-                                                                 unless ($fh->match eq $mac_addr);
-                                                        exp_continue_timeout; } ],
+                                                                 unless ($fh->match eq $mac_addr); } ],
              [ eof => sub {  die "ERROR: EOF verifying MAC address.\n"; } ],
              [ timeout => sub { die "ERROR: timeout verifying MAC address.\n"; } ],
-             '-re', 'Marvell>>\s+$'
             );
+get_uboot_prompt;
 
 
 #
 # Upload the kernel and ramdisk
 #
-print "Uploading Linux kernel and ramdisk\n";
+print "Uploading Linux kernel and ramdisk ...\n";
+tftp_upload "$DATA_DIR/$RAMDISK_FILE", $DL_ADDR_1;
+sleep(1);
 tftp_upload "$DL_DIR/$KERNEL_FILE", $DL_ADDR_0;
-
-
-                                                    
+$exp->send("setenv bootargs \${x_args_console} \${x_args_mtdparts} root=/dev/ram rw rootfstype=ext2 initrd=$DL_ADDR_1,8M\n");
+get_uboot_prompt;
+printf("Done\n");
+                                                
 # Login to the unit
-print "Waiting for login prompt ...\n";
-$exp->send("boot\n");
+print "Booting into Linux ...\n";
+$exp->send("bootm $DL_ADDR_0\n");
 $exp->expect($REBOOT_TIMEOUT,
              [ qr/login: $/i, sub { my $fh = shift;
                                     print "Logging in ...\n";
-                                    $fh->send("$USERNAME\n");
-                                    exp_continue_timeout; } ],
-             [ qr/Password: $/i, sub { my $fh = shift;
-                                      $fh->send("$PASSWD\n");
-                                      exp_continue_timeout; } ],
+                                    $fh->send("$USERNAME\n"); } ],
              [ eof => sub { die "ERROR: EOF trying to login.\n"; } ],
              [ timeout => sub { die "ERROR: timeout trying to login.\n"; } ],
-             '-re', '\w+@?\w+.*# $'
+       );
+$exp->expect($CMD_TIMEOUT,
+             [ eof => sub { die "ERROR: EOF trying to login.\n"; } ],
+             [ timeout => sub { die "ERROR: timeout trying to login.\n"; } ],
+             '-re', '#\s+$'
        );
 $exp->clear_accum;
 print "Done\n\n";
+
+undef $exp;
+undef $s_obj;
+exit 0;
 
 
 
