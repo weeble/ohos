@@ -193,6 +193,8 @@ class FileTransfer(object):
         '''
         Copy the files at install-time.
         '''
+        if not getattr(bld, 'is_install', False):
+            return
         for source, target in zip(self.sourcetree.files, self.targettree.files):
             mode = os.stat(source).st_mode & 0o777
             bld.install_as(target, bld.root.find_or_declare(source), chmod=mode)
