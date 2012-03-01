@@ -12,7 +12,6 @@ oh_rsync_host = "openhome.org"
 username = "repo-incoming"
 
 # Command-line options. See documentation for Python's optparse module.
-add_option("-t", "--target", help="Target platform. One of Windows-x86, Windows-x64, Linux-x86, Linux-x64, Linux-ARM.")
 add_option("-a", "--artifacts", help="Build artifacts directory. Used to fetch dependencies.")
 add_bool_option("--no-publish", help="Don't publish the packages.")
 
@@ -33,23 +32,6 @@ def process_optional_steps(context):
     if context.options.no_publish:
         select_optional_steps("-publish")
 
-# Unconditional build step. Choose a platform and set the
-# appropriate environment variable.
-@build_step()
-def choose_platform(context):
-    if context.options.target:
-        context.env["OH_PLATFORM"] = context.options.target
-    elif "slave" in context.env:
-        context.env["OH_PLATFORM"] = {
-                "windows-x86" : "Windows-x86",
-                "windows-x64" : "Windows-x64",
-                "linux-x86" : "Linux-x86",
-                "linux-x64" : "Linux-x64",
-                "arm" : "Linux-ARM",
-            }[context.env["slave"]]
-    else:
-        context.env["OH_PLATFORM"] = default_platform()
-
 @build_step()
 def set_arch_vars(context):
     all_arch_vars = {
@@ -57,24 +39,30 @@ def set_arch_vars(context):
                 "setup" : "ls -al && export PATH=$PATH:/usr/local/arm-2010q1/bin && export CROSS_COMPILE=arm-none-linux-gnueabi- && export ARCH=arm",
                 "compiler" : "dpkg-buildpackage -rfakeroot -us -uc -aarmel",
                 "arch" : "armel",
+                "OH_PLATFORM" : "Linux-ARM",
                 },
 
             'linux-x86' : {
                 "setup" : "ls -al",
                 "compiler" : "dpkg-buildpackage -rfakeroot -us -uc",
                 "arch" : "i386",
+                "OH_PLATFORM" : "Linux-x86",
                 },
 
             'linux-x64' : {
                 "setup" : "ls -al",
                 "compiler" : "dpkg-buildpackage -rfakeroot -us -uamd64",
                 "arch" : "amd64",
+                "OH_PLATFORM" : "Linux-x64",
                 }
         }
+    if "TARGET_ARCH" not in context.env:
+        fail("Please specify TARGET_ARCH.")
     context.target = target = context.env["TARGET_ARCH"]
     if target not in all_arch_vars:
         fail("Unknown TARGET_ARCH: {0}".format(target))
     context.arch_vars = all_arch_vars[target]
+    context.env["OH_PLATFORM"] = context.arch_vars["OH_PLATFORM"]
     print "selected target arch of:", target
 
 # Universal build configuration.
