@@ -1,0 +1,15 @@
+Source: oh-sheeva-setup
+Section: admin
+Priority: extra
+Maintainer: Openhome <admin@openhome.org>
+Build-Depends: debhelper (>= 7.0.50~)
+Standards-Version: 3.8.4
+Homepage: http://www.openhome.org
+#Vcs-Git: git://git.debian.org/collab-maint/oh-sheeva-setup.git
+#Vcs-Browser: http://git.debian.org/?p=collab-maint/oh-sheeva-setup.git;a=summary
+
+Package: oh-sheeva-setup
+Architecture: all
+Depends: ${misc:Depends}, libexpect-perl, libdevice-serialport-perl, libnet-tftpd-perl, libnet-ifconfig-wrapper-perl 
+Description: Scripts for setting up a Sheevaplug with the ohOS firmware
+ Scripts for setting up a Sheevaplug with the ohOS firmware

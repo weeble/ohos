@@ -21,7 +21,7 @@ my $USERNAME = "root";
 my $UBOOT_FILE = "u-boot.kwb";
 my $KERNEL_FILE = "main.uImage";
 my $ROOTFS_FILE = "main.ubi.img";
-my $RAMDISK_FILE = "rootfs.ext2.gz";
+my $RAMDISK_FILE = "ramdisk.ext2.gz";
 
 my $UBOOT_PROMPT_REGEX = qr'Marvell>>\s+$';
 my $LINUX_PROMPT_REGEX = qr'#\s+$';
@@ -44,7 +44,7 @@ my $FLASH_TIMEOUT = 40;
 
 my $DL_DIR_DEFAULT = "/tmp";
 my $PORT_DEFAULT = "/dev/ttyUSB0";
-my $FW_URL_DEFAULT = "http://www.openhome.org/build/node/nightly/main";
+my $FW_URL_DEFAULT = "http://www.openhome.org/build/nightly/node/main";
 
 # Default values for command line options
 my $logging;
