@@ -101,7 +101,7 @@ namespace OpenHome.Os.Remote
             }
             if (clientReq.HttpMethod == "POST")
                 Logger.InfoFormat("Completing request.  url: {0}, thread: {1}", targetUrl, Thread.CurrentThread.ManagedThreadId);
-            WriteResponse(resp, clientResp);
+            WriteResponse(targetUrl, resp, clientResp);
             // docs suggest following is unnecessary - we only have to close one from clientRespStream / clientResp
             if (connectionClose)
                 clientResp.Close();
@@ -268,7 +268,7 @@ namespace OpenHome.Os.Remote
                 }
             }
         }
-        private static void WriteResponse(HttpWebResponse aProxiedResponse, HttpListenerResponse aResponse)
+        private static void WriteResponse(string aUrl, HttpWebResponse aProxiedResponse, HttpListenerResponse aResponse)
         {
             aResponse.StatusCode = (int)aProxiedResponse.StatusCode;
             aResponse.StatusDescription = aProxiedResponse.StatusDescription;
@@ -299,7 +299,7 @@ namespace OpenHome.Os.Remote
                         break;
                 }
             }
-            bool useGzip = false;
+            bool useGzip = true;
             if (!aResponse.SendChunked && contentLength > 512 /* no point in zipping tiny responses */ &&
                 aProxiedResponse.ContentType != null && 
                 !(aProxiedResponse.ContentType.Contains("image/png") || aProxiedResponse.ContentType.Contains("image/jpeg")))
@@ -308,14 +308,11 @@ namespace OpenHome.Os.Remote
             Stream clientRespStream = aResponse.OutputStream;
             using (Stream respStream = aProxiedResponse.GetResponseStream())
             {
-                // following can remain commented until we want to proxy websocket connections
-                /*if (targetUrl.EndsWith("/Node.js"))
+                if (aUrl.EndsWith("/Node.js"))
                 {
-                    RewriteNodeJsFile(clientResp, respStream);
+                    RewriteNodeJsFile(aResponse, respStream);
                 }
-                else
-                {*/
-                if (!useGzip)
+                else if (!useGzip)
                 {
                     if (contentLength > 0) // response may be chunked
                         aResponse.ContentLength64 = contentLength;
@@ -335,10 +332,9 @@ namespace OpenHome.Os.Remote
                     zip.CopyTo(clientRespStream);
                 }
             }
-            //}
             clientRespStream.Close();
         }
-        /*static void RewriteNodeJsFile(HttpListenerResponse aClientResp, Stream aFileStream)
+        static void RewriteNodeJsFile(HttpListenerResponse aClientResp, Stream aFileStream)
         {
             int contentLength = 0;
             MemoryStream memStream = new MemoryStream();
@@ -349,10 +345,13 @@ namespace OpenHome.Os.Remote
             StreamReader reader = new StreamReader(memStream);
             string line;
             const string wsPortDecl = "var webSocketPort =";
+            const string isRemoteDecl = "var isRemote =";
             while ((line = reader.ReadLine()) != null)
             {
                 if (line.StartsWith(wsPortDecl))
                     line = String.Format("{0} {1};", wsPortDecl, kRemoteAccessPort);
+                else if (line.StartsWith(isRemoteDecl))
+                    line = String.Format("{0} {1};", isRemoteDecl, "true");
                 line += "\r\n";
                 contentLength += line.Length;
                 byte[] buf = Encoding.UTF8.GetBytes(line);
@@ -361,7 +360,7 @@ namespace OpenHome.Os.Remote
             aClientResp.ContentLength64 = contentLength;
             outStream.Seek(0, SeekOrigin.Begin);
             outStream.CopyTo(aClientResp.OutputStream);
-        }*/
+        }
         public void Dispose()
         {
             if (iHttpServer != null)
