@@ -299,12 +299,12 @@ namespace OpenHome.Os.Remote
                         break;
                 }
             }
-            bool useGzip = true;
+            bool useGzip = false;
             if (!aResponse.SendChunked && contentLength > 512 /* no point in zipping tiny responses */ &&
                 aProxiedResponse.ContentType != null && 
                 !(aProxiedResponse.ContentType.Contains("image/png") || aProxiedResponse.ContentType.Contains("image/jpeg")))
                 // no point in wasting time zipping a format that is already compressed
-                useGzip = false;
+                useGzip = true;
             Stream clientRespStream = aResponse.OutputStream;
             using (Stream respStream = aProxiedResponse.GetResponseStream())
             {
