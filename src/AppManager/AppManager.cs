@@ -118,13 +118,15 @@ namespace OpenHome.Os.AppManager
                 if (managedApp.Info != app)
                 {
                     managedApp.Info = app;
-                    if (managedApp.Info.DownloadLastModified != null)
+                    if (managedApp.Info.AutoUpdate)
                     {
+                        DateTime? lastModified = managedApp.Info.DownloadLastModified;
+
                         string appName = managedApp.Info.Name;
                         iDownloadManager.StartPollingForAppUpdate(managedApp.Info.Name, managedApp.Info.UpdateUrl,
                             () => OnAppAvailableForDownload(appName),
                             () => OnAppPollFailed(appName),
-                            managedApp.Info.DownloadLastModified.Value);
+                            lastModified ?? new DateTime(1900, 1, 1));
                     }
                     managedApp.SequenceNumber += 1;
                 }
@@ -310,10 +312,10 @@ namespace OpenHome.Os.AppManager
                         {
                             iAppShell.Upgrade(name, aLocalFile, url, aLastModified);
                         }
-                        catch (BadPluginException)
+                        catch (BadPluginException bpe)
                         {
                             // TODO: Update download status to record failure.
-                            Logger.Warn("Update failed: bad plugin.");
+                            Logger.Warn("Update failed: bad plugin.", bpe);
                         }
                     },
                     () =>

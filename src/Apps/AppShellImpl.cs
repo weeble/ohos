@@ -535,10 +535,6 @@ namespace OpenHome.Os.Apps
             {
                 throw new BadPluginException(String.Format("Expected new install, but plugin collides with existing app '{0}'.", appDirName));
             }
-            if (!knownApp.DirectoryExists && !aAllowInstall)
-            {
-                throw new BadPluginException(String.Format("Cannot apply upgrade, as app '{0}' is not installed.", appDirName));
-            }
             knownApp.Upgrade(aPersistentZipFile);
             if (aLastModified != null)
             {

@@ -76,7 +76,7 @@ namespace OpenHome.Os.Apps
             }
             string systemAppConfigDir = aConfiguration.GetElementValueAsFilepath(e => e.Element("system-settings").Element("system-app-config"));
             IConfigFileCollection systemAppsConfig;
-            if (systemAppConfigDir == null)
+            if (!string.IsNullOrEmpty(systemAppConfigDir))
             {
                 systemAppsConfig = ConfigFileCollection.ReadDirectoryInOrder(new DirectoryInfo(systemAppConfigDir), "*.xml");
             }
