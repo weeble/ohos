@@ -40,6 +40,9 @@ debian/usr
 /scripts/mono/*/debian/files
 mono-2.10.*/
 gtk-sharp-2.12.*/
+scripts/oh-sheeva-setup/debian/oh-sheeva-setup
+scripts/oh-sheeva-setup/debian/files
+scripts/oh-sheeva-setup/debian/oh-sheeva-setup.substvars
 
 # Waf temporaries
 /.lock-waf*
