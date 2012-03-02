@@ -5,9 +5,8 @@ using System.Linq;
 using System.Xml.Linq;
 using System.Xml.XPath;
 using log4net;
-using OpenHome.Os.Platform;
 
-namespace Node
+namespace OpenHome.Os.Platform
 {
     public class ConfigFileCollection : IConfigFileCollection
     {
@@ -137,12 +136,41 @@ namespace Node
         {
             return SeekNotNull(cf => aElementQuery(cf.XElement), (cf,v) => cf.ResolveRelativePath(v.Value), null);
         }
+
+        public IEnumerable<XElement> GetAllElements(Func<XElement, IEnumerable<XElement>> aElementQuery)
+        {
+            return iConfigFiles
+                .SelectMany(aConfigFile => aElementQuery(aConfigFile.XElement))
+                .Where(aElement => aElement != null);
+        }
+
+        public int FileCount
+        {
+            get { return iConfigFiles.Count; }
+        }
+
+        public IEnumerable<KeyValuePair<string, IConfigFileCollection>> SplitByFile()
+        {
+            return iConfigFiles.Select(aConfigFile => new KeyValuePair<string, IConfigFileCollection>(
+                aConfigFile.Name,
+                new ConfigFileCollection(new[] { aConfigFile })));
+        }
+
         public bool? GetAttributeAsBoolean(Func<XElement, XAttribute> aAttributeQuery)
         {
             return SeekNotNull(
                 cf => aAttributeQuery(cf.XElement),
                 (cf, v) => TrueStrings.Contains(v.Value),
                 (bool?)null);
+        }
+
+        public static ConfigFileCollection ReadDirectoryInOrder(DirectoryInfo aDirectoryInfo, string aSearchPattern)
+        {
+            return new ConfigFileCollection(
+                aDirectoryInfo
+                    .EnumerateFiles(aSearchPattern)
+                    .OrderBy(aFile=>aFile.Name)
+                    .Select(aFile=>aFile.FullName));
         }
 
     }

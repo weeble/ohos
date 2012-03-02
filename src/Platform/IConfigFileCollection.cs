@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Xml.Linq;
 
 namespace OpenHome.Os.Platform
@@ -13,6 +14,9 @@ namespace OpenHome.Os.Platform
         XElement GetElement(Func<XElement, XElement> aElementQuery);
         string GetElementValue(Func<XElement, XElement> aElementQuery);
         string GetElementValueAsFilepath(Func<XElement, XElement> aElementQuery);
+        int FileCount { get; }
+        IEnumerable<KeyValuePair<string, IConfigFileCollection>> SplitByFile();
+        IEnumerable<XElement> GetAllElements(Func<XElement, IEnumerable<XElement>> aElementQuery);
     }
 
     public class NullConfigFileCollection : IConfigFileCollection
@@ -29,5 +33,20 @@ namespace OpenHome.Os.Platform
         public XElement GetElement(Func<XElement, XElement> aElementQuery) { return null; }
         public string GetElementValue(Func<XElement, XElement> aElementQuery) { return null; }
         public string GetElementValueAsFilepath(Func<XElement, XElement> aElementQuery) { return null; }
+
+        public int FileCount
+        {
+            get { return 0; }
+        }
+
+        public IEnumerable<KeyValuePair<string, IConfigFileCollection>> SplitByFile()
+        {
+            yield break;
+        }
+
+        public IEnumerable<XElement> GetAllElements(Func<XElement, IEnumerable<XElement>> aElementQuery)
+        {
+            yield break;
+        }
     }
 }

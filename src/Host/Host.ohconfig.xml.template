@@ -7,6 +7,8 @@
         <installed-apps>{ohos__system-settings__installed-apps}</installed-apps>
         <!-- UUID for this node. Chosen randomly if empty. -->
         <uuid>{ohos__system-settings__uuid}</uuid>
+        <!-- Directory containing .xml configuration specifying what apps to auto-download. -->
+        <system-app-config>{ohos__system-settings__system-app-config}</system-app-config>
         <!-- Network settings. -->
         <network loopback="no"/>
         <!-- Control how errors are handled -->

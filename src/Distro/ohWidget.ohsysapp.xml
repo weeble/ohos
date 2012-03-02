@@ -1,0 +1,5 @@
+<system-app>
+    <name>ohWidget</name>
+    <automatic-download>true</automatic-download>
+    <download-url>http://openhome.org/releases/apps/ohWidget/current</download-url>
+</system-app>

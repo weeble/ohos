@@ -363,6 +363,7 @@ namespace OpenHome.Os.Apps
             IZipReader aZipReader,
             IAppMetadataStore aMetadataStore,
             IZipVerifier aZipVerifier,
+            ISystemAppsConfiguration aSystemAppsConfiguration,
             bool aAutoStart)
         {
             iFullPrivilegeAppServices = aFullPrivilegeAppServices;
@@ -387,9 +388,22 @@ namespace OpenHome.Os.Apps
             {
                 GetOrCreateKnownApp(dirname);
             }
+            MarkSystemApps(aSystemAppsConfiguration);
             if (aAutoStart)
             {
                 Start();
+            }
+        }
+
+        void MarkSystemApps(ISystemAppsConfiguration aSystemAppsConfiguration)
+        {
+            foreach (var sysApp in aSystemAppsConfiguration.Apps)
+            {
+                var knownApp = GetOrCreateKnownApp(sysApp.Name);
+                var appMetadata = knownApp.ReadAppMetadata();
+                appMetadata.AutoUpdate = sysApp.AutomaticDownload;
+                appMetadata.UpdateUrl = sysApp.DownloadUrl;
+                knownApp.WriteAppMetadata(appMetadata);
             }
         }
 

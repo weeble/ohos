@@ -70,6 +70,11 @@ namespace OpenHome.Os.Apps
                         Logger.ErrorFormat("ReflectionTypeLoadException while loading app {0}:\n{1}", dirname, rtle.LoaderExceptions[0]);
                         continue;
                     }
+                    catch (Exception e)
+                    {
+                        Logger.ErrorFormat("Error loading app. Perhaps it's for a different version of ohOs? Exception:\n{0}", e);
+                        continue;
+                    }
                     aAppAddedAction(appDirectoryInfo, apps.First());
                 }
             }

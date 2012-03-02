@@ -74,6 +74,16 @@ namespace OpenHome.Os.Apps
             {
                 installBase = Path.Combine(storePath, DefaultAppsDirectory);
             }
+            string systemAppConfigDir = aConfiguration.GetElementValueAsFilepath(e => e.Element("system-settings").Element("system-app-config"));
+            IConfigFileCollection systemAppsConfig;
+            if (systemAppConfigDir == null)
+            {
+                systemAppsConfig = ConfigFileCollection.ReadDirectoryInOrder(new DirectoryInfo(systemAppConfigDir), "*.xml");
+            }
+            else
+            {
+                systemAppsConfig = new NullConfigFileCollection();
+            }
             DefaultAppsDirectory appsDirectory = new DefaultAppsDirectory(installBase);
             DefaultZipReader zipReader = new DefaultZipReader();
             //DefaultAddinManager addinManager = new DefaultAddinManager(installBase, installBase, installBase);
@@ -90,6 +100,7 @@ namespace OpenHome.Os.Apps
                 zipReader,
                 appMetadataStore,
                 zipVerifier,
+                new SystemAppsConfiguration(systemAppsConfig),
                 false);
         }
 

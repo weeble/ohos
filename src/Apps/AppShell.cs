@@ -153,6 +153,7 @@ namespace OpenHome.Os.Apps
             Func<DvDevice, IApp, string, IDvProviderOpenhomeOrgApp1> aAppProviderConstructor,
             IZipReader aZipReader,
             IAppMetadataStore aAppMetadataStore, IZipVerifier aZipVerifier,
+            ISystemAppsConfiguration aSystemAppsConfiguration,
             bool aAutoStart)
         {
             lock (iLock)
@@ -167,6 +168,7 @@ namespace OpenHome.Os.Apps
                     aZipReader,
                     aAppMetadataStore,
                     aZipVerifier,
+                    aSystemAppsConfiguration,
                     aAutoStart);
                 iImpl.AppStatusChanged += OnAppStatusChanged;
             }

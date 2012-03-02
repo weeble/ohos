@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using ICSharpCode.SharpZipLib.Zip;
 using Moq;
@@ -32,6 +33,7 @@ namespace OpenHome.Os.Apps
         protected Mock<IZipReader> iZipReaderMock;
         protected Mock<IDvProviderOpenhomeOrgApp1> iProviderMock;
         protected Mock<IAppMetadataStore> iAppMetadataStoreMock;
+        protected Mock<ISystemAppsConfiguration> iSystemAppsConfigurationMock;
 
         protected IAppServices iAppServices;
         protected IConfigFileCollection iConfig;
@@ -45,6 +47,7 @@ namespace OpenHome.Os.Apps
         protected IZipReader iZipReader;
         protected IDvProviderOpenhomeOrgApp1 iProvider;
         protected IAppMetadataStore iAppMetadataStore;
+        protected ISystemAppsConfiguration iSystemAppsConfiguration;
 
         protected AppShell iAppShell;
         protected Dictionary<string, AppMetadata> iAppMetadata;
@@ -111,11 +114,23 @@ namespace OpenHome.Os.Apps
             MakeMock(out iZipReaderMock, out iZipReader);
             MakeMock(out iProviderMock, out iProvider);
             MakeMock(out iAppMetadataStoreMock, out iAppMetadataStore);
+            MakeMock(out iSystemAppsConfigurationMock, out iSystemAppsConfiguration);
             iAppMetadata = new Dictionary<string, AppMetadata>();
             iProviderConstructorMock = new Mock<IProviderConstructor>();
             iProviderConstructor = iProviderConstructorMock.Object.Create;
             PrepareMocks();
-            iAppShell = new AppShell(iAppServices, iConfig, iAddinManager, iAppsDirectory, iStoreDirectory, iProviderConstructor, iZipReader, iAppMetadataStore, new ZipVerifier(iZipReader), false);
+            iAppShell = new AppShell(
+                iAppServices,
+                iConfig,
+                iAddinManager,
+                iAppsDirectory,
+                iStoreDirectory,
+                iProviderConstructor,
+                iZipReader,
+                iAppMetadataStore,
+                new ZipVerifier(iZipReader),
+                iSystemAppsConfiguration,
+                false);
             // When the App AppShell calls AddExtensionNodeHandler, store the
             // handler so that we can call it back later.
             //AddinManagerMock.Setup(x=>x.AddExtensionNodeHandler(It.IsAny<string>(), It.IsAny<ExtensionNodeEventHandler>())).Callback(
@@ -126,6 +141,38 @@ namespace OpenHome.Os.Apps
         //{
         //    CurrentExtensionNodeEventHandler = aHandler;
         //}
+    }
+
+    [TestFixture]
+    public class WhenTheAppShellIsStartedWithSomeSystemAppsDefined : AppShellTestContext
+    {
+        protected override void PrepareMocks()
+        {
+            base.PrepareMocks();
+            iSystemAppsConfigurationMock.Setup(x => x.Apps).Returns(
+                new SystemApp[] {
+                    new SystemApp("app1", true, "http://downloads.test/app1")});
+        }
+        [Test]
+        public void TheAppIsListedByGetApps()
+        {
+            Assert.That(iAppShell.GetApps().ToList().Single().Name, Is.EqualTo("app1"));
+        }
+        [Test]
+        public void TheAppIsListedAsNotRunning()
+        {
+            Assert.That(iAppShell.GetApps().ToList().Single().State, Is.EqualTo(AppState.NotRunning));
+        }
+        [Test]
+        public void TheAppIsListedAsAutoUpdating()
+        {
+            Assert.That(iAppShell.GetApps().ToList().Single().AutoUpdate, Is.True);
+        }
+        [Test]
+        public void TheDownloadUrlIsListedCorrectly()
+        {
+            Assert.That(iAppShell.GetApps().ToList().Single().UpdateUrl, Is.EqualTo("http://downloads.test/app1"));
+        }
     }
 
     public class WhenTheAppShellIsStartedAfterAnAppIsInstalled : AppShellTestContext

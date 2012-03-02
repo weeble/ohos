@@ -6,7 +6,6 @@ using System.Linq;
 using System.Reflection;
 using System.Security.Policy;
 using System.Xml.Linq;
-using Node;
 using OpenHome.Os.Apps;
 using OpenHome.Os.Host.Guardians;
 using OpenHome.Os.Platform;
