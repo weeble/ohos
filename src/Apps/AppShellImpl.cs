@@ -224,8 +224,10 @@ namespace OpenHome.Os.Apps
                 {
                     var metadata = ReadAppMetadata();
                     metadata.InstallPending = false;
-                    // If we previously scheduled a delete, the install supercedes it.
                     metadata.DeletePending = false;
+                    // If we don't reset LastModified, we'll not realise that we
+                    // can download it again.
+                    metadata.LastModified = null;
                     WriteAppMetadata(metadata);
                 }
             }
