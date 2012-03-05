@@ -28,7 +28,7 @@ namespace OpenHome.Os.AppManager
                 Logger.DebugFormat("Polling URL for app update: {0}", aUrl);
                 var request = WebRequest.Create(aUrl);
                 request.Method = "HEAD";
-                request.Timeout = 5000;
+                request.Timeout = 20000; // 20s
                 using (var response = request.GetResponse())
                 {
                     var httpResponse = response as HttpWebResponse;
