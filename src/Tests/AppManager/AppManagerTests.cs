@@ -55,7 +55,8 @@ namespace OpenHome.Os.AppManager
                     "http://update.test/app" + x,
                     "http://icon.test/app" + x,
                     new AppVersion(1, 2, 3),
-                    null)
+                    null,
+                    false)
                 ).ToList();
             aTweakAction(apps);
             iAppShell.Setup(x => x.GetApps()).Returns(apps);
