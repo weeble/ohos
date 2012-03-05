@@ -1,3 +1,12 @@
 #!/bin/sh
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-apt-get -qy update && apt-get -qy install ohwidget --force-yes  >> /var/log/ohos-update.log && apt-get -qy --force-yes install ohos  >> /var/log/ohos-update.log && apt-get -qy remove --purge ntp && apt-get -qy clean && apt-get -qy autoclean
+
+OH_INSTALL_PACKAGES="ohos ohos-core ohos-appmanager ohos-distro"
+OH_REMOVE_PACKAGES="ntp ohwidget"
+LOG_FILE=/var/log/ohos-update.log
+
+apt-get -qy update
+apt-get -qy install --force-yes $OH_INSTALL_PACKAGES >> $LOG_FILE
+apt-get -qy remove --purge $OH_REMOVE_PACKAGES
+apt-get -qy clean
+apt-get -qy autoclean
