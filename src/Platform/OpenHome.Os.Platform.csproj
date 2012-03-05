@@ -35,6 +35,7 @@
     <Compile Include="Collections\IdDictionary.cs" />
     <Compile Include="Collections\IDisposableContainer.cs" />
     <Compile Include="Collections\ListUtils.cs" />
+    <Compile Include="ConfigFileCollection.cs" />
     <Compile Include="ConsoleInterface.cs" />
     <Compile Include="Converter.cs" />
     <Compile Include="DataStores\Comparison.cs" />

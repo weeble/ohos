@@ -91,6 +91,12 @@ namespace OpenHome.Os.AppManager
                             managedApp.SequenceNumber += 1;
                             UpdateHandles();
                         }
+                        if (managedApp.Info.IsSystemApp && managedApp.Info.State != AppState.Running)
+                        {
+                            // If a system app isn't installed or isn't running, update
+                            // it without prompting.
+                            DoUpdate(managedApp);
+                        }
                     }
                 }
             });
@@ -293,41 +299,47 @@ namespace OpenHome.Os.AppManager
                     throw new ActionError("No update available.");
                 }
 
-                string url = managedApp.Info.UpdateUrl;
-                string name = managedApp.Info.Name;
-                if (iUpgradeAppNamesToUrls.Forward.ContainsKey(name))
-                {
-                    return;
-                }
-                iUpgradeAppNamesToUrls.Forward[name] = url;
-                iDownloadManager.StartDownload(
-                    url,
-                    (aLocalFile, aLastModified) =>
-                    {
-                        lock (iLock)
-                        {
-                            iUpgradeAppNamesToUrls.Forward.Remove(name);
-                        }
-                        try
-                        {
-                            iAppShell.Upgrade(name, aLocalFile, url, aLastModified);
-                        }
-                        catch (BadPluginException bpe)
-                        {
-                            // TODO: Update download status to record failure.
-                            Logger.Warn("Update failed: bad plugin.", bpe);
-                        }
-                    },
-                    () =>
-                    {
-                        lock (iLock)
-                        {
-                            iUpgradeAppNamesToUrls.Forward.Remove(name);
-                        }
-                    }
-                    );
-                managedApp.Downloading = true;
+                DoUpdate(managedApp);
+                return;
             }
+        }
+
+        void DoUpdate(ManagedApp aManagedApp)
+        {
+            string url = aManagedApp.Info.UpdateUrl;
+            string name = aManagedApp.Info.Name;
+            if (iUpgradeAppNamesToUrls.Forward.ContainsKey(name))
+            {
+                return;
+            }
+            iUpgradeAppNamesToUrls.Forward[name] = url;
+            iDownloadManager.StartDownload(
+                url,
+                (aLocalFile, aLastModified) =>
+                {
+                    lock (iLock)
+                    {
+                        iUpgradeAppNamesToUrls.Forward.Remove(name);
+                    }
+                    try
+                    {
+                        iAppShell.Upgrade(name, aLocalFile, url, aLastModified);
+                    }
+                    catch (BadPluginException bpe)
+                    {
+                        // TODO: Update download status to record failure.
+                        Logger.Warn("Update failed: bad plugin.", bpe);
+                    }
+                },
+                () =>
+                {
+                    lock (iLock)
+                    {
+                        iUpgradeAppNamesToUrls.Forward.Remove(name);
+                    }
+                }
+                );
+            aManagedApp.Downloading = true;
         }
 
         public void InstallAppFromUrl(string aAppUrl)
