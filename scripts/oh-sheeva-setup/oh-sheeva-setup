@@ -6,6 +6,7 @@ use Net::Ifconfig::Wrapper qw(Ifconfig);
 use LWP::Simple;
 use Net::TFTPd;
 use IO::Handle;
+use Time::HiRes qw(usleep);
 use File::stat;
 use Getopt::Std;
 use Expect;
@@ -49,21 +50,23 @@ my $FW_URL_DEFAULT = "http://www.openhome.org/build/nightly/node/main";
 # Default values for command line options
 my $logging;
 my $debug;
-my $fw_download;
+my $fw_downloaded;
 my $port = $PORT_DEFAULT;
 my $dl_dir = $DL_DIR_DEFAULT;
 my $fw_url = $FW_URL_DEFAULT;
+
+STDOUT->autoflush(1);
 
 #
 # Process command line arguments
 #
 my %cmd_opts;
-die "Invalid command line options\n" unless getopts('fhl:u:p:s:d', \%cmd_opts);
+die "Invalid command line options\n" unless getopts('nhl:u:p:s:d', \%cmd_opts);
 if ($cmd_opts{'h'}) {
     print "Usage: $SCRIPT_NAME [options]\n\n";
     print "Availabe options are:\n";
     print "-p <dev>     console device [$PORT_DEFAULT]\n";
-    print "-f           download firmware from server\n";
+    print "-n           do not download firmware\n";
     print "-u <url>     firmware server URL [http://www.openhome.org/build/node/nightly/main]\n";
     print "-l <dir>     download directory [$DL_DIR_DEFAULT]\n";
     print "-d           enable debug output\n";
@@ -72,7 +75,7 @@ if ($cmd_opts{'h'}) {
     exit 0;
 }
 $debug = $cmd_opts{'d'};
-$fw_download = $cmd_opts{'f'};
+$fw_downloaded = $cmd_opts{'n'};
 $logging = $cmd_opts{'s'};
 $port = $cmd_opts{'p'} if $cmd_opts{'p'};
 $fw_url = $cmd_opts{'u'} if $cmd_opts{'u'};
@@ -115,36 +118,56 @@ print "Download dir: $dl_dir\n";
 #
 # Download firmware images
 #
-if ($fw_download)
+my %fw_list = ( $ROOTFS_FILE => "Flash Filesystem",
+                $KERNEL_FILE => "Linux Kernel",
+                $UBOOT_FILE => "Bootloader" );
+my $file;
+if ($fw_downloaded) {
+    print "\nChecking all firmware files are present ...\n";
+    foreach $file (keys(%fw_list)) {
+        (-s "$dl_dir/$file") or die $fw_list{$file}, " image not found. Run without the '-n' option to download again.\n";
+    }
+}
+else
 {
     print "Firmware URL: $fw_url\n";
     print "\nDownloading firmware files. This may take a while ...\n";
-    my ($file, $status);
-    foreach $file ($UBOOT_FILE, $KERNEL_FILE, $ROOTFS_FILE) {
+    my $status;
+    foreach $file (keys(%fw_list)) {
+        print "Getting ", $fw_list{$file}, " image ... ";
         $status = getstore("$fw_url/$file", "$dl_dir/$file");
-        die "Firmware download failed with error: ", $status, "\n" if is_error($status);
+        if (is_error($status)) {
+            die "\nFirmware download failed with error: ", $status, "\n";
+        }
+        else {
+            print "OK\n";
+        }        
     }
 }
+
 
 #
 # Prompt the user to get started
 #
 print "\n";
 if (-c $port) {
-    print "Please disconnect and power off the Sheevaplug ...\n\n"
+    print "Please disconnect and power off the Sheevaplug ...\n\n";
 }
-while (-c $port) {}
+do { sleep 1; } while (-c $port);
 
-print "FIRST connect the Sheevaplug console cable and THEN power on the unit ...\n\n";
-while  (! -c $port) {}
-
-sleep(1);
-
+print "FIRST connect the Sheevaplug console and ethernet cables and THEN power on the unit ...\n\n";
+do { usleep(40000); } until (-c $port);
 
 #
 # Configure and open the serial port
 #
-$s_obj = new Device::SerialPort($port);
+for (my $i = 0; $i < 50; $i++)
+{
+    $s_obj = new Device::SerialPort($port) and last;
+    usleep(40000);
+}
+
+die "Failed to open port $port for configuration\n" unless ($s_obj);
 
 $s_obj->baudrate(115200) || die "failed setting baudrate";
 $s_obj->parity("none") || die "failed setting parity";
@@ -181,6 +204,7 @@ if ($logging) {
 # Various subroutines
 #
 
+# Routine for the TFTP server child process
 sub tftp_server
 {
     my $TFTPD_TIMEOUT = 3;
@@ -216,7 +240,7 @@ sub get_uboot_prompt
              [ qr/U-Boot\s+((20\d{2}\.\d{2})|(\d\.\d\.\d))\S*\s+/i, sub { my $fh = shift;
                                          my_print "Bootloader: ", $fh->match, "\n";
                                          exp_continue; } ],
-             [ qr/Hit\s+any\skey\s+to\s+stop\s+autoboot/i, sub { my $fh = shift;
+             [ qr/(Hit\s+any\skey\s+to\s+stop\s+autoboot)|(\010+\s+\d{1}\s+)/i, sub { my $fh = shift;
                                                                  $fh->send("\n");
                                                                  exp_continue_timeout; } ],
              [ eof => sub { die "ERROR: EOF waiting for U-Boot prompt.\n"; } ],
