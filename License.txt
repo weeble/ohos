@@ -1,0 +1,66 @@
+Copyright 2011, OpenHome. All rights reserved.
+
+Unless otherwise stated, all code in this project is licensed under the 2-clause
+(Simplified) BSD license.  See BsdLicense.txt for details.
+
+Files at the following locations are licensed under separate terms found
+in those files:
+  Zepto:
+    appfiles/ohOs.AppManager/WebUI/js/zepto.min.js
+    appfiles/ohOs.AppManager/WebUI/js/zepto.data.js
+    appfiles/ohOs.AppManager/WebUI/js/dependencies/zepto.min.js
+  JSON XML:
+    appfiles/ohOs.AppManager/WebUI/js/proxy/jsonxml.js
+  Less:
+    appfiles/ohOs.AppManager/WebUI/css/less.css
+  Animate:
+    appfiles/ohOs.AppManager/WebUI/css/animate-custom*.css
+  waf:
+    waf
+
+Files at the following location are licensed separately according to the
+ohNet license at https://github.com/openhome/ohNet/blob/master/License.txt
+  ohNet:
+    appfiles/ohOs.AppManager/WebUI/js/dependencies/ohnet.js
+    appfiles/ohOs.AppManager/WebUI/js/proxy/CpOpenhomeOrgAppManager1.js
+    appfiles/ohOs.AppManager/WebUI/js/proxy/CpOpenhomeOrgApp1.js
+
+
+The following programs are required to run ohOs:
+
+  1. Program: ohNet
+     License: 2-clase (simplified) BSD
+              License.txt in codebase
+              https://github.com/openhome/ohNet/blob/master/License.txt
+
+  2. Program: YUI Compressor
+     License: 3-clause (New) BSD
+              http://yuicompressor.codeplex.com/license
+
+  3. Program: Log4Net
+     License: Apache v2
+              http://logging.apache.org/log4net/license.html
+
+  4. Program: SSH.NET Library
+     License: 3-clause (New) BSD
+              http://sshnet.codeplex.com/license
+
+  5. Program: Mono.Addins
+     License: The MIT License
+              http://monoaddins.codeplex.com/license
+
+  6. Program: NDesk Options
+     License: MIT/X11
+              http://www.ndesk.org/Options
+
+The following programs are additionally required to run test/sample code,
+but are not required to distribute working binaries:
+
+  1. Program: NUnit
+     License: similar to z-lib
+              http://www.nunit.org/index.php?p=license&r=2.2.10
+
+  2. Program: Moq
+     License: 3-clause (New) BSD
+              http://code.google.com/p/moq/
+

@@ -1,0 +1,432 @@
+ohOs
+====
+ohOs is a host for cross-platform network-orient applications that communicate
+over UPnP using the ohNet library.
+
+Dependencies
+-------------
+Python 2.7
+        On Windows, download and install this from the Python website.
+        http://www.python.org/download/
+        Note that Python versions of 3.0 and higher are not suitable,
+        it needs to be 2.7 version.
+
+        On Linux, your distribution very probably already includes an
+        appropriate Python.
+
+Mono 2.10.0+
+or
+Visual Studio 10
+
+ohNet library - assemblies and binaries should be in the appropriate one of:
+        dependencies/Windows-x86/ohnet-Windows-x86-release-dev/lib
+        dependencies/Linux-x86/ohnet-Linux-x86-release-dev/lib
+
+        See dependencies.txt to find out what version of ohNet is currently
+        required.
+
+Log4Net
+        Get it from here:
+        http://logging.apache.org/log4net/download.html
+        Unzip it to get a directory called "log4net-1.2.10", and place that
+        directory into:
+
+        dependencies/AnyPlatform
+
+Mono.Addins-0.6
+        Get it from here:
+        http://monoaddins.codeplex.com/
+        Unzip the download into, e.g.:
+
+        dependencies/AnyPlatform/Mono.Addins
+
+Moq 4.0.10827+
+        Get it from here:
+        http://code.google.com/p/moq/downloads/detail?name=Moq.4.0.10827.zip
+        Unzip it into the appropriate dependencies folder, e.g.:
+
+        dependencies/AnyPlatform/moq
+
+NDesk.Options 0.2.1+
+        Get it from here:
+        http://www.ndesk.org/archive/ndesk-options/ndesk-options-0.2.1.tar.gz
+        Unpack it so that its lib directory is in:
+
+        dependencies/AnyPlatform/ndesk-options
+
+NUnit 2.5.9.10305+
+        Get it from here:
+        http://www.nunit.org/index.php?p=download
+
+        Unzip the NUnit folder and put the files in:
+
+        dependencies/AnyPlatform/nunit
+
+YUI Compressor
+        Get it from here:
+        http://yuicompressor.codeplex.com/
+        Unzip the following files into the appropriate dependencies folder
+
+        dependencies/AnyPlatform/yui-compressor/EcmaScript.NET.modified.dll
+        dependencies/AnyPlatform/yui-compressor/Yahoo.Yui.Compressor.dll
+
+
+Configuration
+-------------
+
+Configuration is the process of deciding how the build process should behave -
+which versions of libraries it should use, what platform it should target, etc.
+Configuration must be run before building for the first time, but thereafter is
+unnecessary unless you want to change one of these behaviours.
+
+Before configuring and building, make sure that your C# compiler is in the path.
+For Visual Studio, you can generally do this by finding and running the vcvarsall.bat
+script from your command-prompt.
+
+To configure to build with Visual Studio, run:
+
+    waf configure
+
+To configure to build with Mono, run:
+
+    ./waf configure --with-csc-binary dmcs
+
+Configure will complain if you don't have the dependencies available in the
+right directory, or if you have multiple versions sitting side-by-side in the
+dependencies folder so it can't decide which one to use. If you need to override
+the location of a dependency directory, run configure like this:
+
+    ./waf configure --nunit-dir dependencies/AnyPlatform/NUnit-2.5.9.10305
+
+Configuration options:
+
+    Dependency locations
+
+        You can ignore these if you have installed the dependencies as described above. Use
+        these if you have put the dependencies in a non-standard location.
+
+        --ohnet-dir: Specify the directory that contains ohNet.net.dll and the other ohNet library files.
+        --ohnet-t4-dir: Specify the directory that contains ohNet's TextTransform.exe file.
+        --ohnet-template-dir: Specify the directory that contains ohNet's *.tt files.
+        --ohnet-ui-dir: Specify the directory that contains the Web UI.
+        --ohnet-source-dir: Specify the directory that ohNet's source-tree resides in. This automatically
+                            sets all of the previous four directories based on this directory and the
+                            target platform.
+        --nunit-dir: Specify the root directory of the NUnit installation.
+        --ndesk-options-dir: Specify the directory that contains NDesk.Options.
+        --yui-compressor-dir: Specify the directory that contains the .NET YUI compressor library.
+        --moq-dir: Specify the directory that Moq is installed to.
+        --mono-addins-dir: Specify the location that contains the Mono.Addins DLL.
+        --mono-addins-setup-dir: Specify the location that contains the Mono.Addins.Setup DLL. This
+                                 should normally be the same as --mono-addins-dir.
+        --log4net-dir: Specify the directory that contains log4net.dll.
+        --sshnet-dir: Specify the directory that contains Renci.SshNet.dll.
+
+    Others
+
+        --platform: Specify the target platform. One of: Windows-x86, Windows-x64, Linux-x86, Linux-x64, Linux-ARM.
+
+        --with-csc-binary: Specify the C# compiler. On Linux it should be set to /usr/bin/dmcs
+
+        --nogui: Disables building the GUI projects. Currently there are none.
+
+        --notests: Disables building the NUnit tests.
+
+Note that running configure replaces all previous configure options. E.g. if you run
+configure with --nunit-dir C:\X\Y\Z, then later run it with --nogui, it will revert to searching
+for nunit in the default location and not C:\X\Y\Z. If you want to combine configure options,
+pass them all at the same time.
+
+
+Multiple configurations (advanced)
+----------------------------------
+
+See Appendix A.
+
+
+Build
+-----
+
+Run:
+
+    ./waf
+
+Build results will go into the build directory. (Or elsewhere as specified by your WAFLOCK environment variable.)
+
+
+Run unit tests
+---------
+
+Run:
+    ./waf test
+
+Test results will go into the build directory, with a suffix of ".TestResults.xml". (Or elsewhere as specified by your WAFLOCK environment variable.)
+
+If you want to pass extra arguments to NUnit, such as to run only a subset of the tests, use "--nunit-args":
+
+    ./waf test --nunit-args="/run=OpenHome.Os.AppManager"
+
+
+Dev-tools and CI builds
+-----------------------
+
+The ohDevTools repository, found in the same place you obtained ohOs, contains
+non-essential scripts and tools that can be useful for working with the ohOs
+codebase. Some of these scripts are specialized for use on our build servers and
+will not be generally useful, but others can work anywhere.
+
+To use these, first unpack the ohDevTools archive or clone the ohDevTools repository
+to sit alongside your ohOs directory. For example:
+
+~/repos/
+    ohos/
+        appfiles/
+        debian/
+        dependencies/
+        projectdata/
+        scripts/
+        src/
+        wafmodules/
+    ohdevtools/
+        commands/
+
+The list of available commands can be seen by running the "go" in the ohos directory.
+
+go fetch
+--------
+
+This command will fetch pre-built binaries for all dependencies from openhome.org. This
+is entirely optional - you can follow the instructions above to fetch each dependency
+by hand from its own project, but this can save a lot of time. Note that it will clear
+your dependencies directory first.
+
+go ci-build
+-----------
+
+This command is used by our CI servers to automate their builds. It will:
+
+1. Erase the dependencies directory and then fetch them again, just like go fetch.
+2. Configure ohOs to build using those dependencies into a directory called buildhudson.
+3. Build ohOs into buildhudson.
+4. Run the unit tests.
+
+Note in particular that such builds remain separate from normal command-line builds -
+they go into "buildhudson" instead of "build". See the waf documentation for the
+WAFLOCK environment variable for more details.
+
+Debugging ohOs in Visual Studio
+-----------------------------------
+
+Before you can run the tests in Visual Studio, you'll have to open up the
+properties for the test assembly you want to run. Go to the Debug page. Any
+settings you change here are saved in the .csproj.user file, so they are
+local to you. Set "Start Action" to "Start external program" and then browse
+to find "nunit-console.x86.exe". For example, for me, I have:
+
+W:\work\ohos\dependencies\AnyPlatform\NUnit-2.5.9.10305\bin\net-2.0\nunit-console-x86.exe
+
+In "Start Options", add two command-line arguments, "-labels" to get NUnit
+to display the name of each test as it runs, and the name of the assembly
+that contains the tests, e.g. "ohOs.Tests.dll". My settings
+here are thus:
+
+-labels "ohOs.Tests.dll"
+
+In "Working directory", select the build directory. For example, I have:
+
+W:\work\ohos\build\
+
+Under "Enable Debuggers", check "Enable unmanaged code debugging".
+
+Now you should be able to right-click on the test project and choose
+"Debug" to run the tests with the debugger attached, which you can verify
+by setting a breakpoint in one of the tests. HOWEVER, there are a number
+of things that might go wrong...
+
+
+
+There are red squigglies under many type-names
+-AND/OR-
+There are warning icons on project references
+
+There are missing or broken references for some or all of your projects.
+This might be because your dependencies are in a different folder from
+those on my machine. If there are broken references (warning icon) then
+quit Visual Studio, edit the .csproj file and fix up the "hintpath"
+attributes to point to the right location. If there are missing
+references, add them in Visual Studio.
+
+
+The debugger doesn't catch native exceptions
+
+Make sure that "Enable unmanaged code debugging" is enabled in the
+project settings for the test project. Also make sure that Tools->Options
+->Debugging->General->"Enable Just My Code" is turned OFF.
+
+
+No source code is available for the native ohNet libraries
+
+This will only be available if you compiled the ohNet libraries on your
+machine and then used those DLLs for ohOs. When the DLLs are compiled
+PDB files are generated at the same time alongside the DLLs, and the
+*absolute* path of the PDB is stored in the DLL. Wherever the DLL is
+copied to, the PDB must remain accessible in the same location that it
+was originally created. For this reason it's very unlikely that DLLs
+built on somebody else's machine and copied onto yours are likely to
+have symbols loaded.
+
+
+No source code is available for managed code
+
+This might be because the code was compiled without the "/debug+" flag.
+When building using waf, this flag should normally be added to the
+CSFLAGS environment variable. Check that this is the case.
+
+
+Developing ohNet together with ohOs
+-----------------------------------
+
+If you have set up ohNet to build on your machine, you may wish to have ohOs
+use it directly out of its build directory rather than by cumbersomely copying
+the DLLs around. If you follow these instructions ohOs will use ohNet from
+the location you specify:
+
+    Firstly, let's assume you have ohNet's source tree at W:\gitrepos\ohnet
+    and ohOs's source tree at W:\gitrepos\ohos. Let's also assume that you're
+    using Windows.
+
+    Next, build ohNet, if you haven't done so already.
+
+    In the ohos directory, run:
+    waf configure --ohnet-source-dir ..\ohnet
+
+    Build ohos:
+    waf
+
+Now, whenever you make changes to the ohNet code, rebuild ohNet and then just
+run "waf" in the ohOs directory. It will pick up the changes from ohNet.
+Note that if you run without first invoking "waf" you will still be using the old
+version of ohNet.
+
+
+
+
+APPENDIX A - Multiple configurations
+====================================
+
+If you're building out of the same source tree for two different machines (e.g. the source
+tree is in a shared folder and you're using it to build on both a Windows machine and a
+Linux machine, or you're building for two different architectures on the same machine),
+ you have to prevent those machines from using the same waf configuration and build files.
+You can do this by setting the environment variable WAFLOCK before running any waf
+commands. E.g.:
+
+w:\git\ohos>set WAFLOCK=.lock-wafbuildtest1
+
+w:\git\ohos>waf configure
+Setting top to                           : w:\git\ohos
+Setting out to                           : w:\git\ohos\buildtest1
+Checking for 'msvc' (c compiler)         : ok
+Checking for program csc,mcs,gmcs        : C:\Windows\Microsoft.NET\Framework\v4.0.30319\csc.exe
+Setting BUILDTESTS to                    : True
+Setting PLATFORM to                      : Windows-x86
+Automatically set --log4net-dir          : w:\git\ohos\dependencies\AnyPlatform\log4net-1.2.10\bin\net\2.0\release
+Automatically set --ohnet-dir            : w:\git\ohos\dependencies\Windows-x86\ohNet-Windows-x86-release-dev\lib
+Automatically set --nunit-dir            : w:\git\ohos\dependencies\AnyPlatform\NUnit-2.6.0.12017
+Automatically set --moq-dir              : w:\git\ohos\dependencies\AnyPlatform\Moq.4.0.10827
+Automatically set --sshnet-dir           : w:\git\ohos\dependencies\AnyPlatform\Renci.SshNet-14316
+Automatically set --ndesk-options-dir    : w:\git\ohos\dependencies\AnyPlatform\ndesk-options-0.2.1.bin
+Automatically set --yui-compressor-dir   : w:\git\ohos\dependencies\AnyPlatform\yui-compressor
+Automatically set --mono-addins-dir      : w:\git\ohos\dependencies\AnyPlatform\Mono.Addins-0.6
+Automatically set --mono-addins-dir      : w:\git\ohos\dependencies\AnyPlatform\Mono.Addins-0.6
+Automatically set --mono-addins-setup-dir : w:\git\ohos\dependencies\AnyPlatform\Mono.Addins-0.6
+Setting MONO to                           : []
+Setting NUNITEXE to                       : w:\git\ohos\dependencies\AnyPlatform\NUnit-2.6.0.12017\bin\nunit-console-x86.exe
+Setting INVOKENUNIT to                    : ['w:\\git\\ohos\\dependencies\\AnyPlatform\\NUnit-2.6.0.12017\\bin\\nunit-console-x86.exe', '-framework=v4.0']
+Setting INVOKEINTEGRATIONTEST to          : ['python']
+Setting INVOKECLR to                      : []
+'configure' finished successfully (1.173s)
+
+If you do not set WAFLOCK it behaves as if equal to .lock-wafbuild. Everything after ".lock-waf" is used as the name of the build directory.
+
+
+APPENDIX B - Micro service control protocol description (uSPCD)
+===============================================================
+
+We define a number of UPnP services and find the XML service control
+protocol description language to be a bit difficult to read and write.
+uSCPD is an alternative domain-specific language for writing service
+descriptions, and the tools 'go uscpd2xml' and 'go xml2uscpd' can be
+used to convert between them.
+
+uSCPD format is a text file consisting of semicolon terminated
+declarations of unevented state variables, evented state variables,
+and actions. Lines beginning with a hash symbol (#) are treated as
+comments and ignored.
+
+State variables
+---------------
+
+State variables may or may not be evented. Since the only effect of an
+unevented state variable is that it can be associated with an argument
+to indicate the type of that argument, we use the keyword "type" for
+declaring unevented state variables, and the keyword "var" for evented
+ones.
+
+Examples:
+
+    # Evented integer state variable with range 0 to 100 inclusive in steps of 1, default 50:
+    var Volume : int [0:100:1] = 50;
+
+    # Evented string state variable with allowed values:
+    var Flavour : string ["vanilla", "chocolate", "strawberry"];
+
+    # Evented 32-bit unsigned integer state variable with no default or range:
+    var Identity : ui4;
+
+    # Non-evented state variable A_ARG_TYPE_Colour with allowed values "red", "green" and "blue":
+    type $Colour : string ["red", "green", "blue"];
+
+Syntax for evented and unevented state variables is the same except for the
+"var" or "type" indicator. Any time an identifier starts with "$", it is expanded
+to "A_ARG_TYPE_". E.g. $Colour === A_ARG_TYPE_Colour
+
+Strings should be double-quoted. Inside the string, double-quotes and
+backslashes are escaped with a preceeding backslash. Other than those
+transformations, the string contents will be copied verbatim into the
+XML, so XML escaping (e.g. use "&lt;" for "<" and "&amp;" for "&") just
+the same as if writing the XML.
+
+Numbers can optionally be double-quoted.
+
+Actions
+-------
+
+Examples:
+    action DispenseIceCream(Flavour : in Flavour) = Success : $Success;
+    action Create(PresetXml : in $PresetXml, PresetId : out $PresetId);
+    action ComplexActionWithManyArgs(
+        Size : in $Metres,
+        TimeLimit : in $Seconds,
+        DataXml : in $DataXml,
+        Elapsed : out $Seconds,
+        Stats : out $DataXml);
+
+Each argument has form:
+    Name : <in|out> StateVariable
+
+Where "Name" is the name of the argument, the "in" or "out" indicates
+the direction of the argument, and "StateVariable" indicates the name of
+the associated state variable. (As with state variable declarations, a
+"$" prefix is expanded to "A_ARG_TYPE_".)
+
+If the action has "= RetValue : RetVariable" at the end, it is interpreted
+as an extra out argument with the "retval" marker, and inserted into the
+argument list before the first output argument. (UPnP requires that the
+"retval" marked argument be the first output argument.)
+
+Remember that UPnP requires that all "in" arguments precede all "out"
+arguments. Other than inserting the "retval" argument, the conversion
+scripts do not change the order of arguments, so if they are in the
+wrong order in the uSCPD file, they will still be in the wrong order in
+the XML SCPD file.
