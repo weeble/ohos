@@ -375,11 +375,7 @@ namespace OpenHome.Os.Remote
             if (error != null)
             {
                 Logger.ErrorFormat("Remote access method {0} failed with error {1}.", "register", error.Value);
-                IEnumerable<XElement> suggestedNames = tree.Elements("suggestionlist");
-                XElement namesXml = new XElement("suggestionlist");
-                foreach (var name in suggestedNames)
-                    namesXml.Add(new XElement("suggestion", name.Value));
-                aSuggestedNames = namesXml.ToString();
+                aSuggestedNames = tree.Element("suggestionlist").ToString();
                 return false;
             }
 
