@@ -108,7 +108,7 @@ sharpziplibdir = sharpziplib.add_directory(
     unique_id = 'sharpziplib-dir',
     as_option = '--sharp-zip-lib-dir',
     option_help = 'Location containing the SharpZipLib library',
-    in_dependencies = 'AnyPlatform/SharpZipLib*/net-20')
+    in_dependencies = 'AnyPlatform/SharpZipLib*')
 sharpziplibdir.add_assemblies(
     'ICSharpCode.SharpZipLib.dll',
     reference=True, copy=True)
