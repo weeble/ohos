@@ -9,8 +9,9 @@
 MDNS_ACTIVE="no"
 MDNS_ARGS="-d" # -d for dynamic, -m <arg> for manual
 
-AUTOUPDATE_ACTIVE="no"
+AUTOUPDATE_ACTIVE="yes"
 AUTOUPDATE_ARGS=""
 
 NBD_CLIENT="no"
 NBD_ARGS="10.2.8.229 9000 /dev/nbd0" # ip and port for the nbd server
+

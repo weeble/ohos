@@ -1,10 +1,7 @@
 using System;
-using Mono.Addins;
 using OpenHome.Net.ControlPoint;
 using OpenHome.Net.Device;
 using OpenHome.Os.Platform.Logging;
-
-[assembly: AddinRoot("ohOs", "1.4")]
 
 namespace OpenHome.Os.Platform
 {
@@ -168,7 +165,6 @@ namespace OpenHome.Os.Platform
     /// to add various optional metadata or behaviour:
     /// [AppFriendlyName]
     /// </summary>
-    [TypeExtensionPoint("/ohOs/App")]
     public interface IApp : IDisposable
     {
         /// <summary>

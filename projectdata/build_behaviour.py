@@ -78,7 +78,7 @@ ALL_DEPENDENCIES = [
     "ndesk-options",
     "moq",
     "yui-compressor",
-    "mono-addins",
+    "sharpziplib",
     "log4net",
     "sshnet"]
 

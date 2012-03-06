@@ -18,58 +18,21 @@ Mono 2.10.0+
 or
 Visual Studio 10
 
-ohNet library - assemblies and binaries should be in the appropriate one of:
-        dependencies/Windows-x86/ohnet-Windows-x86-release-dev/lib
-        dependencies/Linux-x86/ohnet-Linux-x86-release-dev/lib
+Libraries
+        ohNet           https://github.com/openhome/ohNet
+        Log4Net         http://logging.apache.org/log4net/
+        SharpZipLib     http://www.icsharpcode.net/opensource/sharpziplib/
+        Moq             https://code.google.com/p/moq/
+        NDesk.Options   http://www.ndesk.org/Options
+        NUnit           http://www.nunit.org/
+        YUI Compressor  http://yuicompressor.codeplex.com/
 
-        See dependencies.txt to find out what version of ohNet is currently
-        required.
-
-Log4Net
-        Get it from here:
-        http://logging.apache.org/log4net/download.html
-        Unzip it to get a directory called "log4net-1.2.10", and place that
-        directory into:
-
-        dependencies/AnyPlatform
-
-Mono.Addins-0.6
-        Get it from here:
-        http://monoaddins.codeplex.com/
-        Unzip the download into, e.g.:
-
-        dependencies/AnyPlatform/Mono.Addins
-
-Moq 4.0.10827+
-        Get it from here:
-        http://code.google.com/p/moq/downloads/detail?name=Moq.4.0.10827.zip
-        Unzip it into the appropriate dependencies folder, e.g.:
-
-        dependencies/AnyPlatform/moq
-
-NDesk.Options 0.2.1+
-        Get it from here:
-        http://www.ndesk.org/archive/ndesk-options/ndesk-options-0.2.1.tar.gz
-        Unpack it so that its lib directory is in:
-
-        dependencies/AnyPlatform/ndesk-options
-
-NUnit 2.5.9.10305+
-        Get it from here:
-        http://www.nunit.org/index.php?p=download
-
-        Unzip the NUnit folder and put the files in:
-
-        dependencies/AnyPlatform/nunit
-
-YUI Compressor
-        Get it from here:
-        http://yuicompressor.codeplex.com/
-        Unzip the following files into the appropriate dependencies folder
-
-        dependencies/AnyPlatform/yui-compressor/EcmaScript.NET.modified.dll
-        dependencies/AnyPlatform/yui-compressor/Yahoo.Yui.Compressor.dll
-
+        There are two ways to obtain these libraries. The long way is to
+        download and/or build them yourself from their respective projects,
+        giving you maximum flexibility. To do this, see appendix A. The
+        quick way is to download pre-built binaries using the support
+        scripts in the ohDevTools repository. To do this, see the section
+        "Dev-tools and CI builds".
 
 Configuration
 -------------
@@ -116,9 +79,7 @@ Configuration options:
         --ndesk-options-dir: Specify the directory that contains NDesk.Options.
         --yui-compressor-dir: Specify the directory that contains the .NET YUI compressor library.
         --moq-dir: Specify the directory that Moq is installed to.
-        --mono-addins-dir: Specify the location that contains the Mono.Addins DLL.
-        --mono-addins-setup-dir: Specify the location that contains the Mono.Addins.Setup DLL. This
-                                 should normally be the same as --mono-addins-dir.
+        --sharp-zip-lib-dir: Specify the location that contains the SharpZipLib DLL.
         --log4net-dir: Specify the directory that contains log4net.dll.
         --sshnet-dir: Specify the directory that contains Renci.SshNet.dll.
 
@@ -308,10 +269,62 @@ run "waf" in the ohOs directory. It will pick up the changes from ohNet.
 Note that if you run without first invoking "waf" you will still be using the old
 version of ohNet.
 
+APPENDIX A - Installing dependencies
+====================================
 
+ohNet library - assemblies and binaries should be in the appropriate one of:
+        dependencies/Windows-x86/ohnet-Windows-x86-release-dev/lib
+        dependencies/Linux-x86/ohnet-Linux-x86-release-dev/lib
 
+        See dependencies.txt to find out what version of ohNet is currently
+        required.
 
-APPENDIX A - Multiple configurations
+Log4Net
+        Get it from here:
+        http://logging.apache.org/log4net/download.html
+        Unzip it to get a directory called "log4net-1.2.10", and place that
+        directory into:
+
+        dependencies/AnyPlatform
+
+SharpZipLib 
+        Get it from here:
+        http://www.icsharpcode.net/opensource/sharpziplib/
+        Unzip the download into:
+
+        dependencies/AnyPlatform/SharpZipLib
+
+Moq 4.0.10827+
+        Get it from here:
+        http://code.google.com/p/moq/downloads/detail?name=Moq.4.0.10827.zip
+        Unzip it into the appropriate dependencies folder, e.g.:
+
+        dependencies/AnyPlatform/moq
+
+NDesk.Options 0.2.1+
+        Get it from here:
+        http://www.ndesk.org/archive/ndesk-options/ndesk-options-0.2.1.tar.gz
+        Unpack it so that its lib directory is in:
+
+        dependencies/AnyPlatform/ndesk-options
+
+NUnit 2.5.9.10305+
+        Get it from here:
+        http://www.nunit.org/index.php?p=download
+
+        Unzip the NUnit folder and put the files in:
+
+        dependencies/AnyPlatform/nunit
+
+YUI Compressor
+        Get it from here:
+        http://yuicompressor.codeplex.com/
+        Unzip the following files into the appropriate dependencies folder
+
+        dependencies/AnyPlatform/yui-compressor/EcmaScript.NET.modified.dll
+        dependencies/AnyPlatform/yui-compressor/Yahoo.Yui.Compressor.dll
+
+APPENDIX B - Multiple configurations
 ====================================
 
 If you're building out of the same source tree for two different machines (e.g. the source
@@ -350,13 +363,13 @@ Setting INVOKECLR to                      : []
 If you do not set WAFLOCK it behaves as if equal to .lock-wafbuild. Everything after ".lock-waf" is used as the name of the build directory.
 
 
-APPENDIX B - Micro service control protocol description (uSPCD)
+APPENDIX C - Micro service control protocol description (uSPCD)
 ===============================================================
 
 We define a number of UPnP services and find the XML service control
 protocol description language to be a bit difficult to read and write.
 uSCPD is an alternative domain-specific language for writing service
-descriptions, and the tools 'go uscpd2xml' and 'go xml2uscpd' can be
+descriptions, and the scripts 'uscpd2xml.py' and 'xml2uscpd.py' can be
 used to convert between them.
 
 uSCPD format is a text file consisting of semicolon terminated
