@@ -102,42 +102,16 @@ yuicompressordir.add_assemblies(
     'EcmaScript.NET.modified.dll',
     reference=False, copy=True)
 
-# Mono.Addins is a plugin architecture.
-monoaddins = csharp_dependencies.add_package('mono-addins')
-monoaddinsdir = monoaddins.add_directory(
-    unique_id = 'mono-addins-dir',
-    as_option = '--mono-addins-dir',
-    option_help = 'Location of Mono.Addins library',
-    in_dependencies = 'AnyPlatform/Mono.Addins*')
-monoaddinsdir.add_assemblies(
-    'Mono.Addins.dll',
-    reference=True, copy=True)
-monoaddinsdir.add_assemblies(
-    #'Mono.Addins.CecilReflector.dll', # Omit Cecil, because it obnoxiously attempts to define system types.
-    'ICSharpCode.SharpZipLib.dll',
-    reference=False, copy=True)
-
-# Mono.Addins.Setup provides tools for manipulating Mono.Addins plugins at run-time.
-monoaddinssetup = csharp_dependencies.add_package('mono-addins-setup')
-monoaddinssetupdir = monoaddins.add_directory(
-    unique_id = 'mono-addins-setup-dir',
-    as_option = '--mono-addins-setup-dir',
-    option_help = 'Location of Mono.Addins.Setup library',
-    in_dependencies = 'AnyPlatform/Mono.Addins*')
-monoaddinssetupdir.add_assemblies(
-    'Mono.Addins.Setup.dll',
-    reference=True, copy=True)
-
 # SharpZipLib (un)zips zip files
 sharpziplib = csharp_dependencies.add_package('sharpziplib')
 sharpziplibdir = sharpziplib.add_directory(
     unique_id = 'sharpziplib-dir',
-    as_option = '--mono-addins-dir',
-    option_help = 'Location containing the SharpZipLib library (we use the version supplied by Mono.Addins)',
-    in_dependencies = 'AnyPlatform/Mono.Addins*')
+    as_option = '--sharp-zip-lib-dir',
+    option_help = 'Location containing the SharpZipLib library',
+    in_dependencies = 'AnyPlatform/SharpZipLib*/net-20')
 sharpziplibdir.add_assemblies(
     'ICSharpCode.SharpZipLib.dll',
-    reference=True, copy=False) # Duplicated in Mono.Addins, so don't copy it twice.
+    reference=True, copy=True)
 
 # Log4Net is a logging library
 log4net = csharp_dependencies.add_package('log4net')
@@ -331,7 +305,7 @@ def create_zip_task(bld, zipfile, sourceroot, ziproot, sourcefiles):
 
 
 def get_active_dependencies(env):
-    active_dependency_names = set(['ohnet', 'yui-compressor','mono-addins','mono-addins-setup', 'sharpziplib', 'log4net', 'systemxmllinq', 'mef', 'sshnet'])
+    active_dependency_names = set(['ohnet', 'yui-compressor', 'sharpziplib', 'log4net', 'systemxmllinq', 'mef', 'sshnet'])
     if env.BUILDTESTS:
         active_dependency_names |= set(['nunit', 'ndeskoptions', 'moq'])
     return csharp_dependencies.get_subset(active_dependency_names)
@@ -387,7 +361,7 @@ csharp_projects = [
         CSharpProject(
             name="ohOs.Apps", dir="Apps", type="library",
             categories=["core"],
-            packages=['ohnet', 'mono-addins', 'sharpziplib', 'log4net', 'systemxmllinq', 'mef'],
+            packages=['ohnet', 'sharpziplib', 'log4net', 'systemxmllinq', 'mef'],
             references=[
                 'DvOpenhomeOrgApp1',
                 'DvOpenhomeOrgAppList1',
@@ -397,7 +371,7 @@ csharp_projects = [
         CSharpProject(
             name="ohOs.IntegrationTests", dir="IntegrationTests", type="exe",
             categories=["core"],
-            packages=['ohnet', 'mono-addins', 'log4net', 'systemxmllinq'],
+            packages=['ohnet', 'log4net', 'systemxmllinq'],
             references=[
                 'DvOpenhomeOrgApp1',
                 'ohOs.Apps',
@@ -407,14 +381,14 @@ csharp_projects = [
         CSharpProject(
             name="ohOs.TestApp1.App", dir="TestApp1", type="library",
             categories=["core"],
-            packages=['ohnet', 'mono-addins', 'mef'],
+            packages=['ohnet', 'mef'],
             references=[
                 'ohOs.Platform',
             ]),
         CSharpProject(
             name="ohOs.AppManager.App", dir="AppManager", type="library",
             categories=["core"],
-            packages=['ohnet', 'mono-addins', 'mef', 'systemxmllinq', 'log4net'],
+            packages=['ohnet', 'mef', 'systemxmllinq', 'log4net'],
             references=[
                 'ohOs.Apps',
                 'ohOs.Platform',
@@ -423,13 +397,13 @@ csharp_projects = [
         CSharpProject(
             name="ohOs.Platform", dir="Platform", type="library",
             categories=["core"],
-            packages=['ohnet', 'mono-addins', 'log4net', 'systemxmllinq'],
+            packages=['ohnet', 'log4net', 'systemxmllinq'],
             references=[]
             ),
         CSharpProject(
             name="ohOs.Host", dir="Host", type="exe",
             categories=["core"],
-            packages=['ohnet', 'mono-addins', 'log4net', 'systemxmllinq'],
+            packages=['ohnet', 'log4net', 'systemxmllinq'],
             references=['ohOs.Platform', 'ohOs.Apps']
             ),
         CSharpProject(
@@ -449,7 +423,7 @@ csharp_projects = [
         CSharpProject(
             name="ohOs.Tests", dir="Tests", type="library",
             categories=["test"],
-            packages=['ohnet', 'mono-addins', 'nunit', 'moq', 'sharpziplib'],
+            packages=['ohnet', 'nunit', 'moq', 'sharpziplib'],
             references=[
                 'DvOpenhomeOrgApp1',
                 'DvOpenhomeOrgAppManager1',
@@ -460,9 +434,6 @@ csharp_projects = [
     ]
 
 files_to_copy = [
-        CopyFile(
-            source='src/Apps/App.addins',
-            target='App.addins'),
     ]
 
 ohos_apps = [
@@ -628,7 +599,6 @@ def build(bld):
             specify_files_root(bld, *(
                 ohnet.get_paths_of_files_to_copy_to_output(bld)+
                 sharpziplib.get_paths_of_files_to_copy_to_output(bld)+
-                monoaddins.get_paths_of_files_to_copy_to_output(bld)+
                 log4net.get_paths_of_files_to_copy_to_output(bld)+
                 sshnet.get_paths_of_files_to_copy_to_output(bld)))).targets_flattened()
 
@@ -638,7 +608,7 @@ def build(bld):
                 "ohOs.Apps.dll",
                 "ohOs.Platform.dll",
                 "ohOs.Remote.dll",
-                "App.addins") +
+                ) +
             specify_files_bld(bld, *
             [
                 prefix + service.target + suffix
