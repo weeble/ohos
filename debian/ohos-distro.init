@@ -44,7 +44,7 @@ do_start()
         $DAEMON $DAEMON_ARGS $OHOS_DAEMON_OPTS > /dev/null &
         PID=$!
         echo $PID  > $PIDFILE
-        VER=`dpkg -l | grep -i 'ohmono-core' | awk '{print $3}'`
+        VER=`dpkg -l | grep -i 'ohos-core' | awk '{print $3}'`
         mkdir -p /var/ohos/installed-apps/OhWidget/WebUi/version.js
         echo "var APPVERSION='$VER';" > /var/ohos/installed-apps/OhWidget/WebUi/version.js
 }
