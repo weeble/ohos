@@ -23,6 +23,6 @@
 "ndesk-options" "${OHNET_ARTIFACTS}/AnyPlatform/ndesk-options-0.2.1.bin.tar.gz" "dependencies/AnyPlatform/" "--ndesk-options-dir dependencies/AnyPlatform/ndesk-options-0.2.1.bin/"
 "moq" "${OHNET_ARTIFACTS}/AnyPlatform/Moq.4.0.10827.tar.gz" "dependencies/AnyPlatform/" "--moq-dir dependencies/AnyPlatform/Moq.4.0.10827/"
 "yui-compressor" "${OHNET_ARTIFACTS}/AnyPlatform/yui-compressor.tar.gz" "dependencies/AnyPlatform/" "--yui-compressor-dir dependencies/AnyPlatform/yui-compressor/"
-"sharpziplib" "${OHNET_ARTIFACTS}/AnyPlatform/SharpZipLib_0860_Bin.tar.gz" "dependencies/AnyPlatform/" "--sharp-zip-lib-dir dependencies/AnyPlatform/SharpZipLib_0860_Bin/net-20/"
+"sharpziplib" "${OHNET_ARTIFACTS}/AnyPlatform/SharpZipLib_0840_Bin.tar.gz" "dependencies/AnyPlatform/" "--sharp-zip-lib-dir dependencies/AnyPlatform/SharpZipLib_0840_Bin/net-20/"
 "log4net" "${OHNET_ARTIFACTS}/AnyPlatform/log4net-1.2.10.tar.gz" "dependencies/AnyPlatform/" "--log4net-dir dependencies/AnyPlatform/log4net-1.2.10/bin/net/2.0/release/"
 "sshnet" "${OHNET_ARTIFACTS}/AnyPlatform/Renci.SshNet-14316.tar.gz" "dependencies/AnyPlatform/" "--sshnet-dir dependencies/AnyPlatform/Renci.SshNet-14316/"
