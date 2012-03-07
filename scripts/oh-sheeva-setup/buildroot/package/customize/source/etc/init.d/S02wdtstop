@@ -1,0 +1,21 @@
+#! /bin/sh
+
+SCRIPTNAME=/etc/init.d/S02wdtstop
+WDT_DEV=/dev/wdt_temp
+
+
+case "$1" in
+  start)
+    echo "Disabling Kirkwood watchdog ..."
+    mknod $WDT_DEV c 10 130
+    echo -n 'V' > $WDT_DEV
+    rm $WDT_DEV
+    ;;
+
+  *)
+    echo "Usage: $SCRIPTNAME start" >&2
+    exit 3
+    ;;
+esac
+
+exit 0

@@ -10,6 +10,6 @@ Homepage: http://www.openhome.org
 
 Package: oh-sheeva-setup
 Architecture: all
-Depends: ${misc:Depends}, libexpect-perl, libdevice-serialport-perl, libnet-tftpd-perl, libnet-ifconfig-wrapper-perl 
+Depends: ${misc:Depends}, libexpect-perl, libdevice-serialport-perl, libnet-tftpd-perl, libnet-ifconfig-wrapper-perl, libwww-perl 
 Description: Scripts for setting up a Sheevaplug with the ohOS firmware
  Scripts for setting up a Sheevaplug with the ohOS firmware
