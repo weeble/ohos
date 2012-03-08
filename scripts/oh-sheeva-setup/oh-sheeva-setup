@@ -24,8 +24,8 @@ my $KERNEL_FILE = "main.uImage";
 my $ROOTFS_FILE = "main.ubi.img";
 my $RAMDISK_FILE = "ramdisk.ext2.gz";
 
-my $UBOOT_PROMPT_REGEX = qr'Marvell>>\s+$';
-my $LINUX_PROMPT_REGEX = qr'#\s+$';
+my $UBOOT_PROMPT_REGEX = qr'Marvell>>\s+\r?$';
+my $LINUX_PROMPT_REGEX = qr'#\s+\r?$';
 
 my $DL_ADDR_0 = "0x800000";
 my $DL_ADDR_1 = "0xB00000";
@@ -40,7 +40,8 @@ my $APPS_MTD = 8;
 
 my $BOOT_TIMEOUT = 40;
 my $CMD_TIMEOUT = 20;
-my $TFTP_TIMEOUT = 90;
+my $TFTP_TIMEOUT_0 = 20;
+my $TFTP_TIMEOUT_1 = 120;
 my $FLASH_TIMEOUT = 40;
 
 my $DL_DIR_DEFAULT = "/tmp";
@@ -84,6 +85,7 @@ $dl_dir = $cmd_opts{'l'} if $cmd_opts{'l'};
 
 my $s_obj;
 my $mac_addr;
+my $exp;
 
 
 # 
@@ -158,64 +160,50 @@ do { sleep 1; } while (-c $port);
 print "FIRST connect the Sheevaplug console and ethernet cables and THEN power on the unit ...\n\n";
 do { usleep(40000); } until (-c $port);
 
-#
-# Configure and open the serial port
-#
-for (my $i = 0; $i < 50; $i++)
-{
-    $s_obj = new Device::SerialPort($port) and last;
-    usleep(40000);
-}
-
-die "Failed to open port $port for configuration\n" unless ($s_obj);
-
-$s_obj->baudrate(115200) || die "failed setting baudrate";
-$s_obj->parity("none") || die "failed setting parity";
-$s_obj->databits(8) || die "failed setting databits";
-$s_obj->stopbits(1) || die "failed setting stopbits";
-$s_obj->handshake("none") || die "failed setting handshake";
-$s_obj->stty_igncr(1);
-$s_obj->stty_echo(0);
-$s_obj->stty_echonl(1);
-
-$s_obj->write_settings || die "no settings";
-
-open(FD, "+<$port") or die "Failed to open port: $port";
-FD->autoflush(1);
-
-
-#
-# Create the Expect object and set the logging mode
-#
-my $exp = Expect->exp_init(\*FD);
-
-$exp->exp_internal(1) if ($debug);
-if ($logging) {
-    if ($logging eq 'stdout') {
-        $exp->log_stdout(1);
-    }
-    else {
-        $exp->log_file($logging, "w");
-    }
-}
-    
 
 #
 # Various subroutines
 #
 
+sub serial_init
+{
+    undef $s_obj if ($s_obj);
+
+    for (my $i = 0; $i < 50; $i++)
+    {
+        $s_obj = new Device::SerialPort($port) and last;
+        usleep(40000);
+    }
+
+    die "Failed to open port $port for configuration\n" unless ($s_obj);
+
+    $s_obj->baudrate(115200) || die "Failed setting baudrate\n";
+    $s_obj->parity("none") || die "Failed setting parity\n";
+    $s_obj->databits(8) || die "Failed setting databits\n";
+    $s_obj->stopbits(1) || die "Failed setting stopbits\n";
+    $s_obj->handshake("none") || die "Failed setting handshake\n";
+    $s_obj->stty_igncr(1);
+    $s_obj->stty_echo(0);
+    $s_obj->stty_echonl(1);
+    $s_obj->buffers(4096, 4096);
+    $s_obj->user_msg(1);
+    $s_obj->error_msg(1);
+
+    $s_obj->write_settings || die "Failed to apply serial port settings\n";    
+}
+
 # Routine for the TFTP server child process
 sub tftp_server
 {
-    my $TFTPD_TIMEOUT = 3;
+    my $TFTPD_TIMEOUT = 10;
 
     my $bind_ip = shift;
-    my $tftp_file = shift;
+    my $tftp_dir = shift;
 
-    my $tftp_srv = Net::TFTPd->new('FileName' => $tftp_file, 
+    my $tftp_srv = Net::TFTPd->new('RootDir' => $tftp_dir, 
                                    'LocalAddr' => $bind_ip,
                                    'Timeout' => $TFTPD_TIMEOUT);
-    die "ERROR: failed to create TFTP server\n" unless (defined $tftp_srv);
+    die "ERROR: failed to create TFTP server\n" unless ($tftp_srv);
 
     my $tftp_rq = $tftp_srv->waitRQ
             or die "ERROR: while waiting for TFTP request\n";
@@ -236,17 +224,22 @@ sub my_print
 # Breaks into the U-Boot prompt
 sub get_uboot_prompt
 {
-    $exp->expect($CMD_TIMEOUT,
-             [ qr/U-Boot\s+((20\d{2}\.\d{2})|(\d\.\d\.\d))\S*\s+/i, sub { my $fh = shift;
-                                         my_print "Bootloader: ", $fh->match, "\n";
-                                         exp_continue; } ],
-             [ qr/(Hit\s+any\skey\s+to\s+stop\s+autoboot)|(\010+\s+\d{1}\s+)/i, sub { my $fh = shift;
-                                                                 $fh->send("\n");
-                                                                 exp_continue_timeout; } ],
-             [ eof => sub { die "ERROR: EOF waiting for U-Boot prompt.\n"; } ],
-             [ timeout => sub { die "ERROR: timeout waiting for U-Boot prompt.\n"; } ],
-             '-re', $UBOOT_PROMPT_REGEX
-          );
+    my $timeout = shift;
+
+    $timeout = $CMD_TIMEOUT unless defined ($timeout);
+
+    $exp->expect($timeout,
+         [ qr/U-Boot\s+((20\d{2}\.\d{2})|(\d\.\d\.\d))\S*\s+/i, sub { my $fh = shift;
+                                     my_print "Bootloader: ", $fh->match, "\n";
+                                     exp_continue; } ],
+         [ qr/(Hit\s+any\skey\s+to\s+stop\s+autoboot)|(\010+\s+\d{1}\s+)/i, sub { my $fh = shift;
+                                                             $fh->send("\n");
+                                                             exp_continue_timeout; } ],
+         [ eof => sub { die "ERROR: EOF waiting for U-Boot prompt.\n"; } ],
+         [ timeout => sub { die "ERROR: timeout waiting for U-Boot prompt.\n"; } ],
+         '-re', $UBOOT_PROMPT_REGEX
+      );
+
     $exp->clear_accum; 
 }
 
@@ -268,46 +261,54 @@ sub get_linux_prompt
 # Upload a file to the Sheevaplug using the U-Boot TFTP client
 sub tftp_uboot_upload
 {
-    my $dl_file = shift;
+    my $tftp_dir = shift;
+    my $tftp_file = shift;
     my $dl_addr = shift;
     my $run_dhcp = shift;
-    my $file_stat = stat($dl_file)
-                    or die "Could not stat $dl_file\n";
+    my $file_stat = stat("$tftp_dir/$tftp_file")
+                            or die "Could not stat $tftp_file\n";
 
-    my_print ("Uploading $dl_file ...\n");
     if ($run_dhcp) {
+        my_print ("Enabling networking ...\n");
         # Enable DHCP on the unit
+        sleep 3;
         $exp->send("dhcp\n");
         $exp->expect($CMD_TIMEOUT,
                      [ eof => sub { die "ERROR: EOF trying to enable Sheeva DHCP.\n"; } ],
                      [ timeout => sub { die "ERROR: timeout trying to enable Sheeva DHCP.\n"; } ],
-                     '-re', '(\d{1,2}\.){3}\d{1,2}'
+                     '-re', '(\d{1,3}\.){3}\d{1,3}'
                  );
         get_uboot_prompt;
     }
+
+    my_print ("Uploading $tftp_file ...\n");
 
     my $pid = fork;
 
     # Child process for the TFTP server
     if ($pid == 0) {
-        tftp_server $host_ip[0], $dl_file;
+        tftp_server $host_ip[0], $tftp_dir;
         exit 0;
     }
 
-    die "Failed to lauch TFTP server\n" unless ($pid);
+    die "Failed to launch TFTP server\n" unless ($pid);
+    sleep 1;
+
     # Transfer the file
-    $exp->send("tftp $dl_addr $host_ip[0]:$dl_file\n");
-    $exp->expect($TFTP_TIMEOUT,
-                 [ qr'done\s+$', sub { exp_continue_timeout; } ],
-                 [ qr/Bytes\s+transferred\s*=\s*\d+\s+/i, sub { my $fh = shift;
-                                                             $fh->match =~ /\s*=\s*(\d+)/;
-                                                             my $dl_bytes = $1;
-                                                             unless ($dl_bytes == $file_stat->size) {
-                                                                die "Failed to upload file (", $dl_bytes, "/", $file_stat->size, ")\n";
-                                                             }  
-                                                             my_print "Done: $dl_bytes bytes transferred\n"; } ],
+    $exp->send("setenv filesize; setenv serverip $host_ip[0]; tftp $dl_addr $tftp_file\n");
+    get_uboot_prompt $TFTP_TIMEOUT_0;
+
+    # Check the transfer was successful
+    $exp->send("printenv filesize\n");
+    $exp->expect($CMD_TIMEOUT,
+                 [ qr'filesize=\w+\s+', sub { my $fh = shift;
+                                           $fh->match =~ /=(\w+)/;
+                                           my $dl_bytes = hex($1);
+                                           die "Failed to upload file (", $dl_bytes, "/", $file_stat->size, ")\n"
+                                                           unless ($dl_bytes == $file_stat->size); 
+                                           my_print "Done: $dl_bytes bytes transferred\n"; } ],
                  [ eof => sub {  die "ERROR: EOF uploading file.\n"; } ],
-                 [ timeout => sub { die "ERROR: timeout uploading file.\n"; } ]
+                 [ timeout => sub { die "ERROR: timeout uploading file.\n" } ]
              );
     get_uboot_prompt;
     waitpid $pid, 0;
@@ -316,24 +317,26 @@ sub tftp_uboot_upload
 # Upload a file to the Sheevaplug using the Linux TFTP client
 sub tftp_linux_upload
 {
-    my $dl_file = shift;
+    my $timeout = shift;
+    my $tftp_dir = shift;
+    my $tftp_file = shift;
 
-    my_print ("Uploading $dl_file ...\n");
+    my_print ("Uploading $tftp_file ...\n");
 
     my $pid = fork;
 
     # Child process for the TFTP server
     if ($pid == 0) {
-        tftp_server $host_ip[0], $dl_file;
+        tftp_server $host_ip[0], $tftp_dir;
         exit 0;
     }
 
     die "Failed to lauch TFTP server\n" unless ($pid);
 
-    sleep(1);
+    sleep 1;
 
-    $exp->send("tftp -g -r $dl_file $host_ip[0]\n");
-    get_linux_prompt $TFTP_TIMEOUT;
+    $exp->send("tftp -g -r $tftp_file $host_ip[0]\n");
+    get_linux_prompt $timeout;
     $exp->send("echo \$?\n");
     $exp->expect($CMD_TIMEOUT,
                  [ qr'\d+', sub { my $fh = shift;
@@ -429,6 +432,31 @@ sub make_ubifs
 #  Start of main configuration thread
 #
 
+#
+# Configure and open the serial port
+#
+serial_init;
+
+open(FD, "+<$port") or die "Failed to open port: $port\n";
+FD->autoflush(1);
+
+
+#
+# Create the Expect object and set the logging mode
+#
+$exp = Expect->exp_init(\*FD);
+
+$exp->exp_internal(1) if ($debug);
+if ($logging) {
+    if ($logging eq 'stdout') {
+        $exp->log_stdout(1);
+    }
+    else {
+        $exp->log_file($logging, "w");
+    }
+}
+    
+
 # Stop the U-Boot autoboot so that we can upgrade the bootloader
 get_uboot_prompt;   
 
@@ -447,7 +475,8 @@ get_uboot_prompt;
 # Upgrade U-Boot using TFTP
 #
 my_print "\nStarting bootloader upgrade ...\n";
-tftp_uboot_upload "$dl_dir/$UBOOT_FILE", $DL_ADDR_0, 1;
+tftp_uboot_upload $dl_dir, $UBOOT_FILE, $DL_ADDR_0, 1;
+
 # Erase the u-boot NAND partition
 my_print "Reprogramming bootloader flash partition ...\n";
 $exp->send("nand erase 0x0 0x80000\n");
@@ -491,9 +520,9 @@ get_uboot_prompt;
 # Upload the kernel and ramdisk
 #
 my_print "\nUploading Linux kernel and ramdisk ...\n";
-tftp_uboot_upload "$DATA_DIR/$RAMDISK_FILE", $DL_ADDR_1, 1;
+tftp_uboot_upload $DATA_DIR, $RAMDISK_FILE, $DL_ADDR_1, 1;
 sleep(1);
-tftp_uboot_upload "$dl_dir/$KERNEL_FILE", $DL_ADDR_0, 0;
+tftp_uboot_upload $dl_dir, $KERNEL_FILE, $DL_ADDR_0, 0;
 $exp->send("setenv bootargs \${x_args_console} \${x_args_mtdparts} root=/dev/ram rw rootfstype=ext2 initrd=$DL_ADDR_1,8M ip=dhcp\n");
 get_uboot_prompt;
    
@@ -512,6 +541,7 @@ $exp->expect($BOOT_TIMEOUT,
 get_linux_prompt
 my_print "Done.\n\n";
 
+# We will download files in  /tmp
 $exp->send("cd /tmp\n");
 get_linux_prompt;
 
@@ -519,7 +549,7 @@ get_linux_prompt;
 # Flash the new Linux kernel
 #
 my_print "Starting Linux kernel upgrade ...\n";
-tftp_linux_upload "$dl_dir/$KERNEL_FILE";
+tftp_linux_upload $TFTP_TIMEOUT_0, $dl_dir, $KERNEL_FILE;
 mtd_reflash $KERN_MTD_0, "/tmp/$KERNEL_FILE";
 mtd_reflash $KERN_MTD_1, "/tmp/$KERNEL_FILE";
 
@@ -527,7 +557,7 @@ mtd_reflash $KERN_MTD_1, "/tmp/$KERNEL_FILE";
 # Flash the new filesystem images
 #
 my_print "\nStarting flash filesystem upgrade ...\n";
-tftp_linux_upload "$dl_dir/$ROOTFS_FILE";
+tftp_linux_upload $TFTP_TIMEOUT_1, $dl_dir, $ROOTFS_FILE;
 ubi_format $ROOTFS_MTD_0, "/tmp/$ROOTFS_FILE";
 ubi_format $ROOTFS_MTD_1, "/tmp/$ROOTFS_FILE";
 make_ubifs $UPDATE_MTD, "update";

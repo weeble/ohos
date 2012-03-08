@@ -1,3 +1,9 @@
+oh-sheeva-setup (1.0-3) testing; urgency=low
+
+  * Various code fixes
+
+ -- Openhome <admin@openhome.org>  Thu, 08 Mar 2012 12:06:46 +0000
+
 oh-sheeva-setup (1.0-2) testing; urgency=low
 
   * Improved firmware download and startup code.
