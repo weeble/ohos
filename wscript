@@ -567,7 +567,7 @@ def build(bld):
                 'ohos__system-settings__console__attributes':'input="yes" output="yes" prompt="yes"',
                 'ohos__system-settings__mdns__enable':'no',
                 'ohos__system-settings__system-app-config':'/etc/ohos/system-app.d/',
-                'ohos__app-settings__OhWidget__system-updates__enable':'no'
+                'ohos__app-settings__OhWidget__system-updates__enable':'yes'
             },
             install_path='/etc/ohos'
         )
@@ -583,7 +583,7 @@ def build(bld):
                 'ohos__system-settings__console__attributes':'input="no" output="no" prompt="no"',
                 'ohos__system-settings__mdns__enable':'no',
                 'ohos__system-settings__system-app-config':'',
-                'ohos__app-settings__OhWidget__system-updates__enable':'yes'
+                'ohos__app-settings__OhWidget__system-updates__enable':'no'
             },
             install_path=None
         )
