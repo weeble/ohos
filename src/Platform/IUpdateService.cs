@@ -11,16 +11,25 @@ namespace OpenHome.Os.Platform
         DownloadFail,
         DownloadComplete,
         UpdateFail,
-        UpdateComplete
+        UpdateComplete,
+        Progress
     }
 
     public class UpdateEventArgs : EventArgs
     {
         public readonly UpdateEventType eventType;
 
+        public readonly object eventData;
+
         public UpdateEventArgs(UpdateEventType type)
         {
             eventType = type;
+        }
+
+        public UpdateEventArgs(UpdateEventType type, object data)
+        {
+            eventType = type;
+            eventData = data;
         }
     }
 
