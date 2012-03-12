@@ -69,7 +69,7 @@ namespace OpenHome.Os.Clock
                 aSystemClock => aSystemClock.AvailableTimeZones)
                 .Returns(
                     new[] { CustomTimeZones["Zone1"] });
-            ClockProvider.GetAvailableTimeZones(null, out iResult);
+            ClockProvider.GetAvailableTimeZones(out iResult);
         }
         [Test]
         public void AListShouldBeReturned()
@@ -134,7 +134,7 @@ namespace OpenHome.Os.Clock
         public void UtcTimeShouldBeTheCurrentTimeRegardlessOfTimeZone(string aTimeZone, DateTime aCurrentTime, string aExpectedTime)
         {
             PrepareMocks(aCurrentTime, CustomTimeZones[aTimeZone]);
-            ClockProvider.GetTime(null, out iUtcTime, out iLocalOffset, out iTimeZoneName);
+            ClockProvider.GetTime(out iUtcTime, out iLocalOffset, out iTimeZoneName);
             Assert.That(iUtcTime, Is.EqualTo(aExpectedTime));
         }
         public IEnumerable<TestCaseData> GetTestCases1()
@@ -150,7 +150,7 @@ namespace OpenHome.Os.Clock
         public void LocalOffsetShouldBeCorrectForTheCurrentTimeAndZone(string aTimeZone, DateTime aCurrentTime, string aExpectedOffset)
         {
             PrepareMocks(aCurrentTime, CustomTimeZones[aTimeZone]);
-            ClockProvider.GetTime(null, out iUtcTime, out iLocalOffset, out iTimeZoneName);
+            ClockProvider.GetTime(out iUtcTime, out iLocalOffset, out iTimeZoneName);
             Assert.That(iLocalOffset, Is.EqualTo(aExpectedOffset));
         }
         public IEnumerable<TestCaseData> GetTestCases2()
@@ -166,7 +166,7 @@ namespace OpenHome.Os.Clock
         public void TimeZoneNameShouldBeCorrectRegardlessOfCurrentDate(string aTimeZone, DateTime aCurrentTime, string aExpectedTimeZoneName)
         {
             PrepareMocks(aCurrentTime, CustomTimeZones[aTimeZone]);
-            ClockProvider.GetTime(null, out iUtcTime, out iLocalOffset, out iTimeZoneName);
+            ClockProvider.GetTime(out iUtcTime, out iLocalOffset, out iTimeZoneName);
             Assert.That(iTimeZoneName, Is.EqualTo(aExpectedTimeZoneName));
         }
         public IEnumerable<TestCaseData> GetTestCases3()
@@ -183,7 +183,7 @@ namespace OpenHome.Os.Clock
         [Test]
         public void SetTimeZoneShouldThrowActionErrorIfTheTimeZoneDoesNotExists()
         {
-            Assert.Throws<ActionError>(() => ClockProvider.SetTimeZone(null, "foobar"));
+            Assert.Throws<ActionError>(() => ClockProvider.SetTimeZone("foobar"));
         }
         [TestCase("Zone1Name", "Zone1")]
         [TestCase("Zone2Name", "Zone2")]
@@ -193,7 +193,7 @@ namespace OpenHome.Os.Clock
                 aSystemClock => aSystemClock.AvailableTimeZones)
                 .Returns(
                     new[] { CustomTimeZones["Zone1"], CustomTimeZones["Zone2"] });
-            ClockProvider.SetTimeZone(null, aZoneName);
+            ClockProvider.SetTimeZone(aZoneName);
             MockSystemClock.VerifySet(
                 aClock => aClock.TimeZone = CustomTimeZones[aZoneKey]);
         }
@@ -216,7 +216,7 @@ namespace OpenHome.Os.Clock
         [TestCase("2000-01-01T25:01:01")]
         public void SetUtcTimeShouldThrowActionErrorIfTheFormatIsBad(string aUtcTime)
         {
-            Assert.Throws<ActionError>(() => ClockProvider.SetUtcTime(null, aUtcTime));
+            Assert.Throws<ActionError>(() => ClockProvider.SetUtcTime(aUtcTime));
         }
 
         static bool CompareTimes(DateTime aFirst, DateTime aSecond)
@@ -229,7 +229,7 @@ namespace OpenHome.Os.Clock
         [TestCaseSource("TestCaseData1")]
         public void SetUtcTimeShouldUpdateTheSystemTime(string aUtcTime, DateTime aExpectedTime)
         {
-            ClockProvider.SetUtcTime(null, aUtcTime);
+            ClockProvider.SetUtcTime(aUtcTime);
             MockSystemClock.VerifySet(
                 aClock => aClock.Now = It.Is<DateTime>(aActualTime => CompareTimes(aExpectedTime, aActualTime)));
         }

@@ -8,10 +8,10 @@ namespace OpenHome.Os.Platform.Clock
 {
     public interface ISystemClockProvider
     {
-        void GetTime(IDvInvocation aInvocation, out string aUtcTime, out string aLocalOffset, out string aTimeZoneName);
-        void GetAvailableTimeZones(IDvInvocation aInvocation, out string aTimeZoneList);
-        void SetTimeZone(IDvInvocation aInvocation, string aTimeZoneName);
-        void SetUtcTime(IDvInvocation aInvocation, string aTime);
+        void GetTime(out string aUtcTime, out string aLocalOffset, out string aTimeZoneName);
+        void GetAvailableTimeZones(out string aTimeZoneList);
+        void SetTimeZone(string aTimeZoneName);
+        void SetUtcTime(string aTime);
     }
 
     /// <summary>
@@ -27,12 +27,12 @@ namespace OpenHome.Os.Platform.Clock
             iSystemClock = aSystemClock;
         }
 
-        public void GetAvailableTimeZones(IDvInvocation aInvocation, out string aTimeZoneList)
+        public void GetAvailableTimeZones(out string aTimeZoneList)
         {
             aTimeZoneList = TimeZoneSerializer.TimeZoneListToXml(iSystemClock.AvailableTimeZones, iSystemClock.Now).ToString();
         }
 
-        public void GetTime(IDvInvocation aInvocation, out string aUtcTime, out string aLocalOffset, out string aTimeZoneName)
+        public void GetTime(out string aUtcTime, out string aLocalOffset, out string aTimeZoneName)
         {
             DateTime now = iSystemClock.Now;
             aUtcTime = now .ToString(kTimeFormat);
@@ -51,7 +51,7 @@ namespace OpenHome.Os.Platform.Clock
             aTimeZoneName = timeZone.DisplayName;
         }
 
-        public void SetTimeZone(IDvInvocation aInvocation, string aTimeZoneName)
+        public void SetTimeZone(string aTimeZoneName)
         {
             List<TimeZoneInfo> timeZones = iSystemClock.AvailableTimeZones.ToList();
             TimeZoneInfo tzi = timeZones.FirstOrDefault(aTzi => aTzi.DisplayName == aTimeZoneName);
@@ -60,7 +60,7 @@ namespace OpenHome.Os.Platform.Clock
             iSystemClock.TimeZone = tzi;
         }
 
-        public void SetUtcTime(IDvInvocation aInvocation, string aTime)
+        public void SetUtcTime(string aTime)
         {
             DateTime parsedTime;
             bool ok = DateTime.TryParseExact(aTime, kTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal|DateTimeStyles.AdjustToUniversal, out parsedTime);
