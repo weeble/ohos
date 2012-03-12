@@ -38,6 +38,7 @@
     <Compile Include="AppManager\DownloaderTests.cs" />
     <Compile Include="AppManager\PollManagerTests.cs" />
     <Compile Include="Apps\TestAppShell.cs" />
+    <Compile Include="Clock\SystemClockProviderTests.cs" />
     <Compile Include="Mocks.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -29,6 +29,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Clock\LinuxSystemClock.cs" />
+    <Compile Include="Clock\SystemClockProvider.cs" />
+    <Compile Include="Clock\TimeZoneSerializer.cs" />
     <Compile Include="Collections\Bimap.cs" />
     <Compile Include="Collections\DisposableList.cs" />
     <Compile Include="Collections\IdDictionary.cs" />
@@ -53,6 +56,7 @@
     <Compile Include="IConfigFileCollection.cs" />
     <Compile Include="INodeRebooter.cs" />
     <Compile Include="IO\XmlDiskStore.cs" />
+    <Compile Include="ISystemClock.cs" />
     <Compile Include="IUpdateService.cs" />
     <Compile Include="Logging\ILogger.cs" />
     <Compile Include="Logging\Log4Net.cs" />
