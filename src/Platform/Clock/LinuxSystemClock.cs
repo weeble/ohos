@@ -12,7 +12,27 @@ namespace OpenHome.Os.Platform.Clock
     {
         private static readonly ILog Logger = LogManager.GetLogger(typeof(LinuxSystemClock));
         private const string kTimeFormat = "yyyy-MM-dd HH:mm:ss";
-        
+        private event Action iSystemClockChanged;
+        private readonly object iSystemClockChangedLock = new object();
+
+        public event Action SystemClockChanged
+        {
+            add
+            {
+                lock (iSystemClockChangedLock)
+                {
+                    iSystemClockChanged += value;
+                }
+            }
+            remove
+            {
+                lock (iSystemClockChangedLock)
+                {
+                    iSystemClockChanged -= value;
+                }
+            }
+        }
+
         public DateTime Now
         {
             get { return DateTime.Now; }
@@ -35,6 +55,11 @@ namespace OpenHome.Os.Platform.Clock
                     {
                         Logger.ErrorFormat("Failed to set time. Exit code from 'date {0}': {1}\n{2}", psi.Arguments, process.ExitCode, errors);
                         throw new InvalidOperationException("Cannot set time.");
+                    }
+                    lock (iSystemClockChangedLock)
+                    {
+                        if (iSystemClockChanged != null)
+                            iSystemClockChanged();
                     }
                 }
                 else
