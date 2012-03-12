@@ -18,8 +18,6 @@ namespace OpenHome.Os.Remote
     public class ProxyServer : IDisposable
     {
         public uint Port { get { return kRemoteAccessPort; } }
-        public string AuthCookieName { get { return kAuthCookieName; } }
-        public string ConnectionCheckerCookie { get { return null; } }
         public string LoginPath { get { return kLoginPath; } }
 
         private const string kAuthCookieName = "remoteId";
@@ -29,7 +27,6 @@ namespace OpenHome.Os.Remote
         private uint iForwardPort;
         private string iForwardUdn;
         private readonly Dictionary<string, string> iAuthenticatedClients;
-        private readonly string iConnectionCheckerCookie; // used by client code to periodically check the state of remote access, bypassing login redirects
         private ILoginValidator iLoginValidator;
         private static readonly ILog Logger = LogManager.GetLogger(typeof(ProxyServer));
 
@@ -40,8 +37,6 @@ namespace OpenHome.Os.Remote
         {
             iForwardAddress = aNetworkAdapter;
             iAuthenticatedClients = new Dictionary<string, string>();
-            iConnectionCheckerCookie = Guid.NewGuid().ToString();
-            iAuthenticatedClients.Add(iConnectionCheckerCookie, iConnectionCheckerCookie);
         }
         public void AddApp(uint aPort, string aUdn)
         {
