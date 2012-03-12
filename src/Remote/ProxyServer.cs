@@ -18,16 +18,21 @@ namespace OpenHome.Os.Remote
     public class ProxyServer : IDisposable
     {
         public uint Port { get { return kRemoteAccessPort; } }
+        public string AuthCookieName { get { return kAuthCookieName; } }
+        public string ConnectionCheckerCookie { get { return null; } }
+        public string LoginPath { get { return kLoginPath; } }
 
+        private const string kAuthCookieName = "remoteId";
+        private const string kLoginPath = "/login.html";
         private HttpServer iHttpServer;
         private readonly string iForwardAddress;
         private uint iForwardPort;
         private string iForwardUdn;
         private readonly Dictionary<string, string> iAuthenticatedClients;
+        private readonly string iConnectionCheckerCookie; // used by client code to periodically check the state of remote access, bypassing login redirects
         private ILoginValidator iLoginValidator;
         private static readonly ILog Logger = LogManager.GetLogger(typeof(ProxyServer));
 
-        private const string kAuthCookieName = "remoteId";
         private const int kNumServerThreads = 8;
         private const int kRemoteAccessPort = 55170; // TODO: hard-coded port.  Can we be sure no ohNet server will have been allocated this before we run?
 
@@ -35,6 +40,8 @@ namespace OpenHome.Os.Remote
         {
             iForwardAddress = aNetworkAdapter;
             iAuthenticatedClients = new Dictionary<string, string>();
+            iConnectionCheckerCookie = Guid.NewGuid().ToString();
+            iAuthenticatedClients.Add(iConnectionCheckerCookie, iConnectionCheckerCookie);
         }
         public void AddApp(uint aPort, string aUdn)
         {
@@ -157,13 +164,13 @@ namespace OpenHome.Os.Remote
                     return false;
                 }
             }
-            
-            if (pathAndQuery == "/login.html" || pathAndQuery.StartsWith("/login/"))
+
+            if (pathAndQuery == kLoginPath || pathAndQuery.StartsWith("/login/"))
                 // allow these requests through, regardless of our authentication state as they're needed to load the login screen
                 return false;
 
             // redirect any other requests to the login page
-            location = "/login.html";
+            location = kLoginPath;
             aResponse.Redirect(location);
             aResponse.Close();
             Logger.InfoFormat("Redirecting: {0} to {1}", pathAndQuery, location);
@@ -176,6 +183,7 @@ namespace OpenHome.Os.Remote
             string method = aRequest.HttpMethod.ToUpper();
             switch (method)
             {
+                case "HEAD":
                 case "GET":
                     if (pathAndQuery == "/")
                     {

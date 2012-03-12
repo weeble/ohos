@@ -1,4 +1,6 @@
 using System;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.IO;
 using System.Xml;
@@ -53,6 +55,7 @@ namespace OpenHome.Os.Remote
         private const string kSshServerUserName = "ohnode";
         private const string kDefaultWebServiceAddress = "login.remote.openhome.org";
         private const int kConnectionCheckIntervalMs = 5 * 60 * 1000; // 5 minutes
+        private const int kConnectionRetryMaxIntervalMs = 30 * 60 * 1000; // 30 minutes
         private static readonly ILog Logger = LogManager.GetLogger(typeof(ProviderRemoteAccess));
         private readonly string iDeviceUdn;
         private readonly string iStoreDir;
@@ -319,8 +322,7 @@ namespace OpenHome.Os.Remote
             }
 
             Logger.InfoFormat("Forwarded remote port {0}:{1} to {2}:{3}", iPortForwardAddress, iPortForwardPort, iNetworkAdapter, iProxyServer.Port);
-            // connection checking is disabled until HaProxy is more stable
-            // iConnectionCheckTimer.Enabled = true;
+            iConnectionCheckTimer.Enabled = true;
         }
         private void Stop()
         {
@@ -450,21 +452,22 @@ namespace OpenHome.Os.Remote
                 return;
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
             request.Method = "HEAD";
-            bool reconnect = false;
+            bool reconnect = true;
             try
             {
                 using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
                 {
-                    if (response.StatusCode != HttpStatusCode.Moved)
-                    {
-                        reconnect = true;
+                    if (response.StatusCode != HttpStatusCode.OK)
                         Logger.ErrorFormat("Unexpected status code checking connection status: {0}", response.StatusCode);
-                    }
+                    else if (response.ResponseUri.PathAndQuery != iProxyServer.LoginPath)
+                        Logger.ErrorFormat("Unexpected response uri checking connection status: {0}", response.ResponseUri.PathAndQuery);
+                    else
+                        reconnect = false;
                 }
             }
-            catch (WebException)
+            catch (WebException ex)
             {
-                reconnect = true;
+                Logger.ErrorFormat("Error checking connection status: {0}", ex.Message);
             }
             if (reconnect)
             {
@@ -472,10 +475,14 @@ namespace OpenHome.Os.Remote
                 {
                     Stop();
                     Start();
+                    iConnectionCheckTimer.Interval = kConnectionCheckIntervalMs;
                 }
                 catch (Exception e)
                 {
-                    Logger.ErrorFormat("Re-connecting to ssh server failed: {0}", e.Message);
+                    Random rnd = new Random();
+                    int interval = rnd.Next(kConnectionCheckIntervalMs, kConnectionRetryMaxIntervalMs);
+                    iConnectionCheckTimer.Interval = interval;
+                    Logger.ErrorFormat("Re-connecting to ssh server failed: {0}. Try again in {1}ms.", e.Message, interval);
                 }
             }
         }
