@@ -336,7 +336,7 @@ namespace OpenHome.Os.Remote
                     }
                     zip.Seek(0, SeekOrigin.Begin);
                     aResponse.ContentLength64 = zip.Length;
-                    Console.WriteLine("Compressed {0} to {1} bytes", contentLength, zip.Length);
+                    //Console.WriteLine("Compressed {0} to {1} bytes", contentLength, zip.Length);
                     zip.CopyTo(clientRespStream);
                 }
             }
