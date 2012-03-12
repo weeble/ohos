@@ -39,6 +39,15 @@
     <Compile Include="AppManager\PollManagerTests.cs" />
     <Compile Include="Apps\TestAppShell.cs" />
     <Compile Include="Clock\SystemClockProviderTests.cs" />
+    <Compile Include="DataStores\DummyTimestamp.cs" />
+    <Compile Include="DataStores\IntervalTreeClocksTests.cs" />
+    <Compile Include="DataStores\MultipleTransactionRepositoryContext.cs" />
+    <Compile Include="DataStores\TransactionRepositoryContextUsingDummyClock.cs" />
+    <Compile Include="DataStores\TransactionRepositoryTestRig.cs" />
+    <Compile Include="DataStores\TransactionRepositoryTestRigUsingDummyClock.cs" />
+    <Compile Include="DataStores\TransactionRepositoryTestRigUsingItcClock.cs" />
+    <Compile Include="DataStores\TransactionRepositoryTests.cs" />
+    <Compile Include="DataStores\VectorClocksTests.cs" />
     <Compile Include="Mocks.cs" />
   </ItemGroup>
   <ItemGroup>
