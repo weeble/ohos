@@ -191,14 +191,20 @@ namespace OpenHome.Os.Remote
                             }
                         }
                     }
-                    if (pathAndQuery.StartsWith("/"))
-                        pathAndQuery = pathAndQuery.Remove(0, 1);
-                    url = String.Format("http://{0}:{1}/{2}/Upnp/resource/{3}", iForwardAddress, iForwardPort, iForwardUdn, pathAndQuery);
-                    //targetUrl = forwardAddress + resourcePath + pathAndQuery;
+                    if (pathAndQuery.Contains("/Upnp/resource/"))
+                    {
+                        url = String.Format("http://{0}:{1}{2}", iForwardAddress, iForwardPort, pathAndQuery);
+                    }
+                    else
+                    {
+                        if (pathAndQuery.StartsWith("/"))
+                            pathAndQuery = pathAndQuery.Remove(0, 1);
+                        url = String.Format("http://{0}:{1}/{2}/Upnp/resource/{3}", iForwardAddress, iForwardPort,
+                                            iForwardUdn, pathAndQuery);
+                    }
                     break;
                 case "POST":
                     url = String.Format("http://{0}:{1}{2}", iForwardAddress, iForwardPort, pathAndQuery);
-                    //url = forwardAddress + pathAndQuery;
                     break;
                 default:
                     Logger.InfoFormat("Unexpected method - {0}", method);
