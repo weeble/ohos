@@ -83,6 +83,7 @@ def fetch(context):
 
 @build_step("configure", optional=True)
 def configure(context):
+    python("waf", "distclean");
     python("waf", "configure", context.configure_args)
 
 @build_step()
