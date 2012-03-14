@@ -76,7 +76,7 @@ namespace OpenHome.Os.Platform
             writer.Write("var webSocketPort = " + iWebSocketPort + ";\n");
             writer.Write("var isRemote = false;\n");
             writer.Flush();
-            aWriter.WriteResourceBegin((int)memStream.Length, "application/x-javascript");
+            aWriter.WriteResourceBegin((int)memStream.Length, "application/javascript");
             aWriter.WriteResource(memStream.GetBuffer(), (int)memStream.Length);
             aWriter.WriteResourceEnd();
             writer.Close();
