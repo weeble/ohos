@@ -310,9 +310,9 @@ namespace OpenHome.Os.Network
 
     public interface IHeader
     {
-	    void Reset();
-	    bool Recognise(byte[] aHeader);
-	    void Process(byte[] aValue);
+        void Reset();
+        bool Recognise(byte[] aHeader);
+        void Process(byte[] aValue);
     };
 
     class ReaderHeader
@@ -329,7 +329,7 @@ namespace OpenHome.Os.Network
         {
             get
             {
-    	        return iHeader;
+                return iHeader;
             }
         }
 
@@ -341,7 +341,7 @@ namespace OpenHome.Os.Network
             }
         }
 
-	    protected void ProcessHeader(byte[] aField, byte[] aValue)
+        protected void ProcessHeader(byte[] aField, byte[] aValue)
         {
             foreach (IHeader h in iHeaders)
             {
@@ -420,15 +420,15 @@ namespace OpenHome.Os.Network
         private void ProcessStatus(byte[] aVersion, byte[] aCode, byte[] aDescription)
         {
             Version = Http.Version(aVersion);
-	        try
+            try
             {
-		        Code = Ascii.Uint(aCode);
-	        }
-	        catch (AsciiError)
+                Code = Ascii.Uint(aCode);
+            }
+            catch (AsciiError)
             {
                 throw new HttpError();
-	        }
-        		
+            }
+                
             Description = aDescription;
         }
     }
