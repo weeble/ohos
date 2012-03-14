@@ -108,6 +108,7 @@ def publish_build(context):
             '--exclude=*',
             '%s@%s:/var/www/openhome/apt-repo/incoming/%s' %(username,host,repo))
 
+    shell('rm -f ../*.tar.gz ../*.deb ../*.changes ../*.dsc')
     cmd = "sudo /bin/sh -c 'cd /var/www/openhome/apt-repo && reprepro -Vb . include %s incoming/%s/ohos_%s_%s.changes'" %(repo, repo, version, context.arch_vars["arch"])
     publish_openhome = "sudo /bin/sh -c 'rsync -avz --del /var/www/openhome/apt-repo/ %s@%s:~/build/nightly/apt-repo'" %(oh_rsync_user, oh_rsync_host)
     #time.sleep(60 * random.random())
