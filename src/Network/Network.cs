@@ -9,7 +9,7 @@ namespace OpenHome.Os.Network
     public class NetworkError : Exception
     {
     }
-
+    
     public class TcpServer
     {
         public IPEndPoint Endpoint { get; set; }
@@ -69,9 +69,9 @@ namespace OpenHome.Os.Network
 
         public void Accept(TcpSessionStream aSession)
         {
-        	try
-        	{
-            	aSession.SetSocket(iListener.AcceptSocket());
+            try
+            {
+                aSession.SetSocket(iListener.AcceptSocket());
             }
             catch (SocketException)
             {
