@@ -29,6 +29,7 @@ namespace OpenHome.Os.Remote
         private readonly Dictionary<string, string> iAuthenticatedClients;
         private ILoginValidator iLoginValidator;
         private static readonly ILog Logger = LogManager.GetLogger(typeof(ProxyServer));
+        private ServicePoint iServicePoint;
 
         private const int kNumServerThreads = 8;
         private const int kRemoteAccessPort = 55170; // TODO: hard-coded port.  Can we be sure no ohNet server will have been allocated this before we run?
@@ -43,6 +44,11 @@ namespace OpenHome.Os.Remote
             // should support multiple apps but only allow one at present
             iForwardPort = aPort;
             iForwardUdn = aUdn;
+
+            // .NET doesn't seem to care about ConnectionLimit for calls to our own address; mono does
+            string host = String.Format("http://{0}:{1}", iForwardAddress, aPort);
+            iServicePoint = ServicePointManager.FindServicePoint(new Uri(host));
+            iServicePoint.ConnectionLimit = kNumServerThreads;
         }
         public void Start(ILoginValidator aLoginValidator)
         {
