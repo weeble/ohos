@@ -21,4 +21,5 @@ if [ -z "$PYTHONPATH" ]; then
 else
   export PYTHONPATH=$OHDEVTOOLS_ROOT:$PYTHONPATH
 fi
+cd "$PROJECT_ROOT"
 python -u -m go $@
