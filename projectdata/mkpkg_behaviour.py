@@ -77,6 +77,10 @@ def setup_universal(context):
     context.configure_args = get_dependency_args(ALL_DEPENDENCIES)
 
 # Principal build steps.
+@build_step("clean_debian")
+def clean_debian(context):
+    shell('rm -f ../ohos*.tar.gz ../ohos*.deb ../ohos*.changes ../ohos*.dsc')
+
 @build_step("fetch", optional=True)
 def fetch(context):
     fetch_dependencies(ALL_DEPENDENCIES, platform=context.env["OH_PLATFORM"])
@@ -108,7 +112,6 @@ def publish_build(context):
             '--exclude=*',
             '%s@%s:/var/www/openhome/apt-repo/incoming/%s' %(username,host,repo))
 
-    shell('rm -f ../*.tar.gz ../*.deb ../*.changes ../*.dsc')
     cmd = "sudo /bin/sh -c 'cd /var/www/openhome/apt-repo && reprepro -Vb . include %s incoming/%s/ohos_%s_%s.changes'" %(repo, repo, version, context.arch_vars["arch"])
     publish_openhome = "sudo /bin/sh -c 'rsync -avz --del /var/www/openhome/apt-repo/ %s@%s:~/build/nightly/apt-repo'" %(oh_rsync_user, oh_rsync_host)
     #time.sleep(60 * random.random())
