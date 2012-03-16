@@ -1,0 +1,57 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\" First parameter, NAME, should be all caps
+.\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
+.\" other parameters are allowed: see man(7), man(1)
+.TH OH-SHEEVA-SETUP 1 "March  15, 2012"
+.\" Please adjust this date whenever revising the manpage.
+.\"
+.\" Some roff macros, for reference:
+.\" .nh        disable hyphenation
+.\" .hy        enable hyphenation
+.\" .ad l      left justify
+.\" .ad b      justify to both left and right margins
+.\" .nf        disable filling
+.\" .fi        enable filling
+.\" .br        insert line break
+.\" .sp <n>    insert n+1 empty lines
+.\" for manpage-specific macros, see man(7)
+.SH NAME
+oh-sheeva-setup \- setup a Sheevaplug with the Openhome firmware and OS
+.SH SYNOPSIS
+\fBoh-sheeva-setup\fP [\fIoptions\fP]
+.SH DESCRIPTION
+The \fBoh-sheeva-setup\fP utility will program a Sheevaplug unit with all the 
+required Openhome OS software. 
+.br
+It will download and reprogram the bootloader, Linux kernel and filesystem with the 
+latest images available from the Openhome repositories.
+.PP
+The program communicates with the Sheevaplug through both the serial console and the network.
+.SH OPTIONS
+It accepts the following options:
+.TP
+\fB\-d
+Display debug output. This option turns on the debugging features of the Perl Expect module.
+.TP
+\fB\-h
+Display a help screen and quit.
+.TP
+\fB\-l \fIdownload_dir\fP
+Path to the directory where the software will be downloaded. The default is: /tmp.
+.TP
+\fB\-n
+Do not download any software images. Useful if the required files have already been downloaded.
+.TP
+\fB\-p \fIdevice_name\fP
+Serial console device to use. The default is: /dev/ttyUSB0.
+.TP
+\fB\-s \fIpath\fP
+Path to the file for logging all serial console messages. 
+.br
+If 'stdout' is specified then all messages are displayed in the standard output.
+.TP
+\fB\-u \fIdownload_url\fP
+The URL for the Openhome software repository. The default is: http://www.openhome.org/build/node/nightly/main.
+.SH AUTHOR
+Written by the Openhome Team <admin@openhome.org>.
+
