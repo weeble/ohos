@@ -5,6 +5,8 @@ OH_INSTALL_PACKAGES="ohos ohos-core ohos-appmanager ohos-distro"
 OH_REMOVE_PACKAGES="ntp ohwidget"
 LOG_FILE=/var/log/ohos-update.log
 
+export DEBIAN_FRONTEND=noninteractive
+
 apt-get -qy update
 apt-get -qy install --force-yes $OH_INSTALL_PACKAGES >> $LOG_FILE
 apt-get -qy remove --purge $OH_REMOVE_PACKAGES
