@@ -87,7 +87,7 @@ namespace OpenHome.Os.PackageTests
     {
         static readonly TimeSpan SearchTimeout = TimeSpan.FromSeconds(30);
         ICpUpnpDeviceListFactory iDeviceListFactory;
-        ManualResetEvent iFinishedTestingAppList = new ManualResetEvent(false);
+        //ManualResetEvent iFinishedTestingAppList = new ManualResetEvent(false);
 
         public NonInvasiveTests(ICpUpnpDeviceListFactory aDeviceListFactory)
         {
