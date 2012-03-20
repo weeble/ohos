@@ -202,7 +202,7 @@ namespace OpenHome.Os.PackageTests
                         Fail("AppManager's app service reports wrong name.");
                     }
                     
-                    Uri baseUri = new Uri(proxyList.GetDeviceAttribute(aAppManagerUdn, "Upnp.Location"));
+                    //Uri baseUri = new Uri(proxyList.GetDeviceAttribute(aAppManagerUdn, "Upnp.Location"));
                     //Console.WriteLine(baseUri);
                 }
             }
