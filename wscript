@@ -379,6 +379,18 @@ csharp_projects = [
                 'ohOs.Host',
             ]),
         CSharpProject(
+            name="ohOs.PackageTests", dir="PackageTests", type="exe",
+            categories=["core"],
+            packages=['ohnet', 'log4net', 'systemxmllinq'],
+            references=[
+                'CpOpenhomeOrgApp1',
+                'CpOpenhomeOrgAppList1',
+                'CpOpenhomeOrgAppManager1',
+                'ohOs.Apps',
+                'ohOs.Platform',
+                'ohOs.Host',
+            ]),
+        CSharpProject(
             name="ohOs.TestApp1.App", dir="TestApp1", type="library",
             categories=["core"],
             packages=['ohnet', 'mef'],
