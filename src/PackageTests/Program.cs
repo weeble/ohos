@@ -282,22 +282,10 @@ namespace OpenHome.Os.PackageTests
                 subnetList.Dispose();
                 var cpStack = library.StartCp(subnet);
                 var devListFactory = new CpUpnpDeviceListFactory(cpStack);
-                //var tests = new NonInvasiveTests(devListFactory);
-                using (var devList = devListFactory.CreateListServiceType("openhome.org", "AppList", 1,
-                    (aList, aDev) => Console.WriteLine("ADDED   {0}", aDev.Udn()),
-                    (aList, aDev) => Console.WriteLine("REMOVED {0}", aDev.Udn())))
-                {
-                    for (int i = 0; i != 10; ++i)
-                    {
-                        Thread.Sleep(6000);
-                        Console.WriteLine("TICK");
-                        devList.Refresh();
-                    }
-                }
-                return 0;
-                //tests.RunAll(aArgs[0]);
+                var tests = new NonInvasiveTests(devListFactory);
+                tests.RunAll(aArgs[0]);
             }
-            //return 0;
+            return 0;
         }
     }
 }
