@@ -104,7 +104,7 @@ def publish_build(context):
 
     repo = context.options.repo
 
-    for pkgdir, platform in context.options.select:
+    for pkgdir, platform in context.options.test:
         settings = ssh_details[platform]
         arch = settings['arch']
         package_names = ['ohos', 'ohos-core', 'ohos-appmanager', 'ohos-distro']
