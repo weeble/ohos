@@ -18,9 +18,9 @@ oh_rsync_host = "openhome.org"
 username = "repo-incoming"
 
 ssh_details = {
-    'Linux-ARM' : dict(username='root', host='chrisc.local', arch='armel'),
-    'Linux-x86' : dict(username=None,   host=None,           arch='i386'),
-    'Linux-x64' : dict(username=None,   host=None,           arch='amd64')
+    'Linux-ARM' : dict(username='root', host='sheeva009.linn.co.uk', arch='armel'),
+    'Linux-x86' : dict(username=None,   host=None,                   arch='i386'),
+    'Linux-x64' : dict(username=None,   host=None,                   arch='amd64')
 }
 
 # Command-line options. See documentation for Python's optparse module.
