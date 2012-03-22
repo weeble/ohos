@@ -37,21 +37,21 @@ def set_arch_vars(context):
     all_arch_vars = {
             'arm' : {
                 "setup" : "ls -al && export PATH=$PATH:/usr/local/arm-2010q1/bin && export CROSS_COMPILE=arm-none-linux-gnueabi- && export ARCH=arm",
-                "compiler" : "dpkg-buildpackage -rfakeroot -us -uc -aarmel",
+                "compiler" : "dpkg-buildpackage -rfakeroot -us -uc -aarmel -b",
                 "arch" : "armel",
                 "OH_PLATFORM" : "Linux-ARM",
                 },
 
             'linux-x86' : {
                 "setup" : "ls -al",
-                "compiler" : "dpkg-buildpackage -rfakeroot -us -uc",
+                "compiler" : "dpkg-buildpackage -rfakeroot -us -uc -b",
                 "arch" : "i386",
                 "OH_PLATFORM" : "Linux-x86",
                 },
 
             'linux-x64' : {
                 "setup" : "ls -al",
-                "compiler" : "dpkg-buildpackage -rfakeroot -us -uamd64",
+                "compiler" : "dpkg-buildpackage -rfakeroot -us -uamd64 -b",
                 "arch" : "amd64",
                 "OH_PLATFORM" : "Linux-x64",
                 }

@@ -38,8 +38,10 @@ namespace OpenHome.Os.Platform.Logging
                 catch (IOException)
                 {
                     // That's okay. There is no settings file, so just leave everything
-                    // at the defaults.
+                    // at the defaults, and set ROOT to WARN. (We don't want all the
+                    // DEBUG logging flooding the log.)
                     Logger.Info("No saved settings for log levels. Using defaults.");
+                    InternalSetLogLevels(new Dictionary<string, string> { { "ROOT", "WARN" } });
                 }
                 catch (XmlException)
                 {

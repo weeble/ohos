@@ -93,6 +93,7 @@ namespace OpenHome.Os.Apps
                 select
                     new XElement("runningApp",
                         new XElement("udn", app.Udn),
+                        new XElement("id", app.Name),
                         new XElement("resourceUrl", String.Format("/{0}/Upnp/Resources/", app.Udn))));
             iProvider.SetPropertyRunningAppList(root.ToString());
         }

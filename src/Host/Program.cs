@@ -107,12 +107,14 @@ namespace OpenHome.Os.Host
             public OptionParser.OptionString InstallFile { get; private set; }
             public OptionParser.OptionString Subprocess { get; private set; }
             public OptionParser.OptionBool SingleProcess { get; private set; }
+            public OptionParser.OptionString Uuid { get; private set; }
             public Options()
             {
                 ConfigFile = new OptionParser.OptionString("-c", "--config", null, "Configuration file location.", "CONFIG");
                 InstallFile = new OptionParser.OptionString("-i", "--install", null, "Install the given app and exit.", "APPFILE");
                 Subprocess = new OptionParser.OptionString(null, "--subprocess", null, "Reserved.", "SUBPROCESSDATA");
                 SingleProcess = new OptionParser.OptionBool(null, "--single-process", "Run as a single process. Disables soft restarts.");
+                Uuid = new OptionParser.OptionString(null, "--udn", null, "Override UDN.", "UDN");
             }
             public OptionParser Parse(string[] aArgs)
             {
@@ -121,11 +123,13 @@ namespace OpenHome.Os.Host
                 parser.AddOption(InstallFile);
                 parser.AddOption(Subprocess);
                 parser.AddOption(SingleProcess);
+                parser.AddOption(Uuid);
                 parser.Parse();
                 return parser;
             }
         }
         static ILog Logger = LogManager.GetLogger(typeof(Program));
+        static ILog OhNetLogger = LogManager.GetLogger("OpenHome.Net");
         static int Main(string[] aArgs)
         {
             Options options = new Options();
@@ -225,6 +229,8 @@ namespace OpenHome.Os.Host
             initParams.NumActionInvokerThreads = 8;
             initParams.DvNumServerThreads = 8;
             initParams.TcpConnectTimeoutMs = 1000; // NOTE: Defaults to 500ms. At that value, we miss a lot of nodes during soak and stress tests.
+            InitParams.OhNetCallbackMsg logAction = (aPtr, aMessage)=> OhNetLogger.Warn(aMessage); // Assume OhNet messages are warnings.
+            initParams.LogOutput = logAction;
             if (sysConfig.GetAttributeAsBoolean(e=>e.Elements("mdns").Attributes("enable").FirstOrDefault()) ?? (!initParams.UseLoopbackNetworkAdapter))
             {
                 initParams.DvEnableBonjour = true;
@@ -247,7 +253,15 @@ namespace OpenHome.Os.Host
                     var combinedStack = library.StartCombined(subnet);
                     var deviceListFactory = new CpUpnpDeviceListFactory(combinedStack.ControlPointStack);
                     var deviceFactory = new DvDeviceFactory(combinedStack.DeviceStack);
-                    string nodeGuid = (sysConfig.GetElementValue(e=>e.Elements("uuid").FirstOrDefault()) ?? "").Trim();
+                    string nodeGuid;
+                    if (string.IsNullOrEmpty(aOptions.Uuid.Value))
+                    {
+                        nodeGuid = (sysConfig.GetElementValue(e => e.Elements("uuid").FirstOrDefault()) ?? "").Trim();
+                    }
+                    else
+                    {
+                        nodeGuid = aOptions.Uuid.Value;
+                    }
                     if (nodeGuid.Length == 0)
                     {
                         nodeGuid = Guid.NewGuid().ToString();
@@ -284,7 +298,7 @@ namespace OpenHome.Os.Host
                         }, "Stop and close this OpenHome Node process.");
                     commandDispatcher.AddCommand("restart", aArguments => consoleInterface.Quit((int)ExitCodes.SoftRestart), "Restart ohOs process.");
                     commandDispatcher.AddCommand("help", aArguments => Console.WriteLine(commandDispatcher.DescribeAllCommands()), "Show a list of available commands.");
-                    commandDispatcher.AddCommand("logdump", aArguments => Console.WriteLine(logSystem.LogReader.GetLogTail(10000)), "Dump the current contents of the logfile.");
+                    commandDispatcher.AddCommand("logdump", aArguments => Console.WriteLine(logSystem.LogReader.GetLogTail(100000)), "Dump the current contents of the logfile.");
                     commandDispatcher.AddCommand("log", aArguments => Logger.Debug(aArguments), "Add a message to the log.");
                     commandDispatcher.AddCommand("loginfo", aArguments =>
                                                                 {
@@ -383,6 +397,8 @@ namespace OpenHome.Os.Host
                 logConfigFile,
                 Path.Combine(Path.Combine(storeDirectory, "logging"), "ohos.log"),
                 Path.Combine(Path.Combine(storeDirectory, "logging"), "loglevels.xml"));
+            logSystem.LogController.SetLogLevel("ROOT", "WARN");
+            logSystem.LogController.SetLogLevel("OpenHome.Os.Host.Program", "DEBUG");
             //if (optionLogLevel.Value != null)
             //{
             //    logSystem.LogController.SetLogLevel("ROOT", optionLogLevel.Value);
