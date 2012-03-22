@@ -55,7 +55,7 @@ def process_optional_steps(context):
 
 @build_step("clean", optional=True, default=False)
 def pkgtest(context):
-    for pkgdir in context.options.select:
+    for pkgdir in context.options.test:
         shell('rm "{0}/*.deb" "{0}/*.changes" "{0}/*.tar.gz" "{0}/*.dsc"'.format(pkgdir))
 
 def globuniq(pattern):
