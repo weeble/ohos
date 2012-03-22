@@ -2,6 +2,7 @@ import time
 from glob import glob
 from os.path import split
 from uuid import uuid4
+from os import remove
 
 # Test debian packages.
 
@@ -55,8 +56,11 @@ def process_optional_steps(context):
 
 @build_step("clean", optional=True, default=False)
 def pkgtest(context):
-    for pkgdir in context.options.test:
-        shell('rm "{0}/*.deb" "{0}/*.changes" "{0}/*.tar.gz" "{0}/*.dsc"'.format(pkgdir))
+    for pkgdir in context.options.clean:
+        for pattern in ['*.deb', '*.changes', '*.tar.gz', '*.dsc']:
+            for path in glob("{0}/{1}".format(pkgdir, pattern)):
+                remove(path)
+        #shell('rm -f "{0}/*.deb" "{0}/*.changes" "{0}/*.tar.gz" "{0}/*.dsc"'.format(pkgdir))
 
 def globuniq(pattern):
     result = glob(pattern)
