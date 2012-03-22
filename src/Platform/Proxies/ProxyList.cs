@@ -13,7 +13,6 @@ namespace OpenHome.Os.Platform.Proxies
     public class ProxyList<T> : IDisposable where T : IDisposable
     {
         static readonly ILog Logger = LogManager.GetLogger(String.Format("OpenHome.Os.Platform.Proxies.ProxyList<{0}>", typeof(T).Name));
-        private const int MaxCallbacks = 8;
         private class ProxyRecord : IDeviceDisappearanceWatcher
         {
             readonly CountedReference<T> iRef;
