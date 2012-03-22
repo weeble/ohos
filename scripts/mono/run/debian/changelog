@@ -1,3 +1,9 @@
+ohmono (2.10.8-1) nightly; urgency=low
+
+  * Upgrade to Mono 2.10.8
+
+ -- Openhome <admin@openhome.org>  Thu, 22 Mar 2012 10:48:18 +0000
+
 ohmono (2.10.6-4) nightly; urgency=low
 
   * Added Microsoft.Csharp and Mono.CSharp assemblies
