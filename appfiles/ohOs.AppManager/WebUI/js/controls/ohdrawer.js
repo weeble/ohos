@@ -69,12 +69,15 @@
                 elem.css({ 'background-color': backgroundcolor,
                     'top': '-' + openedPosition + 'px'
                 });
+                elem.addClass('ohdrawer-opened');
                 setPosition(openedPosition);
+               
                 closeTimer = setTimeout(function () {
                     if(onClose)
                         onClose();
                     obj.close();
                 }, 3000);
+         
             },timeout);
         }
 
@@ -86,6 +89,7 @@
                 inputValue: '',
                 cancelBtnText: 'Cancel',
                 okBtnText: 'OK',
+                backgroundColor: '#649BEE'
             }, options || {});
             
             var html =
@@ -98,7 +102,7 @@
                     '<button class="ohdrawer-ok small sm">'+opt.okBtnText+'</button>'+
                 '</div>'+
             '</form>';
-            showPrompt(html, opt.onSuccessFunction,opt.onErrorFunction, '#649BEE');
+            showPrompt(html, opt.onSuccessFunction,opt.onErrorFunction, opt.backgroundColor);
         }
 
         this.showWarning = function (options) {
@@ -109,23 +113,30 @@
                 questionText: 'Are you sure you wish to delete?',
                 cancelBtnText: 'No',
                 okBtnText: 'Yes',
+                backgroundColor: '#ECC66C',
+                subText: '',
+                cssClass: '',
             }, options || {});
             
             var html =
-            '<div class="ohdrawer-container">' +
-                '<label>'+opt.questionText+'</label>' +
+            '<div class="ohdrawer-container '+opt.cssClass +'">' +
+                '<label class="ohdrawer-questiontext">' + opt.questionText + '</label>' +
+                '<div class="ohdrawer-subtext"><label>' + opt.subText + '</label></div>' +
                 '<div class="clear"></div>' +
                 '<div class="action">' +
                     '<button class="ohdrawer-cancel small sm">'+opt.cancelBtnText+'</button>' +
                     '<button class="ohdrawer-ok small sm">'+opt.okBtnText+'</button>' +
                 '</div>' +
             '</div>';
-            showPrompt(html, opt.onSuccessFunction,opt.onErrorFunction, '#ECC66C');
+            showPrompt(html, opt.onSuccessFunction,opt.onErrorFunction, opt.backgroundColor);
         }
 
-        var showPrompt = function (html, onSuccessFunction,onErrorFunction, backgroundColor) {
+        var showPrompt = function (html, onSuccessFunction, onErrorFunction, backgroundColor) {
             if(closeTimer)
+            {
+         
                 clearTimeout(closeTimer);
+               }
             var timeout = 0;
             
             if(this.opened)
@@ -162,7 +173,7 @@
                 elem.css({ 'background-color': backgroundColor,
                     'top': '-' + openedPosition + 'px'
                 });
-          
+                elem.addClass('ohdrawer-opened');
                 setPosition(openedPosition);
             },timeout);
 
@@ -170,6 +181,7 @@
 
         this.close = function () {
             setPosition(0);
+            elem.removeClass('ohdrawer-opened');
         }
 
     };

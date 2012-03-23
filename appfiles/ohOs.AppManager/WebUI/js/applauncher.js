@@ -74,6 +74,7 @@ $().ready(function () {
         allowWebSockets: true,
         debugMode: false,
         startedFunction: function () {
+        	//$('body').ohuiapplauncher();
             $('.app-list').html('');
             $('.app-detailedlist').html('');
             applist = new oh.app.applist(nodeUdn,
@@ -132,7 +133,6 @@ function addGhostApp(input)
 function appListUpdateProgress(handle, isGhost, url,progressPercent, progressBytes, totalBytes) {
     setTimeout(function () {
         var app;
-      	console.log(isGhost);
         if (isGhost) {
         	
         	var index = ghostApps.indexOf(url);
@@ -263,15 +263,13 @@ function addApp(app) {
 	    $('#drawer').data('ohdrawer').showWarning(
         {
             onSuccessFunction: function () {
+   
             	var pro = $('#progress_' + app.handle);
             	$('#detailedapp_' + app.handle + ' .btn-app-remove').hide();
             	pro.ohloader();
             	pro.data('ohloader').setText("Deleting...");
             	
-                applist.remove(app.handle, function () {
-                	
-                    removeApp(app.handle, app);
-                });
+                applist.remove(app.handle);
             }
         });
 	    return false;
@@ -298,9 +296,8 @@ function addApp(app) {
 
 function removeApp(handle,appdata) {
     var app = $('#app_' + handle);
-   
-	app.data('ohanimate').animate('bounceOut');
 
+	app.data('ohanimate').animate('bounceOut');
 	var detailedapp = $('#detailedapp_' + handle);
 	detailedapp.data('ohanimate').animate('bounceOut');
 	setTimeout(function() {
