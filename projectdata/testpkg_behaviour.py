@@ -82,20 +82,21 @@ def pkgtest(context):
         udn = str(uuid4())
         print "UDN: " + udn
         with SshSession(host, username) as ssh:
-            ssh('dpkg --purge ohos')
-            ssh('dpkg --purge ohos-distro')
-            ssh('dpkg --purge ohos-appmanager')
-            ssh('dpkg --purge ohos-core')
+            path = "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+            ssh(path+' dpkg --purge ohos')
+            ssh(path+' dpkg --purge ohos-distro')
+            ssh(path+' dpkg --purge ohos-appmanager')
+            ssh(path+' dpkg --purge ohos-core')
             ssh('rm -rf /var/ohos')
             ssh('rm -rf /etc/ohos')
             scp(ohos_core, '{username}@{host}:/root/'.format(username=username, host=host))
             scp(ohos_appmanager, '{username}@{host}:/root/'.format(username=username, host=host))
-            ssh('dpkg -i /root/{pkg}'.format(pkg=split(ohos_core)[1]))
-            ssh('dpkg -i /root/{pkg}'.format(pkg=split(ohos_appmanager)[1]))
+            ssh(path+' dpkg -i /root/{pkg}'.format(pkg=split(ohos_core)[1]))
+            ssh(path+' dpkg -i /root/{pkg}'.format(pkg=split(ohos_appmanager)[1]))
             ssh('mkdir -p /etc/ohos/system-app.d/') # <- Shouldn't need to do this.
             # Note: trap below tries to make sure the ohos process is killed if our build
             # times out.
-            conn = ssh.call_async("trap 'kill -HUP $(jobs -lp) 2>/dev/null || true' EXIT && ohos --udn {0} --subprocess nopipe".format(udn))
+            conn = ssh.call_async("trap 'kill -HUP $(jobs -lp) 2>/dev/null || true' EXIT && {path} ohos --udn {udn} --subprocess nopipe".format(path=path, udn=udn))
             shell('mono build/ohOs.PackageTests.exe {udn}'.format(udn=udn))
             conn.send('exit\n')
             exitcode = conn.join()
