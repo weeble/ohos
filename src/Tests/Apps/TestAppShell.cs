@@ -95,7 +95,7 @@ namespace OpenHome.Os.Apps
             iAppMetadata[aAppMetadata.AppName] = aAppMetadata.Clone();
         }
         protected virtual string AppUdn { get { return "APP1"; } }
-        protected virtual string AppName { get { return "My Test Application"; } }
+        protected virtual string AppName { get { return "TestApplication"; } }
         protected virtual string AppDirName { get { return "My Test Application"; } }
         protected virtual string StoreDirectoryAbsPath { get { return "StoreDirectoryAbsolutePath"; } }
         protected virtual string AppDirectoryAbsPath { get { return "AppDirectoryAbsolutePath"; } }
@@ -329,6 +329,39 @@ namespace OpenHome.Os.Apps
                 .Callback((Action<DirectoryInfo, IApp> aAddedAction, Action<DirectoryInfo, IApp> aRemovedAction)=>aAddedAction(new DirectoryInfo(AppName),iApp));
             iAppShell.Start();
         }
+    }
+
+    public class WhenAnAppSpecifiesARelativeIconUri : WhenTheAppShellIsStartedContext
+    {
+        protected override void PrepareMocks()
+        {
+            base.PrepareMocks();
+            iAppMock.Setup(aApp => aApp.IconUri).Returns("relativepath.png");
+            PutApp(new AppMetadata { AppName = "TestApplication", GrantedPermissions = new List<string>(), Udn = "APP1UDN" });
+        }
+        [Test]
+        public void TheUriShouldBeExpanded()
+        {
+            string iconUrl = iAppShell.GetApps().First().IconUrl;
+            Assert.That(iconUrl, Is.EqualTo("/APP1UDN/Upnp/resource/relativepath.png"));
+        }
+    }
+
+    public class WhenAnAppSpecifiesAnAbsoluteIconUri : WhenTheAppShellIsStartedContext
+    {
+        protected override void PrepareMocks()
+        {
+            base.PrepareMocks();
+            iAppMock.Setup(aApp => aApp.IconUri).Returns("http://absolute.example/icon.png");
+            PutApp(new AppMetadata { AppName = "TestApplication", GrantedPermissions = new List<string>(), Udn = "APP1UDN" });
+        }
+        [Test]
+        public void TheUriShouldBeExpanded()
+        {
+            string iconUrl = iAppShell.GetApps().First().IconUrl;
+            Assert.That(iconUrl, Is.EqualTo("http://absolute.example/icon.png"));
+        }
+
     }
 
 
