@@ -112,9 +112,8 @@ def publish_build(context):
     for pkgdir, platform in context.options.test:
         settings = ssh_details[platform]
         arch = settings['arch']
-        package_names = ['ohos', 'ohos-core', 'ohos-appmanager', 'ohos-distro']
-        local_changes_paths = [globuniq('{package_dir}/{name}_*.changes'.format(name=name, package_dir=pkgdir)) for name in package_names]
-        changes_files = [split(path)[1] for path in local_package_paths]
+        local_changes_path = globuniq('{package_dir}/ohos_*.changes'.format(package_dir=pkgdir))
+        changes_file = split(local_changes_path)[1]
 
         rsync(
                 '-avz',
@@ -130,7 +129,6 @@ def publish_build(context):
         publish_openhome_cmd = "sudo /bin/sh -c 'rsync -avz --del /var/www/openhome/apt-repo/ %s@%s:~/build/nightly/apt-repo'" %(oh_rsync_user, oh_rsync_host)
 
         with SshSession(host, username) as ssh:
-            for changes_file in changes_files:
-                ssh(reprepro_cmd_template.format(repo=repo, changes=changes_file))
+            ssh(reprepro_cmd_template.format(repo=repo, changes=changes_file))
             ssh(publish_openhome_cmd)
 
