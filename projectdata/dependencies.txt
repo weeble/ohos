@@ -16,7 +16,7 @@
 # ${OH_PLATFORM} expands to the name of the target platform, e.g. "Windows-x86" or "Linux-ARM".
 
 # Platform-dependent dependencies
-"ohnet" "${OHNET_ARTIFACTS}/ohNet/ohNet-0.0.99-${OH_PLATFORM}-dev-release.tar.gz" "dependencies/${OH_PLATFORM}/" "--ohnet-dir dependencies/${OH_PLATFORM}/ohNet-${OH_PLATFORM}-release-dev/lib/"
+"ohnet" "${OHNET_ARTIFACTS}/ohNet/ohNet-1.0~146-${OH_PLATFORM}-dev-release.tar.gz" "dependencies/${OH_PLATFORM}/" "--ohnet-dir dependencies/${OH_PLATFORM}/ohNet-${OH_PLATFORM}-release-dev/lib/"
 
 # Platform-independent dependencies
 "nunit" "${OHNET_ARTIFACTS}/AnyPlatform/NUnit-2.6.0.12017.tar.gz" "dependencies/AnyPlatform/" "--nunit-dir dependencies/AnyPlatform/NUnit-2.6.0.12017/"

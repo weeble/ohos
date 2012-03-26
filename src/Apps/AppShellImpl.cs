@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.IO;
+using System.Text.RegularExpressions;
 using System.Threading;
 using log4net;
 using OpenHome.Net.Device;
@@ -737,7 +738,7 @@ namespace OpenHome.Os.Apps
                 knownApp.WriteAppMetadata(appMetadata);
             }
 
-            knownApp.IconUrl = app.IconUri;
+            knownApp.IconUrl = CompleteAppUri(app.IconUri, udn);
             knownApp.Version = app.Version;
 
             IDvDevice device = CreateAppDevice(app, udn, appDirName);
@@ -767,6 +768,25 @@ namespace OpenHome.Os.Apps
             knownApp.Publish(new PublishedApp(app, device, provider));
             UdnsToAppNames[udn] = appDirName;
             iHistory.Add(new HistoryItem(appDirName, change, udn));
+        }
+
+        static readonly Regex UriWithProtocol = new Regex(@"^\w+:");
+
+        static string CompleteAppUri(string aUri, string aUdn)
+        {
+            if (aUri == null)
+            {
+                return null;
+            }
+            if (UriWithProtocol.IsMatch(aUri) || aUri.StartsWith("/"))
+            {
+                // The following URIs should be left untouched:
+                //     http://www.domain.example/foo.png
+                //     //www.domain.example/foo.png
+                //     /foo.png
+                return aUri;
+            }
+            return String.Format("/{0}/Upnp/resource/{1}", aUdn, aUri);
         }
 
         //static string GetSanitizedAppName(IApp app)

@@ -107,12 +107,14 @@ namespace OpenHome.Os.Host
             public OptionParser.OptionString InstallFile { get; private set; }
             public OptionParser.OptionString Subprocess { get; private set; }
             public OptionParser.OptionBool SingleProcess { get; private set; }
+            public OptionParser.OptionString Uuid { get; private set; }
             public Options()
             {
                 ConfigFile = new OptionParser.OptionString("-c", "--config", null, "Configuration file location.", "CONFIG");
                 InstallFile = new OptionParser.OptionString("-i", "--install", null, "Install the given app and exit.", "APPFILE");
                 Subprocess = new OptionParser.OptionString(null, "--subprocess", null, "Reserved.", "SUBPROCESSDATA");
                 SingleProcess = new OptionParser.OptionBool(null, "--single-process", "Run as a single process. Disables soft restarts.");
+                Uuid = new OptionParser.OptionString(null, "--udn", null, "Override UDN.", "UDN");
             }
             public OptionParser Parse(string[] aArgs)
             {
@@ -121,6 +123,7 @@ namespace OpenHome.Os.Host
                 parser.AddOption(InstallFile);
                 parser.AddOption(Subprocess);
                 parser.AddOption(SingleProcess);
+                parser.AddOption(Uuid);
                 parser.Parse();
                 return parser;
             }
@@ -250,7 +253,15 @@ namespace OpenHome.Os.Host
                     var combinedStack = library.StartCombined(subnet);
                     var deviceListFactory = new CpUpnpDeviceListFactory(combinedStack.ControlPointStack);
                     var deviceFactory = new DvDeviceFactory(combinedStack.DeviceStack);
-                    string nodeGuid = (sysConfig.GetElementValue(e=>e.Elements("uuid").FirstOrDefault()) ?? "").Trim();
+                    string nodeGuid;
+                    if (string.IsNullOrEmpty(aOptions.Uuid.Value))
+                    {
+                        nodeGuid = (sysConfig.GetElementValue(e => e.Elements("uuid").FirstOrDefault()) ?? "").Trim();
+                    }
+                    else
+                    {
+                        nodeGuid = aOptions.Uuid.Value;
+                    }
                     if (nodeGuid.Length == 0)
                     {
                         nodeGuid = Guid.NewGuid().ToString();

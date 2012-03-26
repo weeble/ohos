@@ -10,10 +10,44 @@ using OpenHome.Net.Device;
 
 namespace OpenHome.Os.Platform.Proxies
 {
+    public interface IDevicePresenceListener
+    {
+        void DeviceAdded(CpDevice aDevice);
+        void DeviceRemoved(CpDevice aDevice);
+    }
+
+    public interface IDevicePresencePublisher : IDisposable
+    {
+        void Start();
+        void Stop();
+    }
+
+    public delegate IDisposable ListenForDevicesFunc(Action<CpDevice> aAdded, Action<CpDevice> aRemoved);
+
+
+    public static class ProxyList
+    {
+        public static Func<IDevicePresenceListener, IDevicePresencePublisher> Filtered(
+            this Func<IDevicePresenceListener, IDevicePresencePublisher> aOldFunc,
+            Predicate<CpDevice> aFilter)
+        {
+            return aListener => aOldFunc(new FilteringDevicePresenceListener(aListener, aFilter));
+        }
+        public static Func<IDevicePresenceListener, IDevicePresencePublisher> UpnpDevicesByService(
+            ICpUpnpDeviceListFactory aFactory,
+            string aDomain,
+            string aType,
+            uint aVersion)
+        {
+            return aListener => new UpnpDevicePresencePublisher(
+                aListener,
+                (aAdded, aRemoved) => aFactory.CreateListServiceType(aDomain, aType, aVersion, aAdded, aRemoved));
+        }
+    }
+
     public class ProxyList<T> : IDisposable where T : IDisposable
     {
         static readonly ILog Logger = LogManager.GetLogger(String.Format("OpenHome.Os.Platform.Proxies.ProxyList<{0}>", typeof(T).Name));
-        private const int MaxCallbacks = 8;
         private class ProxyRecord : IDeviceDisappearanceWatcher
         {
             readonly CountedReference<T> iRef;
@@ -85,18 +119,20 @@ namespace OpenHome.Os.Platform.Proxies
                 }
             }
         }
-        private ICpDeviceList iDeviceList;
-        private readonly ICpUpnpDeviceListFactory iCpDeviceListFactory;
-        private readonly Func<CpDevice, T> iProxyConstructor;
         private readonly Dictionary<string, ProxyRecord> iProxiesByUdn;
-        private readonly string iDomain;
-        private readonly string iType;
-        private readonly uint iVersion;
-        private readonly CpDeviceDv iLocalDevice;
-        private readonly bool iMultiNode;
-        private readonly SafeCallbackTracker iCallbackTracker = new SafeCallbackTracker();
+        readonly IDevicePresencePublisher iPublisher;
+        readonly Listener iListener;
 
         private bool iStarted;
+
+        public ProxyList(
+            Func<CpDevice, T> aProxyConstructor,
+            Func<IDevicePresenceListener, IDevicePresencePublisher> aPublisherFunc)
+        {
+            iProxiesByUdn = new Dictionary<string, ProxyRecord>();
+            iListener = new Listener(aProxyConstructor, iProxiesByUdn);
+            iPublisher = aPublisherFunc(iListener);
+        }
 
         public ProxyList(
             ICpUpnpDeviceListFactory aCpDeviceListFactory,
@@ -106,22 +142,65 @@ namespace OpenHome.Os.Platform.Proxies
             string aType,
             uint aVersion,
             bool aMultiNodeEnable)
+            :this(
+                aProxyConstructor,
+                CreatePublisherFunc(
+                    aCpDeviceListFactory,
+                    aLocalDevice,
+                    aDomain,
+                    aType,
+                    aVersion,
+                    aMultiNodeEnable))
         {
-            if (iMultiNode && aLocalDevice == null)
+        }
+
+        static Func<IDevicePresenceListener, IDevicePresencePublisher> CreatePublisherFunc(
+            ICpUpnpDeviceListFactory aCpDeviceListFactory,
+            DvDevice aLocalDevice,
+            string aDomain,
+            string aType,
+            uint aVersion,
+            bool aMultiNodeEnable)
+        {
+            return aListener => CreatePublisher(aListener, aCpDeviceListFactory, aLocalDevice, aDomain, aType, aVersion, aMultiNodeEnable);
+        }
+
+        static IDevicePresencePublisher CreatePublisher(
+            IDevicePresenceListener aListener,
+            ICpUpnpDeviceListFactory aCpDeviceListFactory,
+            DvDevice aLocalDevice,
+            string aDomain,
+            string aType,
+            uint aVersion,
+            bool aMultiNodeEnable)
+        {
+            Func<CpDeviceList.ChangeHandler, CpDeviceList.ChangeHandler,IDisposable> deviceListFunc =
+                    (aAdded, aRemoved) => aCpDeviceListFactory.CreateListServiceType(
+                        aDomain,
+                        aType,
+                        aVersion,
+                        aAdded,
+                        aRemoved);
+            if (aMultiNodeEnable)
             {
-                throw new ArgumentException("Non-multinode list must have a non-null local device");
+                if (aLocalDevice == null)
+                {
+                    return new UpnpDevicePresencePublisher(aListener, deviceListFunc);
+                }
+                var upnpPublisher = new UpnpDevicePresencePublisher(
+                    new FilteringDevicePresenceListener(
+                        aListener,
+                        aDevice => aDevice.Udn() != aLocalDevice.Udn()),
+                    deviceListFunc);
+                var cpDvPublisher = new CpDvDevicePresencePublisher(aLocalDevice, aListener);
+                return new CompoundDevicePresencePublisher(new List<IDevicePresencePublisher> { upnpPublisher, cpDvPublisher });
             }
-            iProxyConstructor = aProxyConstructor;
-            iDomain = aDomain;
-            iType = aType;
-            iVersion = aVersion;
-            iCpDeviceListFactory = aCpDeviceListFactory;
-            iProxiesByUdn = new Dictionary<string, ProxyRecord>();
+            // Multinode *not* enabled, so don't use Upnp.
             if (aLocalDevice != null)
             {
-                iLocalDevice = new CpDeviceDv(aLocalDevice);
+                return new CpDvDevicePresencePublisher(aLocalDevice, aListener);
             }
-            iMultiNode = aMultiNodeEnable;
+            throw new ArgumentException("Non-multinode list must have a non-null local device");
         }
 
         public void Start()
@@ -130,21 +209,7 @@ namespace OpenHome.Os.Platform.Proxies
             {
                 throw new InvalidOperationException();
             }
-            if (iLocalDevice != null)
-            {
-                DeviceAdded(iLocalDevice);
-            }
-            if (iMultiNode)
-            {
-                Action<CpDeviceList, CpDevice> safeDeviceAdded = iCallbackTracker.Create<CpDeviceList, CpDevice>(DeviceAdded);
-                Action<CpDeviceList, CpDevice> safeDeviceRemoved = iCallbackTracker.Create<CpDeviceList, CpDevice>(DeviceRemoved);
-                iDeviceList = iCpDeviceListFactory.CreateListServiceType(
-                    iDomain,
-                    iType,
-                    iVersion,
-                    (aDeviceList, aDevice) => safeDeviceAdded(aDeviceList, aDevice),
-                    (aDeviceList, aDevice) => safeDeviceRemoved(aDeviceList, aDevice));
-            }
+            iPublisher.Start();
             iStarted = true;
         }
 
@@ -172,7 +237,6 @@ namespace OpenHome.Os.Platform.Proxies
         }
 
         // Only safe to fetch while holding the iProxiesByUdn lock.
-        private EventHandler<ProxyEventArgs> iDeviceDetectedHandler;
 
         /// <summary>
         /// An event handler that is invoked once for every detected device, both those
@@ -193,8 +257,8 @@ namespace OpenHome.Os.Platform.Proxies
                         proxyRefs.Add(proxyRef);
                         eventArgs.Add(new ProxyEventArgs(proxyRecord.Device, proxyRef, proxyRecord));
                     }
-                    iDeviceDetectedHandler += value;
-                    handler = iDeviceDetectedHandler;
+                    iListener.DeviceDetectedHandler += value;
+                    handler = iListener.DeviceDetectedHandler;
                 }
                 using (new DisposableList<CountedReference<T>>(proxyRefs))
                 {
@@ -211,7 +275,7 @@ namespace OpenHome.Os.Platform.Proxies
             {
                 lock (iProxiesByUdn)
                 {
-                    iDeviceDetectedHandler -= value;
+                    iListener.DeviceDetectedHandler -= value;
                 }
             }
         }
@@ -221,7 +285,8 @@ namespace OpenHome.Os.Platform.Proxies
             if (iStarted)
             {
                 Logger.Debug("Stopping ProxyList. Close callback-tracker...");
-                iCallbackTracker.Close();
+                iPublisher.Stop();
+                //iCallbackTracker.Close();
                 Logger.Debug("Clean up remaining proxies...");
                 foreach (var kvp in iProxiesByUdn)
                 {
@@ -234,10 +299,6 @@ namespace OpenHome.Os.Platform.Proxies
                 iStarted = false;
                 Logger.Debug("Finished cleanup");
             }
-            if (iLocalDevice != null)
-            {
-                iLocalDevice.RemoveRef();
-            }
         }
 
         public void Dispose()
@@ -245,72 +306,75 @@ namespace OpenHome.Os.Platform.Proxies
             if (iStarted)
             {
                 Stop();
-                if (iDeviceList != null)
+                if (iPublisher != null)
                 {
-                    iDeviceList.Dispose();
+                    iPublisher.Dispose();
                 }
             }
         }
 
-        private void DeviceAdded(CpDeviceList aDeviceList, CpDevice aDevice)
+        class Listener : IDevicePresenceListener
         {
-            // ignore UPnP discovery of a device we have access to via a CpDeviceDv
-            if (iLocalDevice != null && iLocalDevice.Udn() == aDevice.Udn())
-            {
-                return;
-            }
-            DeviceAdded(aDevice);
-        }
+            private readonly Func<CpDevice, T> iProxyConstructor;
+            private readonly Dictionary<string, ProxyRecord> iProxiesByUdn;
+            public EventHandler<ProxyEventArgs> DeviceDetectedHandler;
 
-        private void DeviceRemoved(CpDeviceList aDeviceList, CpDevice aDevice)
-        {
-            string udn = aDevice.Udn();
-            Logger.DebugFormat("DeviceRemoved: UDN={0}", udn);
-            ProxyRecord oldProxyRecord = null;
-            lock (iProxiesByUdn)
+            public Listener(Func<CpDevice, T> aProxyConstructor, Dictionary<string, ProxyRecord> aProxiesByUdn)
             {
-                if (iProxiesByUdn.ContainsKey(udn))
+                iProxyConstructor = aProxyConstructor;
+                iProxiesByUdn = aProxiesByUdn;
+            }
+
+            public void DeviceRemoved(CpDevice aDevice)
+            {
+                string udn = aDevice.Udn();
+                Logger.DebugFormat("DeviceRemoved: UDN={0}", udn);
+                ProxyRecord oldProxyRecord = null;
+                lock (iProxiesByUdn)
                 {
-                    oldProxyRecord = iProxiesByUdn[udn];
-                    iProxiesByUdn.Remove(udn);
+                    if (iProxiesByUdn.ContainsKey(udn))
+                    {
+                        oldProxyRecord = iProxiesByUdn[udn];
+                        iProxiesByUdn.Remove(udn);
+                    }
+                }
+                if (oldProxyRecord != null)
+                {
+                    oldProxyRecord.InvokeDisappeared();
+                    oldProxyRecord.Ref.Dispose();
+                    oldProxyRecord.Device.RemoveRef();
                 }
             }
-            if (oldProxyRecord != null)
-            {
-                oldProxyRecord.InvokeDisappeared();
-                oldProxyRecord.Ref.Dispose();
-                oldProxyRecord.Device.RemoveRef();
-            }
-        }
 
-        private void DeviceAdded(CpDevice aDevice)
-        {
-            string udn = aDevice.Udn();
-            Logger.DebugFormat("DeviceAdded: UDN={0}", udn);
-            CountedReference<T> newProxyRef = new CountedReference<T>(iProxyConstructor(aDevice));
-            aDevice.AddRef();
-            ProxyRecord newProxyRecord = new ProxyRecord(aDevice, newProxyRef);
-            ProxyRecord oldProxyRecord = null;
-            EventHandler<ProxyEventArgs> handler;
-            lock (iProxiesByUdn)
+            public void DeviceAdded(CpDevice aDevice)
             {
-                if (iProxiesByUdn.ContainsKey(udn))
+                string udn = aDevice.Udn();
+                Logger.DebugFormat("DeviceAdded: UDN={0}", udn);
+                CountedReference<T> newProxyRef = new CountedReference<T>(iProxyConstructor(aDevice));
+                aDevice.AddRef();
+                ProxyRecord newProxyRecord = new ProxyRecord(aDevice, newProxyRef);
+                ProxyRecord oldProxyRecord = null;
+                EventHandler<ProxyEventArgs> handler;
+                lock (iProxiesByUdn)
                 {
-                    oldProxyRecord = iProxiesByUdn[udn];
+                    if (iProxiesByUdn.ContainsKey(udn))
+                    {
+                        oldProxyRecord = iProxiesByUdn[udn];
+                    }
+                    iProxiesByUdn[aDevice.Udn()] = newProxyRecord;
+                    handler = DeviceDetectedHandler;
+                    Monitor.PulseAll(iProxiesByUdn);
                 }
-                iProxiesByUdn[aDevice.Udn()] = newProxyRecord;
-                handler = iDeviceDetectedHandler;
-                Monitor.PulseAll(iProxiesByUdn);
-            }
-            if (oldProxyRecord != null)
-            {
-                oldProxyRecord.InvokeDisappeared();
-                oldProxyRecord.Ref.Dispose();
-                oldProxyRecord.Device.RemoveRef();
-            }
-            if (handler != null)
-            {
-                handler(this, new ProxyEventArgs(aDevice, newProxyRef, newProxyRecord));
+                if (oldProxyRecord != null)
+                {
+                    oldProxyRecord.InvokeDisappeared();
+                    oldProxyRecord.Ref.Dispose();
+                    oldProxyRecord.Device.RemoveRef();
+                }
+                if (handler != null)
+                {
+                    handler(this, new ProxyEventArgs(aDevice, newProxyRef, newProxyRecord));
+                }
             }
         }
 
@@ -324,6 +388,24 @@ namespace OpenHome.Os.Platform.Proxies
                     throw new ProxyError();
                 }
                 return proxyRecord.Ref.Copy();
+            }
+        }
+
+        public string GetDeviceAttribute(string aProxyUdn, string aAttributeName)
+        {
+            lock (iProxiesByUdn)
+            {
+                ProxyRecord proxyRecord;
+                if (!iProxiesByUdn.TryGetValue(aProxyUdn, out proxyRecord))
+                {
+                    throw new ProxyError();
+                }
+                string value;
+                if (!proxyRecord.Device.GetAttribute(aAttributeName, out value))
+                {
+                    throw new ProxyError();
+                }
+                return value;
             }
         }
 
@@ -347,8 +429,8 @@ namespace OpenHome.Os.Platform.Proxies
                     TimeSpan wait = aTimeout - DateTime.Now;
                     if (wait.CompareTo(TimeSpan.Zero)<=0)
                     {
-                        Console.WriteLine("Failed to find: {0}", aDeviceUdn);
-                        Console.WriteLine("Present after timeout: {0}", String.Join(", ", iProxiesByUdn.Keys.ToArray()));
+                        Logger.WarnFormat("Failed to find: {0}", aDeviceUdn);
+                        Logger.WarnFormat("Present after timeout: {0}", String.Join(", ", iProxiesByUdn.Keys.ToArray()));
                         return false;
                     }
                     Monitor.Wait(iProxiesByUdn, wait);
@@ -372,6 +454,14 @@ namespace OpenHome.Os.Platform.Proxies
                 proxies = new DisposableList<CountedReference<T>>(iProxiesByUdn.Values.Select(aProxyRecord=>aProxyRecord.Ref.Copy()).ToList());
             }
             return proxies;
+        }
+
+        public IEnumerable<string> GetDeviceUdns()
+        {
+            lock (iProxiesByUdn)
+            {
+                return iProxiesByUdn.Keys.ToList();
+            }
         }
 
         /// <summary>
@@ -407,6 +497,150 @@ namespace OpenHome.Os.Platform.Proxies
                         // right at the moment a node was disappearing.
                     }
                 }
+            }
+        }
+    }
+
+    class FilteringDevicePresenceListener : IDevicePresenceListener
+    {
+        readonly IDevicePresenceListener iTargetListener;
+        readonly Predicate<CpDevice> iFilter;
+
+        public FilteringDevicePresenceListener(IDevicePresenceListener aTargetListener, Predicate<CpDevice> aFilter)
+        {
+            iTargetListener = aTargetListener;
+            iFilter = aFilter;
+        }
+
+        public void DeviceAdded(CpDevice aDevice)
+        {
+            if (iFilter(aDevice)) iTargetListener.DeviceAdded(aDevice);
+        }
+
+        public void DeviceRemoved(CpDevice aDevice)
+        {
+            iTargetListener.DeviceRemoved(aDevice);
+        }
+    }
+
+    class CompoundDevicePresencePublisher : IDevicePresencePublisher
+    {
+        readonly List<IDevicePresencePublisher> iSubPublishers;
+
+        public CompoundDevicePresencePublisher(List<IDevicePresencePublisher> aSubPublishers)
+        {
+            iSubPublishers = aSubPublishers;
+        }
+
+        public void Dispose()
+        {
+            foreach (var p in iSubPublishers)
+            {
+                p.Dispose();
+            }
+        }
+
+        public void Start()
+        {
+            foreach (var p in iSubPublishers)
+            {
+                p.Start();
+            }
+        }
+
+        public void Stop()
+        {
+            foreach (var p in iSubPublishers)
+            {
+                p.Stop();
+            }
+        }
+    }
+
+    class CpDvDevicePresencePublisher : IDevicePresencePublisher
+    {
+        readonly DvDevice iDvDevice;
+        CpDeviceDv iCpDeviceDv;
+        readonly IDevicePresenceListener iListener;
+        bool iStarted;
+
+        public CpDvDevicePresencePublisher(DvDevice aDvDevice, IDevicePresenceListener aListener)
+        {
+            iDvDevice = aDvDevice;
+            iListener = aListener;
+        }
+
+        public void Dispose()
+        {
+            Stop();
+        }
+
+        public void Start()
+        {
+            if (iStarted) return;
+            iStarted = true;
+            iCpDeviceDv = new CpDeviceDv(iDvDevice);
+            iListener.DeviceAdded(iCpDeviceDv);
+        }
+
+        public void Stop()
+        {
+            if (!iStarted) return;
+            {
+                iStarted = false;
+                iListener.DeviceRemoved(iCpDeviceDv);
+                iCpDeviceDv.RemoveRef();
+                iCpDeviceDv = null;
+            }
+        }
+    }
+
+    class UpnpDevicePresencePublisher : IDevicePresencePublisher
+    {
+        readonly IDevicePresenceListener iListener;
+        IDisposable iDeviceList;
+
+        readonly SafeCallbackTracker iCallbackTracker = new SafeCallbackTracker();
+        readonly Func<CpDeviceList.ChangeHandler, CpDeviceList.ChangeHandler, IDisposable> iDeviceListFunc;
+        bool iStarted;
+
+        public UpnpDevicePresencePublisher(IDevicePresenceListener aListener, Func<CpDeviceList.ChangeHandler, CpDeviceList.ChangeHandler, IDisposable> aDeviceListFunc)
+        {
+            iListener = aListener;
+            iDeviceListFunc = aDeviceListFunc;
+        }
+
+        public void Dispose()
+        {
+            Stop();
+        }
+
+        public void Start()
+        {
+            if (iStarted) return;
+            iStarted = true;
+            iDeviceList = iDeviceListFunc(DeviceAdded, DeviceRemoved);
+        }
+
+        void DeviceAdded(CpDeviceList aAlist, CpDevice aAdevice)
+        {
+            iCallbackTracker.PreventClose(() => iListener.DeviceAdded(aAdevice));
+        }
+
+        void DeviceRemoved(CpDeviceList aAlist, CpDevice aAdevice)
+        {
+            iCallbackTracker.PreventClose(() => iListener.DeviceRemoved(aAdevice));
+        }
+
+
+        public void Stop()
+        {
+            if (iDeviceList != null)
+            {
+                iCallbackTracker.Close();
+                iDeviceList.Dispose();
+                iDeviceList = null;
+                iStarted = false;
             }
         }
     }
