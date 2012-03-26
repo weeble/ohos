@@ -117,7 +117,7 @@ def publish_build(context):
 
         rsync(
                 '-avz',
-                pkg_dir+'/',
+                pkgdir+'/',
                 '--include=*.tar.gz',
                 '--include=*.deb',
                 '--include=*.changes',
