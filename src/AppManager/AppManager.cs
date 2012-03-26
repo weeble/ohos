@@ -265,6 +265,7 @@ namespace OpenHome.Os.AppManager
                                 new XElement("updateUrl", app.Info.UpdateUrl),
                                 new XElement("autoUpdate", app.Info.AutoUpdate),
                                 new XElement("status", app.Info.State == AppState.Running ? "running" : "broken"),
+                                new XElement("iconUri", app.Info.IconUrl ?? ""),
                                 new XElement("updateStatus",
                                     isUpdating ? "downloading" :
                                     app.DownloadAvailable ? "available" :
