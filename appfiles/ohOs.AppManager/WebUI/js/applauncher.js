@@ -209,14 +209,16 @@ function addApp(app) {
     var applauncher = parseTemplate($("#tpl_app-launcher").html(), {
 	    id: app.id,
 	    handle: app.handle,
-		name : app.friendlyName // change to name
+		name : app.friendlyName,
+		iconUri : app.iconUri
 	});
 	var appmanager = parseTemplate($("#tpl_app-manager").html(), {
 	    id: app.id,
 	    handle: app.handle,
 		name : app.friendlyName,
 		version : app.version,
-        description: app.description
+        description: app.description,
+		iconUri : app.iconUri
 	});
     $('.app-list').append(applauncher);
     $('#app_' + app.handle).bind(hit, function () {
