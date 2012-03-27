@@ -18,7 +18,7 @@ namespace OpenHome.Os.Apps
     {
         public interface IProviderConstructor
         {
-            IDvProviderOpenhomeOrgApp1 Create(DvDevice aDevice, IApp aApp, string aAppName);
+            IDvProviderOpenhomeOrgApp1 Create(DvDevice aDevice, string aAppName, string aAppIconUri, string aAppDescriptionUri);
         }
 
         protected Mock<IAppServices> iAppServicesMock;
@@ -40,7 +40,7 @@ namespace OpenHome.Os.Apps
         protected IAddinManager iAddinManager;
         protected IAppsDirectory iAppsDirectory;
         protected IStoreDirectory iStoreDirectory;
-        protected Func<DvDevice, IApp, string, IDvProviderOpenhomeOrgApp1> iProviderConstructor;
+        protected Func<DvDevice, string, string, string, IDvProviderOpenhomeOrgApp1> iProviderConstructor;
         protected IApp iApp;
         protected IDvDeviceFactory iDeviceFactory;
         protected IDvDevice iDevice;
@@ -72,7 +72,7 @@ namespace OpenHome.Os.Apps
             iDeviceFactoryMock.Setup(x => x.CreateDeviceStandard(It.IsAny<string>())).Returns(iDevice);
             iDeviceFactoryMock.Setup(x => x.CreateDeviceStandard(It.IsAny<string>(), It.IsAny<IResourceManager>())).Returns(iDevice);
             iDeviceMock.Setup(x => x.SetDisabled(It.IsAny<Action>())).Callback<Action>(aAction => aAction());
-            iProviderConstructorMock.Setup(x => x.Create(It.IsAny<DvDevice>(), It.IsAny<IApp>(), It.IsAny<string>())).Returns(iProvider);
+            iProviderConstructorMock.Setup(x => x.Create(It.IsAny<DvDevice>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(iProvider);
             iAppMetadataStoreMock.Setup(x => x.LoadAppsFromStore()).Returns(LoadAppsFromStore);
             iAppMetadataStoreMock.Setup(x => x.GetApp(It.IsAny<string>())).Returns<string>(GetApp);
             iAppMetadataStoreMock.Setup(x => x.PutApp(It.IsAny<AppMetadata>())).Callback<AppMetadata>(PutApp);

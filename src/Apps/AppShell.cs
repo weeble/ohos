@@ -150,7 +150,7 @@ namespace OpenHome.Os.Apps
             IAddinManager aAddinManager,
             IAppsDirectory aAppsDirectory,
             IStoreDirectory aStoreDirectory,
-            Func<DvDevice, IApp, string, IDvProviderOpenhomeOrgApp1> aAppProviderConstructor,
+            Func<DvDevice, string, string, string, IDvProviderOpenhomeOrgApp1> aAppProviderConstructor,
             IZipReader aZipReader,
             IAppMetadataStore aAppMetadataStore, IZipVerifier aZipVerifier,
             ISystemAppsConfiguration aSystemAppsConfiguration,

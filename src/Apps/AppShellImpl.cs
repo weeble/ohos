@@ -335,7 +335,7 @@ namespace OpenHome.Os.Apps
         readonly IAddinManager iAddinManager;
         readonly IAppsDirectory iAppsDirectory;
         readonly IStoreDirectory iStoreDirectory;
-        readonly Func<DvDevice, IApp, string, IDvProviderOpenhomeOrgApp1> iAppProviderConstructor;
+        readonly Func<DvDevice, string, string, string, IDvProviderOpenhomeOrgApp1> iAppProviderConstructor;
         //readonly IZipReader iZipReader;
         readonly IAppMetadataStore iMetadataStore;
         readonly IZipVerifier iZipVerifier;
@@ -370,7 +370,7 @@ namespace OpenHome.Os.Apps
             IAddinManager aAddinManager,
             IAppsDirectory aAppsDirectory,
             IStoreDirectory aStoreDirectory,
-            Func<DvDevice, IApp, string, IDvProviderOpenhomeOrgApp1> aAppProviderConstructor,
+            Func<DvDevice, string, string, string, IDvProviderOpenhomeOrgApp1> aAppProviderConstructor,
             IZipReader aZipReader,
             IAppMetadataStore aMetadataStore,
             IZipVerifier aZipVerifier,
@@ -744,7 +744,7 @@ namespace OpenHome.Os.Apps
             IDvDevice device = CreateAppDevice(app, udn, appDirName);
             appContext.Device = device.RawDevice;
 
-            var provider = iAppProviderConstructor(device.RawDevice, app, appDirName);
+            var provider = iAppProviderConstructor(device.RawDevice, appDirName, knownApp.IconUrl, app.DescriptionUri);
             var change = HistoryItem.ItemType.EInstall;
 
             // TODO: Fix History. It no longer bears any relation to how apps actually work.
