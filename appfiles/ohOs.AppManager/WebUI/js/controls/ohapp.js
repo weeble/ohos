@@ -19,8 +19,8 @@
             text: 'OPENHOME',
             checkForSystemUpdate: true,
             displayAppManagerLink: true,
-            restartWait: 30000,
-            restartRetry: 1000
+            restartWait: 5000,
+            restartRetry: 40000
         }, options || {});
 
         // Private render
@@ -53,7 +53,7 @@
             setTimeout(function () { $(divsplash).css("opacity", 0); }, 0);
             // hide splash screen
             setTimeout(function () {
-				
+
                 $(divsplash).hide();
             }, 2000)
 
@@ -103,19 +103,23 @@
         }
 
         this.restart = function (loadingText) {
+           
             setTimeout(function () { $(divsplash).css("opacity", 1); }, 0);
             $(divsplash).show();
             $(divsplash).find('.page-loader').data('ohloader').setText(loadingText);
             setTimeout(function () {
+                clearInterval(nodeOnlineTimer);
                 nodeOnlineTimer = setInterval(function () {
                     appProxy.GetName(function (result) {
                         if (result && result.Name && result.Name.length > 0) {
                             clearInterval(nodeOnlineTimer);
-                            window.location.reload(true);
+                            setTimeout(function () {
+                                window.location.reload(true);
+                            }, settings.restartWait)
                         }
                     });
-                }, settings.restartRetry);
-            }, settings.restartWait);
+                }, settings.restartWait);
+            }, settings.restartRetry);
         }
 
 
