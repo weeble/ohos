@@ -1,0 +1,6 @@
+mkdir -p /tmp/apt/lists
+mkdir -p /tmp/apt/cache
+
+/usr/local/bin/smarties_update
+
+exit 0

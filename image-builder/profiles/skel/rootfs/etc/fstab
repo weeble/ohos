@@ -1,0 +1,3 @@
+tmpfs        /tmp                tmpfs  rw,nosuid,nodev,size=30%,mode=1777  0  0
+ubi1:update  /opt/update         ubifs  defaults                            0  0
+ubi2:apps    /var/ohos           ubifs  defaults                            0  0

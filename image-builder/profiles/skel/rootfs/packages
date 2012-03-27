@@ -1,0 +1,15 @@
+openssh-client
+dropbear
+netbase
+iproute
+module-init-tools
+udev
+procps
+iputils-ping
+dialog
+dhcpcd
+avahi-daemon
+ifupdown
+wget
+mtd-utils
+

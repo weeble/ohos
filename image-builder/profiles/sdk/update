@@ -1,0 +1,81 @@
+#! /bin/bash -x
+#
+# Return codes:
+#  0 - Success
+#  1 - Upgrade not started (e.g. download error)
+#  2 - Upgrade started and failed
+#
+
+REPO_URL="http://www.openhome.org/build/nightly/node/sdk"
+
+UPDATE_PATH="/opt/update"
+
+KERN_FILE="sdk.uImage"
+KERN_MTD="/dev/mtd5"
+
+ROOTFS_FILE="sdk.ubi.img"
+ROOTFS_MTD="/dev/mtd6"
+
+SHA_FILE="checksum"
+
+WGET_OPTS="--progress=dot:mega -t 3 --waitretry=2"
+
+T_UBI=20
+
+
+# Cleans up any remains from a previous interrupted update
+function cleanup()
+{
+    for f in ${KERN_FILE} ${ROOTFS_FILE} ${SHA_FILE} ; do
+        rm -f $f
+    done
+    grep -q '/mnt' /proc/mounts && umount /mnt
+    [ -c /dev/ubi${T_UBI} ] && ubidetach -d ${T_UBI}
+}
+
+# Cleanup and exit
+function update_end()
+{
+    cleanup
+    popd
+    exit $1
+}
+
+pushd ${UPDATE_PATH}
+
+cleanup
+
+# Download the checksum file
+wget ${WGET_OPTS} -O ${SHA_FILE} ${REPO_URL}/${SHA_FILE} || update_end 1
+
+# If there is a uImage checksum, then download it
+if grep -q ${KERN_FILE} ${SHA_FILE} ; then
+    wget ${WGET_OPTS} -O ${KERN_FILE} ${REPO_URL}/${KERN_FILE} || update_end 1
+fi
+
+# Download the rootfs UBI image
+wget ${WGET_OPTS} -O ${ROOTFS_FILE} ${REPO_URL}/${ROOTFS_FILE} || update_end 1
+
+# Verify the checksums
+sha256sum -c ${SHA_FILE} || update_end 1
+
+# If we have a kernel update apply it
+if [ -e ${KERN_FILE} ]; then
+    # Update the kernel
+    flash_erase ${KERN_MTD} 0 0 || update_end 2
+    nandwrite -apm ${KERN_MTD} ${KERN_FILE} || update_end 2
+fi
+
+# Update the root filesystem
+ubiformat ${ROOTFS_MTD} -y -s 512 -f ${ROOTFS_FILE} || update_end 2
+
+# Try to mount the new root filesystem
+ubiattach -p ${ROOTFS_MTD} -d ${T_UBI} || update_end 2
+mount -t ubifs ubi${T_UBI}:rootfs /mnt || update_end 2
+
+# As a sanity check, make sure that a version file exists
+[ -s /mnt/version ] || update_end 2
+
+update_end 0
+
+

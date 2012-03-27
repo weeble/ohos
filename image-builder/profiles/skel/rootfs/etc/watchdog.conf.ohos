@@ -1,0 +1,9 @@
+watchdog-device = /dev/watchdog
+watchdog-timeout = 20
+
+interval = 5
+
+realtime = yes
+priority = 1
+
+test-binary = /usr/local/bin/wdt_test

@@ -1,0 +1,21 @@
+#! /bin/bash -e
+
+#URL=$1 ; shift
+URL="http://10.201.0.13/openhome/"
+
+CHANNEL=$1 ; shift
+#CHANNEL="unstable"
+
+
+UPDATE_SCRIPT="update"
+
+REMOTE_PATH=${URL}/${CHANNEL}
+UPDATE_PATH=/opt/update/${UPDATE_SCRIPT}
+UPDATE_URL=${REMOTE_PATH}/${UPDATE_SCRIPT}
+
+wget --output-document ${UPDATE_PATH} ${UPDATE_URL}
+chmod +x ${UPDATE_PATH}
+
+smarties_set_fallback
+reboot
+

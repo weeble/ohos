@@ -1,0 +1,8 @@
+#! /bin/bash
+
+PID_FILE=/var/run/ohos-distro.pid
+
+[ -e $PID_FILE ] || exit 0
+
+[ -d /proc/`cat $PID_FILE` ]
+

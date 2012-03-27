@@ -1,0 +1,9 @@
+Origin: Debian
+Label: Emdebian-translation-unstable
+Suite: unstable
+Codename: sid
+Version: 0.1
+Architectures: armel source
+Components: main af am ang ar as ast az be bg bn br bs ca cs cy da de dz el en eo es et eu fa fi fr ga gl gu he hi hr hu hy ia id io is it ja ka kn km ko ku ky lg li lt lv mai mg mi mk ml mn mr ms nb ne nl nn no ns nso oc or pa pl ps pt rm ro ru rw si sk sl sq sr sv ta te th tk tl tr tt ug uk ur uz vi wa wo xh yi zh zu
+Description: Emdebian unstable translation repository.
+

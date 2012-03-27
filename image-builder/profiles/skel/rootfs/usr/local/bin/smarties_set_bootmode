@@ -1,0 +1,18 @@
+#! /bin/bash
+
+MTD_BOOTMODE=/dev/mtd2
+
+flash_erase -q ${MTD_BOOTMODE} 0 0
+case "$1" in
+
+"0")
+    bootmode="\xff\xff\xff\xff"
+    ;;
+
+"1")
+    bootmode="\x00\x00\x00\x42"
+    ;;
+
+esac
+
+echo -ne "${bootmode}\x22\x33\x44\x55" | nandwrite -aqmp ${MTD_BOOTMODE} -

@@ -1,0 +1,13 @@
+#! /bin/bash -xe
+
+UPDATE_SCRIPT=/opt/update/update
+UPDATE_LOG=/opt/update/update.log
+
+if [ -x ${UPDATE_SCRIPT} ]
+then
+  ${UPDATE_SCRIPT} > ${UPDATE_LOG} 2>&1
+  [ "$?" = 2 ] || /usr/local/bin/smarties_set_main 
+  rm ${UPDATE_SCRIPT}
+  reboot
+fi
+
