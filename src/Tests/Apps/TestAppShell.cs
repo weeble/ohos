@@ -425,4 +425,49 @@ namespace OpenHome.Os.Apps
             iDeviceMock.Verify(x => x.Dispose(), Times.Once());
         }
     }
+
+    public class WhenAnAppThrowsInStart : WhenTheAppShellIsStartedContext
+    {
+        protected override void PrepareMocks()
+        {
+            base.PrepareMocks();
+            iAppMock.Setup(x => x.Start(It.IsAny<IAppContext>())).Callback((IAppContext aAppContext) => { throw new Exception("Oops"); });
+        }
+        [Test]
+        public void TheAddinManagerIsUpdatedOnce()
+        {
+            iAddinManagerMock.Verify(x => x.UpdateRegistry(It.IsAny<Action<DirectoryInfo, IApp>>(), It.IsAny<Action<DirectoryInfo, IApp>>()), Times.Once());
+        }
+        [Test]
+        public void OneDeviceIsCreated()
+        {
+            iDeviceFactoryMock.Verify(x => x.CreateDeviceStandard(It.IsAny<string>()), Times.Once());
+        }
+        [Test]
+        public void TheAppIsStartedOnce()
+        {
+            iAppMock.Verify(x => x.Start(It.IsAny<IAppContext>()), Times.Once());
+        }
+        [Test]
+        public void StopIsNotInvoked()
+        {
+            iAppMock.Verify(x => x.Stop(), Times.Never());
+        }
+        [Test]
+        public void TheManagerDisposesTheProvider()
+        {
+            iProviderMock.Verify(x => x.Dispose(), Times.Once());
+        }
+        [Test]
+        public void TheManagerDoesNotEnableTheDevice()
+        {
+            iDeviceMock.Verify(x => x.SetEnabled(), Times.Never());
+        }
+        [Test]
+        public void TheManagerDisposesTheDevice()
+        {
+            iDeviceMock.Verify(x => x.Dispose(), Times.Once());
+        }
+    }
+
 }
