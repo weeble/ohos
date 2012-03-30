@@ -1,0 +1,9 @@
+Origin: Debian
+Label: DebianWheezy
+Version: 1.0
+Suite: unstable
+Codename: wheezy
+Architectures: armel source
+Components: main
+Description: Debian Wheezy partial mirror for Openhome
+Update: - base extra

@@ -1,0 +1,4 @@
+deb http://ftp.uk.debian.org/debian                testing      main contrib non-free
+deb http://www.openhome.org/build/nightly/apt-repo nightly      main
+deb http://www.openhome.org/build/nightly/apt-repo testing      main
+

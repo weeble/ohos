@@ -1,0 +1,6 @@
+# Build artefacts
+images
+
+# Track bin directories contained in the
+# skeleton rootfs
+!bin/

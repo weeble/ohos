@@ -1,0 +1,4 @@
+#! /bin/bash
+
+smarties_set_bootmode 1
+

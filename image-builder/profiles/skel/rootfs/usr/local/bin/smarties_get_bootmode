@@ -1,0 +1,3 @@
+#! /bin/bash
+
+nanddump --forcebinary --quiet --omitbad --omitoob --startaddress=0 --length=4 /dev/mtd2

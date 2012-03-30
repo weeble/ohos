@@ -1,0 +1,10 @@
+Origin: Debian
+Label: EmdebianGrip
+Suite: unstable
+Codename: wheezy-grip
+Version: 0.1
+Architectures: armel source
+Components: main dev doc
+UDebComponents: main
+Description: Emdebian repository for Openhome
+DebOverride: override.sid.extra.main

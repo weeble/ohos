@@ -762,7 +762,11 @@ namespace OpenHome.Os.Apps
             catch (Exception e)
             {
                 Logger.ErrorFormat("Exception during app startup: {0}\n{1}", appDirName, e);
-                throw;
+                // TODO: Refactor this. It's messy that on failure AppShellImpl invokes Dispose
+                // on the device and provider, but on success PublishedApp does it.
+                device.Dispose();
+                provider.Dispose();
+                return;
             }
             device.SetEnabled();
             knownApp.Publish(new PublishedApp(app, device, provider));
