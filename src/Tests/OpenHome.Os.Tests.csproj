@@ -38,17 +38,21 @@
     <Compile Include="AppManager\DownloaderTests.cs" />
     <Compile Include="AppManager\PollManagerTests.cs" />
     <Compile Include="Apps\TestAppShell.cs" />
-    <Compile Include="Clock\SystemClockProviderTests.cs" />
-    <Compile Include="DataStores\DummyTimestamp.cs" />
-    <Compile Include="DataStores\IntervalTreeClocksTests.cs" />
-    <Compile Include="DataStores\MultipleTransactionRepositoryContext.cs" />
-    <Compile Include="DataStores\TransactionRepositoryContextUsingDummyClock.cs" />
-    <Compile Include="DataStores\TransactionRepositoryTestRig.cs" />
-    <Compile Include="DataStores\TransactionRepositoryTestRigUsingDummyClock.cs" />
-    <Compile Include="DataStores\TransactionRepositoryTestRigUsingItcClock.cs" />
-    <Compile Include="DataStores\TransactionRepositoryTests.cs" />
-    <Compile Include="DataStores\VectorClocksTests.cs" />
+    <Compile Include="Platform\Clock\SystemClockProviderTests.cs" />
+    <Compile Include="Platform\Collections\IdDictionaryTests.cs" />
+    <Compile Include="Platform\Collections\ListUtils.cs" />
+    <Compile Include="Platform\DataStores\DummyTimestamp.cs" />
+    <Compile Include="Platform\DataStores\IntervalTreeClocksTests.cs" />
+    <Compile Include="Platform\DataStores\MultipleTransactionRepositoryContext.cs" />
+    <Compile Include="Platform\DataStores\TransactionRepositoryContextUsingDummyClock.cs" />
+    <Compile Include="Platform\DataStores\TransactionRepositoryTestRig.cs" />
+    <Compile Include="Platform\DataStores\TransactionRepositoryTestRigUsingDummyClock.cs" />
+    <Compile Include="Platform\DataStores\TransactionRepositoryTestRigUsingItcClock.cs" />
+    <Compile Include="Platform\DataStores\TransactionRepositoryTests.cs" />
+    <Compile Include="Platform\DataStores\VectorClocksTests.cs" />
+    <Compile Include="Platform\IO\XmlDiskStoreTests.cs" />
     <Compile Include="Mocks.cs" />
+    <Compile Include="Platform\Threading\Channel.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AppManager\OpenHome.Os.AppManager.csproj">

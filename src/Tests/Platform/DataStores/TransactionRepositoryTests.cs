@@ -1,9 +1,8 @@
 ﻿using Moq;
 using NUnit.Framework;
 using System.Linq;
-using OpenHome.Os.Platform.DataStores;
 
-namespace OpenHome.Os.DataStores
+namespace OpenHome.Os.Platform.DataStores
 {
     public class WhenASingleTransactionIsAppendedToAnEmptyRepositoryContext : TransactionRepositoryContextUsingDummyClock
     {

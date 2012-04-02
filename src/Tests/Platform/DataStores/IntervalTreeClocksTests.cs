@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using NUnit.Framework;
-using OpenHome.Os.Platform.DataStores;
 
-namespace OpenHome.Os.DataStores
+namespace OpenHome.Os.Platform.DataStores
 {
     public class IntervalTreeClocksTests
     {

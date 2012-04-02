@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
 using NUnit.Framework;
-using OpenHome.Os.Platform.DataStores;
 
-namespace OpenHome.Os.DataStores
+namespace OpenHome.Os.Platform.DataStores
 {
     public abstract class TransactionRepositoryContextUsingDummyClock
     {
