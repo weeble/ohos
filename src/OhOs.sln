@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenHome.Os.AppManager", "A
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenHome.Os.PackageTests", "PackageTests\OpenHome.Os.PackageTests.csproj", "{18720E6A-6A5A-41CC-BF12-D6FE9DFA599E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ohOs.Core", "Core\ohOs.Core.csproj", "{E7A375E0-3130-4BEA-8D81-5C7C75CB1CE4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -67,6 +69,10 @@ Global
 		{18720E6A-6A5A-41CC-BF12-D6FE9DFA599E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{18720E6A-6A5A-41CC-BF12-D6FE9DFA599E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{18720E6A-6A5A-41CC-BF12-D6FE9DFA599E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E7A375E0-3130-4BEA-8D81-5C7C75CB1CE4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E7A375E0-3130-4BEA-8D81-5C7C75CB1CE4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E7A375E0-3130-4BEA-8D81-5C7C75CB1CE4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E7A375E0-3130-4BEA-8D81-5C7C75CB1CE4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

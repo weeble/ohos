@@ -416,7 +416,13 @@ csharp_projects = [
             name="ohOs.Host", dir="Host", type="exe",
             categories=["core"],
             packages=['ohnet', 'log4net', 'systemxmllinq'],
-            references=['ohOs.Platform', 'ohOs.Apps']
+            references=['ohOs.Platform', 'ohOs.Core', 'ohOs.Apps']
+            ),
+        CSharpProject(
+            name="ohOs.Core", dir="Core", type="library",
+            categories=["core"],
+            packages=['ohnet', 'log4net', 'systemxmllinq'],
+            references=[]
             ),
         CSharpProject(
             name="ohOs.Network", dir="Network", type="library",
@@ -617,6 +623,7 @@ def build(bld):
     ohos_core_transfer = FileTransfer(
             specify_files_bld(bld,
                 "ohOs.Host.exe",
+                "ohOs.Core.dll",
                 "ohOs.Apps.dll",
                 "ohOs.Platform.dll",
                 "ohOs.Remote.dll",
