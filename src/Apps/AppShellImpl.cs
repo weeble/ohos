@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.IO;
+using System.Text.RegularExpressions;
 using System.Threading;
 using log4net;
 using OpenHome.Net.Device;
@@ -334,7 +335,7 @@ namespace OpenHome.Os.Apps
         readonly IAddinManager iAddinManager;
         readonly IAppsDirectory iAppsDirectory;
         readonly IStoreDirectory iStoreDirectory;
-        readonly Func<DvDevice, IApp, string, IDvProviderOpenhomeOrgApp1> iAppProviderConstructor;
+        readonly Func<DvDevice, string, string, string, IDvProviderOpenhomeOrgApp1> iAppProviderConstructor;
         //readonly IZipReader iZipReader;
         readonly IAppMetadataStore iMetadataStore;
         readonly IZipVerifier iZipVerifier;
@@ -369,7 +370,7 @@ namespace OpenHome.Os.Apps
             IAddinManager aAddinManager,
             IAppsDirectory aAppsDirectory,
             IStoreDirectory aStoreDirectory,
-            Func<DvDevice, IApp, string, IDvProviderOpenhomeOrgApp1> aAppProviderConstructor,
+            Func<DvDevice, string, string, string, IDvProviderOpenhomeOrgApp1> aAppProviderConstructor,
             IZipReader aZipReader,
             IAppMetadataStore aMetadataStore,
             IZipVerifier aZipVerifier,
@@ -737,13 +738,13 @@ namespace OpenHome.Os.Apps
                 knownApp.WriteAppMetadata(appMetadata);
             }
 
-            knownApp.IconUrl = app.IconUri;
+            knownApp.IconUrl = CompleteAppUri(app.IconUri, udn);
             knownApp.Version = app.Version;
 
             IDvDevice device = CreateAppDevice(app, udn, appDirName);
             appContext.Device = device.RawDevice;
 
-            var provider = iAppProviderConstructor(device.RawDevice, app, appDirName);
+            var provider = iAppProviderConstructor(device.RawDevice, appDirName, knownApp.IconUrl, app.DescriptionUri);
             var change = HistoryItem.ItemType.EInstall;
 
             // TODO: Fix History. It no longer bears any relation to how apps actually work.
@@ -761,12 +762,35 @@ namespace OpenHome.Os.Apps
             catch (Exception e)
             {
                 Logger.ErrorFormat("Exception during app startup: {0}\n{1}", appDirName, e);
-                throw;
+                // TODO: Refactor this. It's messy that on failure AppShellImpl invokes Dispose
+                // on the device and provider, but on success PublishedApp does it.
+                device.Dispose();
+                provider.Dispose();
+                return;
             }
             device.SetEnabled();
             knownApp.Publish(new PublishedApp(app, device, provider));
             UdnsToAppNames[udn] = appDirName;
             iHistory.Add(new HistoryItem(appDirName, change, udn));
+        }
+
+        static readonly Regex UriWithProtocol = new Regex(@"^\w+:");
+
+        static string CompleteAppUri(string aUri, string aUdn)
+        {
+            if (aUri == null)
+            {
+                return null;
+            }
+            if (UriWithProtocol.IsMatch(aUri) || aUri.StartsWith("/"))
+            {
+                // The following URIs should be left untouched:
+                //     http://www.domain.example/foo.png
+                //     //www.domain.example/foo.png
+                //     /foo.png
+                return aUri;
+            }
+            return String.Format("/{0}/Upnp/resource/{1}", aUdn, aUri);
         }
 
         //static string GetSanitizedAppName(IApp app)

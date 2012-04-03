@@ -6,10 +6,10 @@
 		<!--[if lt IE 9]>
 		<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
 		<![endif]-->
-		<link rel="stylesheet" media="all" href="css/loader.css"/>
 		<link rel="stylesheet" media="all" href="css/controls/ohanimate.css"/>
 		<link rel="stylesheet" media="all" href="css/controls/ohprogressbar.css"/>
         <link rel="stylesheet" media="all" href="css/controls/ohdrawer.css"/>
+        <link rel="stylesheet" media="all" href="css/ohapp.css"/>
         <link rel="stylesheet" media="all" href="css/less.css"/>
 	
 		<meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -25,9 +25,12 @@
 		<script src="js/proxy/oh.widget.util.js" type="text/javascript"></script>
 		<script type="text/javascript" src="js/proxy/CpOpenhomeOrgApp1.js"></script>
 		<script type="text/javascript" src="js/proxy/CpOpenhomeOrgAppManager1.js"></script>
-       <script type="text/javascript" src="js/proxy/oh.app.applist.js"></script>
-		<script type="text/javascript" src="js/controls/ohpageslider.js"></script>
+        <script type="text/javascript" src="js/proxy/CpOpenhomeOrgSystemUpdate1.js"></script>
+       
+        <script type="text/javascript" src="js/proxy/oh.app.applist.js"></script>
         
+		<script type="text/javascript" src="js/controls/ohpageslider.js"></script>
+        <script type="text/javascript" src="js/controls/ohapp.js"></script>
 		<script type="text/javascript" src="js/controls/ohloader.js"></script>
 		<script type="text/javascript" src="js/controls/ohprogressbar.js"></script>
 		<script type="text/javascript" src="js/controls/ohanimate.js"></script>
@@ -76,54 +79,12 @@
 				</li>
 			</ul>
 		</div>
-		<div id="debug" style="position:fixed; bottom:0px ; left: 0px;height:340px; width:100%; background-color:#FFDBA6;" > 
-            <div style="width:400px; float:left;">
-                Debug App
-                <br />
-                <textarea id="actionxml" style="width:400px;height:250px;">
-<appList>
-    <app>
-        <handle>1</handle>
-        <id>dummyApp</id>
-        <name>OpenHome Dummy App</name>
-        <version>1.2.3</version>
-        <url>http://www.openhome.org/dummyapp.zip</url>
-        <description>This is a dummy app to stub out the AppManager API.</description>
-        <status>running</status>
-        <updateStatus>downloading</updateStatus>
-    </app>
-</appList>
-                </textarea>
-                <br />
-                <button style="float:left;" id="debug-add">Add</button> <button  style="float:left;" id="debug-update">Update</button>
-            </div>
-            <div style="width:400px; float:left;">
-                Debug Progress
-                <br />
-                <textarea id="progressxml" style="width:400px;height:250px;">
-<downloadList>
-    <download>
-         <status>downloading</status>
-         <url>http://</url>
-         <appHandle>1</appHandle>
-         <appId>dummyApp</appId>
-         <progressPercent>77</progressPercent>
-         <progressBytes>7700</progressBytes>
-         <totalBytes>10000</totalBytes>
-    </download>
-</downloadList>
-                </textarea>
-                <br />
-                <button style="float:left;" id="debug-progress">Update</button>
-            </div>
-
-        </div>
 	</body>
 </html>
 <script type="text/html" id="tpl_app-launcher">
 	<div id="app_<#=handle#>" data-uid="<#=id#>" class="app">
 	<div class="app-icon">
-	<img onerror="this.src='images/oh-app-default.png'" src="images/apps/<#=id#>.png">
+	<img onerror="this.src='images/oh-app-default.png'" src="<#=iconUri#>">
 	<div class="app-icon-name"><#=name#></div>
 	</div>
 	</div>
@@ -132,7 +93,7 @@
 	<div class="detailedapp" data-uid="<#=id#>" id="detailedapp_<#=handle#>">
 	<div class="app">
 	<div class="app-icon">
-	<img onerror="this.src='images/oh-app-default.png'" src="images/apps/<#=id#>.png">
+	<img onerror="this.src='images/oh-app-default.png'" src="<#=iconUri#>">
 	</div>
 	</div>
     <div class="app-details">

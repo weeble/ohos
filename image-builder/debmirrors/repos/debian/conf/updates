@@ -1,0 +1,12 @@
+Name: extra
+Suite: wheezy
+Method: http://ftp.uk.debian.org/debian
+FilterList: deinstall node-packages.list
+VerifyRelease: blindtrust
+
+Name: base
+Suite: wheezy
+Method: http://ftp.uk.debian.org/debian
+FilterFormula: Priority (== required)
+VerifyRelease: blindtrust
+

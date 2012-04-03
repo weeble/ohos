@@ -33,7 +33,7 @@ namespace OpenHome.Os.Platform.Logging
 
     public static class Log4Net
     {
-        static readonly PatternLayout DefaultPatternLayout = new PatternLayout("%date{HH:mm:ss,fff} [%thread] %-5level %logger - %message%newline");
+        static readonly PatternLayout DefaultPatternLayout = new PatternLayout("%date [%thread] %-5level %logger - %message%newline");
 
         private class LogReader : ILogReader
         {

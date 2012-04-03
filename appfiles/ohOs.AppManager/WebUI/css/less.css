@@ -212,7 +212,7 @@ header .logo {
 	width:110px;
 	top:95px;
 	background:#000;
-	opacity:0.5;
+	opacity:0.7;
 	color:#FFF;
 	font-size:14px;
 	font-weight:700;
@@ -308,7 +308,7 @@ button:hover
 button.sm 
 {
     height:30px;
-    width:80px;
+
 }
 
 .navbutton

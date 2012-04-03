@@ -18,7 +18,7 @@ namespace OpenHome.Os.Apps
     {
         public interface IProviderConstructor
         {
-            IDvProviderOpenhomeOrgApp1 Create(DvDevice aDevice, IApp aApp, string aAppName);
+            IDvProviderOpenhomeOrgApp1 Create(DvDevice aDevice, string aAppName, string aAppIconUri, string aAppDescriptionUri);
         }
 
         protected Mock<IAppServices> iAppServicesMock;
@@ -40,7 +40,7 @@ namespace OpenHome.Os.Apps
         protected IAddinManager iAddinManager;
         protected IAppsDirectory iAppsDirectory;
         protected IStoreDirectory iStoreDirectory;
-        protected Func<DvDevice, IApp, string, IDvProviderOpenhomeOrgApp1> iProviderConstructor;
+        protected Func<DvDevice, string, string, string, IDvProviderOpenhomeOrgApp1> iProviderConstructor;
         protected IApp iApp;
         protected IDvDeviceFactory iDeviceFactory;
         protected IDvDevice iDevice;
@@ -72,7 +72,7 @@ namespace OpenHome.Os.Apps
             iDeviceFactoryMock.Setup(x => x.CreateDeviceStandard(It.IsAny<string>())).Returns(iDevice);
             iDeviceFactoryMock.Setup(x => x.CreateDeviceStandard(It.IsAny<string>(), It.IsAny<IResourceManager>())).Returns(iDevice);
             iDeviceMock.Setup(x => x.SetDisabled(It.IsAny<Action>())).Callback<Action>(aAction => aAction());
-            iProviderConstructorMock.Setup(x => x.Create(It.IsAny<DvDevice>(), It.IsAny<IApp>(), It.IsAny<string>())).Returns(iProvider);
+            iProviderConstructorMock.Setup(x => x.Create(It.IsAny<DvDevice>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(iProvider);
             iAppMetadataStoreMock.Setup(x => x.LoadAppsFromStore()).Returns(LoadAppsFromStore);
             iAppMetadataStoreMock.Setup(x => x.GetApp(It.IsAny<string>())).Returns<string>(GetApp);
             iAppMetadataStoreMock.Setup(x => x.PutApp(It.IsAny<AppMetadata>())).Callback<AppMetadata>(PutApp);
@@ -95,7 +95,7 @@ namespace OpenHome.Os.Apps
             iAppMetadata[aAppMetadata.AppName] = aAppMetadata.Clone();
         }
         protected virtual string AppUdn { get { return "APP1"; } }
-        protected virtual string AppName { get { return "My Test Application"; } }
+        protected virtual string AppName { get { return "TestApplication"; } }
         protected virtual string AppDirName { get { return "My Test Application"; } }
         protected virtual string StoreDirectoryAbsPath { get { return "StoreDirectoryAbsolutePath"; } }
         protected virtual string AppDirectoryAbsPath { get { return "AppDirectoryAbsolutePath"; } }
@@ -331,6 +331,39 @@ namespace OpenHome.Os.Apps
         }
     }
 
+    public class WhenAnAppSpecifiesARelativeIconUri : WhenTheAppShellIsStartedContext
+    {
+        protected override void PrepareMocks()
+        {
+            base.PrepareMocks();
+            iAppMock.Setup(aApp => aApp.IconUri).Returns("relativepath.png");
+            PutApp(new AppMetadata { AppName = "TestApplication", GrantedPermissions = new List<string>(), Udn = "APP1UDN" });
+        }
+        [Test]
+        public void TheUriShouldBeExpanded()
+        {
+            string iconUrl = iAppShell.GetApps().First().IconUrl;
+            Assert.That(iconUrl, Is.EqualTo("/APP1UDN/Upnp/resource/relativepath.png"));
+        }
+    }
+
+    public class WhenAnAppSpecifiesAnAbsoluteIconUri : WhenTheAppShellIsStartedContext
+    {
+        protected override void PrepareMocks()
+        {
+            base.PrepareMocks();
+            iAppMock.Setup(aApp => aApp.IconUri).Returns("http://absolute.example/icon.png");
+            PutApp(new AppMetadata { AppName = "TestApplication", GrantedPermissions = new List<string>(), Udn = "APP1UDN" });
+        }
+        [Test]
+        public void TheUriShouldBeExpanded()
+        {
+            string iconUrl = iAppShell.GetApps().First().IconUrl;
+            Assert.That(iconUrl, Is.EqualTo("http://absolute.example/icon.png"));
+        }
+
+    }
+
 
     public class WhenTheAppShellIsStarted : WhenTheAppShellIsStartedContext
     {
@@ -392,4 +425,49 @@ namespace OpenHome.Os.Apps
             iDeviceMock.Verify(x => x.Dispose(), Times.Once());
         }
     }
+
+    public class WhenAnAppThrowsInStart : WhenTheAppShellIsStartedContext
+    {
+        protected override void PrepareMocks()
+        {
+            base.PrepareMocks();
+            iAppMock.Setup(x => x.Start(It.IsAny<IAppContext>())).Callback((IAppContext aAppContext) => { throw new Exception("Oops"); });
+        }
+        [Test]
+        public void TheAddinManagerIsUpdatedOnce()
+        {
+            iAddinManagerMock.Verify(x => x.UpdateRegistry(It.IsAny<Action<DirectoryInfo, IApp>>(), It.IsAny<Action<DirectoryInfo, IApp>>()), Times.Once());
+        }
+        [Test]
+        public void OneDeviceIsCreated()
+        {
+            iDeviceFactoryMock.Verify(x => x.CreateDeviceStandard(It.IsAny<string>()), Times.Once());
+        }
+        [Test]
+        public void TheAppIsStartedOnce()
+        {
+            iAppMock.Verify(x => x.Start(It.IsAny<IAppContext>()), Times.Once());
+        }
+        [Test]
+        public void StopIsNotInvoked()
+        {
+            iAppMock.Verify(x => x.Stop(), Times.Never());
+        }
+        [Test]
+        public void TheManagerDisposesTheProvider()
+        {
+            iProviderMock.Verify(x => x.Dispose(), Times.Once());
+        }
+        [Test]
+        public void TheManagerDoesNotEnableTheDevice()
+        {
+            iDeviceMock.Verify(x => x.SetEnabled(), Times.Never());
+        }
+        [Test]
+        public void TheManagerDisposesTheDevice()
+        {
+            iDeviceMock.Verify(x => x.Dispose(), Times.Once());
+        }
+    }
+
 }

@@ -1,0 +1,4 @@
+Name: autogrip
+IncomingDir: /var/www/openhome/autogrip//grip/incoming
+TempDir: /var/www/openhome/autogrip//grip/temp
+Default: unstable

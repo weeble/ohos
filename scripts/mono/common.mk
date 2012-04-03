@@ -1,4 +1,4 @@
-MONO_VERSION = 2.10.6
+MONO_VERSION = 2.10.8
 
 SBOX2 = /usr/bin/sb2
 

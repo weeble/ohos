@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Schema;
@@ -16,16 +17,68 @@ namespace OpenHome.Os.Platform.IO
         private readonly DirectoryInfo iStoreDirectory;
         private readonly object iLock = new object(); // Required to access the disk.
         private readonly string iFileExtension;
+        const string AtomicReplaceSuffix = ".atomicreplace";
+        const string AtomicCreateSuffix = ".atomiccreate";
 
         static readonly ILog Logger = LogManager.GetLogger(typeof(DiskStore<T>));
 
         public DiskStore(DirectoryInfo aStoreDirectory, string aFileExtension, Func<TextReader, T> aReadFunction, Action<TextWriter, T> aWriteAction)
         {
+            ValidateFileExtension(aFileExtension);
             iStoreDirectory = aStoreDirectory;
             iFileExtension = aFileExtension;
             iStoreDirectory.Create();
             iReadFunction = aReadFunction;
             iWriteAction = aWriteAction;
+            Recover();
+        }
+
+        static void ValidateFileExtension(string aFileExtension)
+        {
+            if (aFileExtension == null) throw new ArgumentNullException("aFileExtension");
+            if (aFileExtension == "") throw new ArgumentException("aFileExtension must not be empty");
+            if (!aFileExtension.Contains(".")) throw new ArgumentException("aFileExtension must contain at least one period");
+            if (aFileExtension.IndexOfAny(Path.GetInvalidFileNameChars()) != -1) throw new ArgumentException("aFileExtension must contain only legal filename characters.");
+            if (aFileExtension.EndsWith(AtomicReplaceSuffix)) throw new ArgumentException("aFileExtension must not end with " + AtomicReplaceSuffix);
+            if (aFileExtension.EndsWith(AtomicCreateSuffix)) throw new ArgumentException("aFileExtension must not end with " + AtomicCreateSuffix);
+        }
+
+        void Recover()
+        {
+            lock (iLock)
+            {
+                var goodFiles =
+                    iStoreDirectory.GetFiles("*" + iFileExtension)
+                    .Select(aFileInfo => aFileInfo.Name)
+                    .ToList();
+                var replacementFiles = GetSuffixedFiles(AtomicReplaceSuffix).ToList();
+                var creationFiles = GetSuffixedFiles(AtomicCreateSuffix).ToList();
+                // This awfully named method removes from replacementFiles any entries also found in goodFiles:
+                HashSet<string> missingFiles = new HashSet<string>(replacementFiles);
+                missingFiles.ExceptWith(goodFiles);
+                foreach (string filename in missingFiles)
+                {
+                    // These are files where we successfully 
+                    string target = Path.Combine(iStoreDirectory.FullName, filename);
+                    string source = target + AtomicReplaceSuffix;
+                    File.Move(source, target);
+                }
+                foreach (string filename in replacementFiles)
+                {
+                    File.Delete(Path.Combine(iStoreDirectory.FullName, filename + AtomicReplaceSuffix));
+                }
+                foreach (string filename in creationFiles)
+                {
+                    File.Delete(Path.Combine(iStoreDirectory.FullName, filename + AtomicCreateSuffix));
+                }
+            }
+        }
+
+        IEnumerable<string> GetSuffixedFiles(string aSuffix)
+        {
+            return
+                iStoreDirectory.GetFiles("*" + iFileExtension + aSuffix)
+                    .Select(aFileInfo => aFileInfo.Name.Substring(0, aFileInfo.Name.Length - aSuffix.Length));
         }
 
         public IEnumerable<T> LoadFiles()
@@ -80,16 +133,37 @@ namespace OpenHome.Os.Platform.IO
         public void PutFile(string aFilename, T aContent)
         {
             ValidateFilename(aFilename);
-            string fullpath = Path.Combine(iStoreDirectory.FullName, aFilename+iFileExtension);
+            string fullpath = Path.Combine(iStoreDirectory.FullName, aFilename + iFileExtension);
             lock (iLock)
             {
-                using (var f = File.Create(fullpath))
+                bool exists = File.Exists(fullpath);
+                string suffixedName = fullpath + (exists ? AtomicReplaceSuffix : AtomicCreateSuffix);
+                // We use a different suffix depending on whether the base file exists because the
+                // recovery logic uses the presence of the base file to decide whether to recover.
+                // We want to guarantee:
+                //     * Whenever "foo.atomicreplace" exists and "foo" does not, "foo.atomicreplace"
+                //       is a complete file.
+                // Therefore, by the converse:
+                //     * We can only modify a "foo.atomicreplace" file when a "foo" file exists.
+                var f = File.Create(suffixedName);
+                try
                 {
+                    using (f)
                     using (var writer = new StreamWriter(f))
                     {
                         iWriteAction(writer, aContent);
                     }
                 }
+                catch
+                {
+                    File.Delete(suffixedName);
+                    throw;
+                }
+                if (exists)
+                {
+                    File.Delete(fullpath);
+                }
+                File.Move(suffixedName, fullpath);
             }
         }
 

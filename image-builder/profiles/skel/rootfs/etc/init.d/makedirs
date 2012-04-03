@@ -1,0 +1,47 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          makedirs
+# Required-Start:    $local_fs mountkernfs
+# Required-Stop:
+# X-Start-Before:    
+# Default-Start:     S
+# Default-Stop:      
+# Short-Description: Creates some directories in /tmp
+# Description:       Creates some directories in /tmp
+### END INIT INFO
+
+# Author: Openhome <admin@openhome.org>
+
+# PATH should only include /usr/* if it runs after the mountnfs.sh script
+PATH=/sbin:/usr/sbin:/bin:/usr/bin
+DESC="Create directories: " # Introduce a short description here
+NAME=makedirs               # Introduce the short server's name here
+SCRIPTNAME=/etc/init.d/$NAME
+
+
+# Read configuration variable file if it is present
+[ -r /etc/default/$NAME ] && . /etc/default/$NAME
+
+# Load the VERBOSE setting and other rcS variables
+. /lib/init/vars.sh
+
+# Define LSB log_* functions.
+# Depend on lsb-base (>= 3.0-6) to ensure that this file is present.
+. /lib/lsb/init-functions
+
+
+case "$1" in
+  start)
+    log_begin_msg "Creating directories ..."
+    mkdir -p /tmp/apt/lists
+    mkdir -p /tmp/apt/cache
+    log_end_msg 0
+    ;;
+
+  *)
+    echo "Usage: $SCRIPTNAME start" >&2
+    exit 3
+    ;;
+esac
+
+exit 0

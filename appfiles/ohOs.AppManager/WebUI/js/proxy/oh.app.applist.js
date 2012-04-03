@@ -140,24 +140,10 @@ oh.app.applist.prototype.appHasDownloads = function () {
                 _this.downloadPoll = false;
             }
 
-            // for (var appSeq in this.list) {
-            //       if (this.list.hasOwnProperty(appSeq)) {
-            //           if (this.list[appSeq].updateStatus == 'downloading') {
-            //               this.hasDownloads = true;
-            //           }
-            ///       }
-            //    }
-            //   if (this.hasDownloads) {
-
 
         });
     }
-    //       if (!this.downloadStatusPoll) {
-
-    //           this.downloadStatusPoll = setTimeout(function () {
-    //               console.log('check downloads');
-    //           }, this.queryProgressInterval);
-    //       }
+  
 }
 
 oh.app.applist.prototype.appAdded = function (seq) {

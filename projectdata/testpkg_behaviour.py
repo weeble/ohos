@@ -2,6 +2,7 @@ import time
 from glob import glob
 from os.path import split
 from uuid import uuid4
+from os import remove
 
 # Test debian packages.
 
@@ -55,8 +56,11 @@ def process_optional_steps(context):
 
 @build_step("clean", optional=True, default=False)
 def pkgtest(context):
-    for pkgdir in context.options.select:
-        shell('rm "{0}/*.deb" "{0}/*.changes" "{0}/*.tar.gz" "{0}/*.dsc"'.format(pkgdir))
+    for pkgdir in context.options.clean:
+        for pattern in ['*.deb', '*.changes', '*.tar.gz', '*.dsc']:
+            for path in glob("{0}/{1}".format(pkgdir, pattern)):
+                remove(path)
+        #shell('rm -f "{0}/*.deb" "{0}/*.changes" "{0}/*.tar.gz" "{0}/*.dsc"'.format(pkgdir))
 
 def globuniq(pattern):
     result = glob(pattern)
@@ -78,20 +82,21 @@ def pkgtest(context):
         udn = str(uuid4())
         print "UDN: " + udn
         with SshSession(host, username) as ssh:
-            ssh('dpkg --purge ohos')
-            ssh('dpkg --purge ohos-distro')
-            ssh('dpkg --purge ohos-appmanager')
-            ssh('dpkg --purge ohos-core')
-            ssh('rm -rf /var/ohos')
-            ssh('rm -rf /etc/ohos')
+            path = "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+            ssh(path+' dpkg --purge ohos')
+            ssh(path+' dpkg --purge ohos-distro')
+            ssh(path+' dpkg --purge ohos-appmanager')
+            ssh(path+' dpkg --purge ohos-core')
+            ssh('rm -rf /var/ohos/*')
+            ssh('rm -rf /etc/ohos/*')
             scp(ohos_core, '{username}@{host}:/root/'.format(username=username, host=host))
             scp(ohos_appmanager, '{username}@{host}:/root/'.format(username=username, host=host))
-            ssh('dpkg -i /root/{pkg}'.format(pkg=split(ohos_core)[1]))
-            ssh('dpkg -i /root/{pkg}'.format(pkg=split(ohos_appmanager)[1]))
+            ssh(path+' dpkg -i /root/{pkg}'.format(pkg=split(ohos_core)[1]))
+            ssh(path+' dpkg -i /root/{pkg}'.format(pkg=split(ohos_appmanager)[1]))
             ssh('mkdir -p /etc/ohos/system-app.d/') # <- Shouldn't need to do this.
             # Note: trap below tries to make sure the ohos process is killed if our build
             # times out.
-            conn = ssh.call_async("trap 'kill -HUP $(jobs -lp) 2>/dev/null || true' EXIT && ohos --udn {0} --subprocess nopipe".format(udn))
+            conn = ssh.call_async("trap 'kill -HUP $(jobs -lp) 2>/dev/null || true' EXIT && {path} ohos --udn {udn} --subprocess nopipe".format(path=path, udn=udn))
             shell('mono build/ohOs.PackageTests.exe {udn}'.format(udn=udn))
             conn.send('exit\n')
             exitcode = conn.join()
@@ -104,16 +109,15 @@ def publish_build(context):
 
     repo = context.options.repo
 
-    for pkgdir, platform in context.options.select:
+    for pkgdir, platform in context.options.test:
         settings = ssh_details[platform]
         arch = settings['arch']
-        package_names = ['ohos', 'ohos-core', 'ohos-appmanager', 'ohos-distro']
-        local_changes_paths = [globuniq('{package_dir}/{name}_*.changes'.format(name=name, package_dir=pkgdir)) for name in package_names]
-        changes_files = [split(path)[1] for path in local_package_paths]
+        local_changes_path = globuniq('{package_dir}/ohos_*.changes'.format(package_dir=pkgdir))
+        changes_file = split(local_changes_path)[1]
 
         rsync(
                 '-avz',
-                pkg_dir+'/',
+                pkgdir+'/',
                 '--include=*.tar.gz',
                 '--include=*.deb',
                 '--include=*.changes',
@@ -125,7 +129,6 @@ def publish_build(context):
         publish_openhome_cmd = "sudo /bin/sh -c 'rsync -avz --del /var/www/openhome/apt-repo/ %s@%s:~/build/nightly/apt-repo'" %(oh_rsync_user, oh_rsync_host)
 
         with SshSession(host, username) as ssh:
-            for changes_file in changes_files:
-                ssh(reprepro_cmd_template.format(repo=repo, changes=changes_file))
+            ssh(reprepro_cmd_template.format(repo=repo, changes=changes_file))
             ssh(publish_openhome_cmd)
 

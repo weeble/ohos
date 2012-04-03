@@ -1,0 +1,12 @@
+#! /bin/bash
+
+MTD_BOOTMODE=/dev/mtd2
+
+
+if ! nanddump -aqob /dev/mtd2 | od -tx1 -N 4 -j 8 | head -n 1 | grep -q "ff ff ff ff"
+then
+    nanddump -aqob ${MTD_BOOTMODE} | dd of=/tmp/nand bs=4 count=1
+    flash_erase -q ${MTD_BOOTMODE} 0 0
+    nandwrite -aqpm ${MTD_BOOTMODE} /tmp/nand
+fi
+

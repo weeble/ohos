@@ -7,7 +7,6 @@ var ghostApps = [];
 var debugxml = '';
 var debugprogressxml = '';
 function appListAdded(data) {
-
 	addApp(data);
 }
 
@@ -22,7 +21,6 @@ function appListChanged(handle,data) {
 
 $().ready(function () {
 
-    $('#debug').hide();
     $('.help').hide();
     $('#back').hide();
     $('#back').ohanimate();
@@ -32,26 +30,8 @@ $().ready(function () {
         $("#page-appmanager .page-loader").hide();
         if (!hasApp)
             $('.help').show();
-    }, 1700);
-    /*** DEBUG ***/
-    var debugadd = 0;
-    $('#debug-add').bind('click', function () {
-        debugxml = $("#actionxml").val();
-        applist.appAdded(debugadd);
-        debugadd++;
-    });
+    }, isRemote ? 10000 : 2000);
 
-    $('#debug-update').bind('click', function () {
-        debugxml = $("#actionxml").val();
-        applist.appChanged(debugadd);
-    });
-
-    $('#debug-progress').bind('click', function () {
-        debugprogressxml = $("#progressxml").val();
-        applist.appHasDownloads();
-    });
-
-    /*** ENDDEBUG ***/
 
     var _this = this;
     $('#app-add').bind('click', function () {
@@ -60,9 +40,7 @@ $().ready(function () {
         $('#drawer').data('ohdrawer').showForm(
         {
             onSuccessFunction: function (input) {
-                _this.applist.install(input, function () {
-                	  addGhostApp(input);
-                });
+                _this.applist.install(input);
             },
             labelValue: 'Enter the App Url:',
             inputValue: 'http://'
@@ -71,9 +49,19 @@ $().ready(function () {
 
     ohnet.subscriptionmanager.start(
     {
+    	disconnectedFunction: function() {
+    		setTimeout(function() {
+    			$('body').data('ohapp').restart('Restarting your hub, please wait...');
+    		},0);
+    	},
         allowWebSockets: true,
         debugMode: false,
         startedFunction: function () {
+        	$('body').ohapp({
+        		displayAppManagerLink:false
+        		,checkForSystemUpdate:false,
+        		restartWait:5000
+        	});
             $('.app-list').html('');
             $('.app-detailedlist').html('');
             applist = new oh.app.applist(nodeUdn,
@@ -108,7 +96,7 @@ $().ready(function () {
 
 function addGhostApp(input)
 {
-	
+
 	var ghostIndex = ghostApps.length;
     var applauncher = parseTemplate($("#tpl_app_ghost").html(), {
         url: input,
@@ -130,9 +118,7 @@ function addGhostApp(input)
 
 
 function appListUpdateProgress(handle, isGhost, url,progressPercent, progressBytes, totalBytes) {
-    setTimeout(function () {
         var app;
-      	console.log(isGhost);
         if (isGhost) {
         	
         	var index = ghostApps.indexOf(url);
@@ -165,7 +151,7 @@ function appListUpdateProgress(handle, isGhost, url,progressPercent, progressByt
 	            app.data('ohloader').renderSpinner();
 	        }
         }
-    }, 500);
+
 }
 
 function appListUpdateFailed(handle,isGhost) {
@@ -208,28 +194,31 @@ function updateApp(handle, app) {
 }
 
 function addApp(app) {
-    
     $("#page-myapps .page-loader").hide();
     $("#page-appmanager .page-loader").hide();
     hasApp = true;
     $(".help").hide();
+
     var ghost = ghostApps.indexOf(app.updateUrl);
 
     if (ghost != -1) {
         $("#ghostapp_" + ghost).remove();
         ghostApps[ghost] = null;
     }
+
     var applauncher = parseTemplate($("#tpl_app-launcher").html(), {
 	    id: app.id,
 	    handle: app.handle,
-		name : app.friendlyName // change to name
+		name : app.friendlyName,
+		iconUri : app.iconUri
 	});
 	var appmanager = parseTemplate($("#tpl_app-manager").html(), {
 	    id: app.id,
 	    handle: app.handle,
 		name : app.friendlyName,
 		version : app.version,
-        description: app.description
+        description: app.description,
+		iconUri : app.iconUri
 	});
     $('.app-list').append(applauncher);
     $('#app_' + app.handle).bind(hit, function () {
@@ -263,15 +252,14 @@ function addApp(app) {
 	    $('#drawer').data('ohdrawer').showWarning(
         {
             onSuccessFunction: function () {
+   
             	var pro = $('#progress_' + app.handle);
             	$('#detailedapp_' + app.handle + ' .btn-app-remove').hide();
+            	$('#detailedapp_' + app.handle + ' .btn-app-update').hide();
             	pro.ohloader();
             	pro.data('ohloader').setText("Deleting...");
             	
-                applist.remove(app.handle, function () {
-                	
-                    removeApp(app.handle, app);
-                });
+                applist.remove(app.handle);
             }
         });
 	    return false;
@@ -289,7 +277,8 @@ function addApp(app) {
 	
 	if (app.updateStatus && app.updateStatus == "available") {
         $('#detailedapp_' + app.handle + ' .btn-app-update').show();
-    } 
+	    } 
+   
 //$('#progress_' + app.id).ohprogressbar({
 //		speed : 2000
 //	});
@@ -298,15 +287,14 @@ function addApp(app) {
 
 function removeApp(handle,appdata) {
     var app = $('#app_' + handle);
-   
-	app.data('ohanimate').animate('bounceOut');
 
+	app.data('ohanimate').animate('bounceOut');
 	var detailedapp = $('#detailedapp_' + handle);
 	detailedapp.data('ohanimate').animate('bounceOut');
 	setTimeout(function() {
 		app.remove();
 		detailedapp.remove();
-		$('#drawer').data('ohdrawer').showSuccess(appdata.friendlyName + ' has been removed');
+		$('#drawer').data('ohdrawer').showSuccess((appdata.friendlyName == null ? 'App' : appdata.friendlyName) + ' has been removed');
 }, 500);
 
 

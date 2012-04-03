@@ -1,0 +1,260 @@
+#! /bin/bash 
+#
+# Return codes:
+#  0 - Success
+#  1 - Upgrade not started (e.g. download error)
+#  2 - Upgrade started and failed
+#
+
+REPO_URL="http://www.openhome.org/build/nightly/node/main"
+
+UPDATE_PATH="/opt/update"
+UPDATE_LOG="update.log"
+
+KERN_FILE="main.uImage"
+KERN_SIZE=$(( __KERN_SIZE_VAL__ / 1000 ))
+KERN_CHKSUM="__KERN_CHKSUM_VAL__"
+
+ROOTFS_FILE="main.ubi.img"
+ROOTFS_SIZE=$(( __ROOTFS_SIZE_VAL__ / 1000 ))
+ROOTFS_CHKSUM="__ROOTFS_CHKSUM_VAL__"
+
+PROGRESS_FILE=/tmp/update_progress
+
+DL_CMD=download
+REFLASH_CMD=reflash
+
+WGET_OPTS="-q -t 3 --waitretry=2 --read-timeout=60"
+
+T_UBI=20
+
+#
+# Read and check command line arguments
+#
+while getopts ":c:r:vh" opt ; do
+    case $opt in
+    'h')
+          show_help=1
+          ;;
+    'v')
+          verbose=1
+          ;;
+    'c')
+          cmd=$OPTARG
+          ;; 
+    'r')
+          rfs=$OPTARG
+          ;;
+    \?)
+          echo "Invalid option -$OPTARG"
+          exit 1
+          ;;
+    :)
+          echo "Option -$OPTARG requires an argument"
+          exit 1     
+    esac 
+done
+
+if [ -n "$show_help" ]; then
+    echo "Usage: $0 -c <command> -r <rfs> [-v]"
+    exit 1
+fi
+
+if [ -z "$cmd" ]; then
+    echo "A command needs to be specified. Use '-h' for help"
+    exit 1
+elif [ "$cmd" != "$DL_CMD" ] && [ "$cmd" != "$REFLASH_CMD" ]; then
+    echo "Invalid command. Valid values are: \"$DL_CMD\", \"$REFLASH_CMD\""
+    exit 1
+fi
+
+if [ -z "$rfs" ] && [ $cmd = "$REFLASH_CMD" ]; then
+    echo "An RFS number is needed for the \"$REFLASH_CMD\" command"
+    exit 1
+fi
+
+if [ -n "$rfs" ] && [ $rfs != 0 ] && [ $rfs != 1 ]; then
+    echo "Invalid RFS number. Valid values are: 0, 1"
+    exit 1
+fi
+
+if [ "$rfs" = 0 ]
+then
+    KERN_MTD="/dev/mtd3"
+    ROOTFS_MTD="/dev/mtd4"
+else
+    KERN_MTD="/dev/mtd5"
+    ROOTFS_MTD="/dev/mtd6"
+fi
+
+# Creates and initialises the progress update file
+function init_progress_file()
+{
+    echo "<progress><download>$1</download><update>$2</update></progress>" > $PROGRESS_FILE
+}
+
+#
+# Write a value to the progress update file
+#  $1 - type can be "download" or "update"
+#  $2 - value to write
+#
+function write_progress()
+{
+    local type=$1
+    local val=$2
+
+    sed -i -e "s/<${type}> *[0-9]\+/<${type}>${val}/;" $PROGRESS_FILE
+}
+
+# Calculates a download progress value and updates the progress file
+function update_dl_progress()
+{
+    (
+        local dlf=$1
+        local size=$2
+        local scale=$3
+        local offs=$4
+        local progress
+
+        while true; do
+            sleep 1;
+            if [ -e $dlf ]; then
+                progress=$(( ((`stat -c %s $dlf` / 1000 ) * $scale / $size) + $offs ))
+                [ $progress -ge $(($scale + $offs)) ] && exit 0
+                write_progress download $progress
+            fi
+        done
+    )&
+    prog_pid=$!
+}
+
+# Updates the progress file with a reflash progress value
+function update_reflash_progress()
+{
+    local oldval=0
+
+    while true; do
+       read newval
+       [ -z "$newval" ] && return 0
+       if [ $newval -gt $oldval ]; then
+           [ $newval -le 95 ] && write_progress update $newval
+           oldval=$newval            
+       fi
+    done
+}
+
+# Kill the download progress process
+function kill_progress()
+{
+    if [ -n "$prog_pid" ]; then
+        kill $prog_pid 
+        pkill -P $prog_pid 
+        prog_pid=""
+        sleep 1
+    fi
+}
+
+# Cleans up any remains from a previous interrupted update
+function cleanup()
+{
+    for f in ${KERN_FILE} ${ROOTFS_FILE} ; do
+        rm -f $f
+    done
+    grep -q '/mnt' /proc/mounts && umount /mnt
+    [ -c /dev/ubi${T_UBI} ] && ubidetach -d ${T_UBI}
+}
+
+# Cleanup and exit
+function update_end()
+{
+    kill_progress
+    [ "$1" = 2 ] || cleanup
+    popd
+    exit $1
+}
+
+
+case $cmd in
+
+download)
+    [ -n "$verbose" ] || exec &> ${UPDATE_PATH}/${UPDATE_LOG}
+
+    pushd ${UPDATE_PATH}
+    cleanup
+    init_progress_file 0 0
+
+    # If there is a kernel upgrade, then download it
+    if [ $KERN_SIZE -gt 0 ] ; then
+        echo "Downloading Linux kernel image ..."
+        scale1=$(( ($KERN_SIZE * 100) / ($KERN_SIZE + $ROOTFS_SIZE) ))
+        update_dl_progress ${ROOTFS_FILE} ${ROOTFS_SIZE} $scale1 0
+        wget ${WGET_OPTS} -O ${KERN_FILE} ${REPO_URL}/${KERN_FILE} || update_end 1
+        echo "Download complete."
+        kill_progress
+        # Verify the checksums
+        echo "Verifying checksum ..."
+        echo "${KERN_CHKSUM} *${KERN_FILE}" | md5sum -c || update_end 1
+        write_progress download $scale1
+        
+    else
+        scale1=0
+    fi
+
+    # Download the rootfs UBI image
+    echo -e "\nDownloading root filesystem image ..."
+    update_dl_progress ${ROOTFS_FILE} ${ROOTFS_SIZE} $((100 - $scale1)) $scale1
+    wget ${WGET_OPTS} -O ${ROOTFS_FILE} ${REPO_URL}/${ROOTFS_FILE} || update_end 1
+    echo "Download complete."
+    kill_progress
+    
+    # Verify the checksums
+    echo "Verifying checksum ..."
+    echo "${ROOTFS_CHKSUM} *${ROOTFS_FILE}" | md5sum -c || update_end 1
+    write_progress download 100
+
+    popd
+    ;;
+
+reflash)
+    [ -n "$verbose" ] || exec &>> ${UPDATE_PATH}/${UPDATE_LOG}
+
+    pushd ${UPDATE_PATH}
+    [ -s ${ROOTFS_FILE} ] || update_end 2
+    [ -s ${PROGRESS_FILE} ] || init_progress_file 100 0
+
+    # Update the root filesystem
+    echo -e "\nProgramming root filesystem to flash ..."
+    ubiformat ${ROOTFS_MTD} -s 512 -y -f main.ubi.img | \
+         stdbuf -oL tr '\r' '\n' | \
+         grep --line-buffered -o "flashing eraseblock.* \+[0-9]\{1,2\}[05] \+%" | \
+         sed -u "s/.* \+\([0-9]\+\) \+%.*/\1/;" | \
+         update_reflash_progress 
+    [ "${PIPESTATUS[0]}" -eq 0 ] || update_end 2
+    echo "Programming complete."
+
+    echo "Checking new filesystem ..."
+    # Try to mount the new root filesystem    
+    ubiattach -p ${ROOTFS_MTD} -d ${T_UBI} || update_end 2
+    mount -t ubifs ubi${T_UBI}:rootfs /mnt || update_end 2
+    
+    # As a sanity check, make sure that a version file exists
+    [ -s /mnt/version ] || update_end 2
+    echo "Filesystem checks OK."
+
+    # If we have a kernel update apply it
+    if [ -e ${KERN_FILE} ]; then
+        # Update the kernel
+        echo -e "\nProgramming Linux kernel to flash ..."
+        flash_erase -q ${KERN_MTD} 0 0 || update_end 2
+        nandwrite -aqpm ${KERN_MTD} ${KERN_FILE} || update_end 2
+        echo "Programming complete."
+    fi
+
+    write_progress update 100
+    
+    echo -e "\nUpdate completed successfully."
+    update_end 0
+    ;;
+
+esac
+

@@ -216,6 +216,8 @@ namespace OpenHome.Os.AppManager
                         \s*
                         <status> \s* running \s* </status>
                         \s*
+                        <iconUri> \s* http://icon.test/app0 \s* </iconUri>
+                        \s*
                         <updateStatus> \s* downloading \s* </updateStatus>
                         \s*
                         <url> /app0udn/Upnp/resource/ </url>
