@@ -354,6 +354,8 @@ upnp_services = [
         GeneratedFile('src/ServiceXml/Uscpd/Openhome/AppManager1.uscpd', 'openhome.org', 'AppManager', '1', 'OpenhomeOrgAppManager1'),
         GeneratedFile('src/ServiceXml/Uscpd/Openhome/AppList1.uscpd', 'openhome.org', 'AppList', '1', 'OpenhomeOrgAppList1'),
         GeneratedFile('src/ServiceXml/Uscpd/Openhome/RemoteAccess1.uscpd', 'openhome.org', 'RemoteAccess', '1', 'OpenhomeOrgRemoteAccess1'),
+        GeneratedFile('src/ServiceXml/Uscpd/Openhome/Node1.uscpd', 'openhome.org', 'Node', '1', 'OpenhomeOrgNode1'),
+        GeneratedFile('src/ServiceXml/Uscpd/Openhome/SystemUpdate1.uscpd', 'openhome.org', 'SystemUpdate', '1', 'OpenhomeOrgSystemUpdate1'),
     ]
 
 csharp_projects = [
@@ -416,13 +418,29 @@ csharp_projects = [
             name="ohOs.Host", dir="Host", type="exe",
             categories=["core"],
             packages=['ohnet', 'log4net', 'systemxmllinq'],
-            references=['ohOs.Platform', 'ohOs.Core', 'ohOs.Apps']
+            references=[
+                'ohOs.Platform',
+                'ohOs.Core',
+                'ohOs.Apps',
+                'ohOs.Update',
+                'DvOpenhomeOrgSystemUpdate1',
+                'DvOpenhomeOrgNode1',
+                ]
+            ),
+        CSharpProject(
+            name="ohOs.Update", dir="Update", type="library",
+            categories=["core"],
+            packages=['ohnet', 'log4net', 'systemxmllinq'],
+            references=['DvOpenhomeOrgSystemUpdate1', 'ohOs.Platform']
             ),
         CSharpProject(
             name="ohOs.Core", dir="Core", type="library",
             categories=["core"],
             packages=['ohnet', 'log4net', 'systemxmllinq'],
-            references=[]
+            references=[
+                'ohOs.Platform',
+                'DvOpenhomeOrgNode1',
+                ]
             ),
         CSharpProject(
             name="ohOs.Network", dir="Network", type="library",
@@ -452,6 +470,7 @@ csharp_projects = [
     ]
 
 files_to_copy = [
+        CopyFile('src/SystemUpdate.xml', 'SystemUpdate.xml')
     ]
 
 ohos_apps = [
@@ -585,10 +604,16 @@ def build(bld):
                 'ohos__system-settings__console__attributes':'input="yes" output="yes" prompt="yes"',
                 'ohos__system-settings__mdns__enable':'no',
                 'ohos__system-settings__system-app-config':'/etc/ohos/system-app.d/',
+                'ohos__system-settings__system-update-config':'/etc/ohos/UpdateService.xml',
                 'ohos__app-settings__OhWidget__system-updates__enable':'yes'
             },
             install_path='/etc/ohos'
         )
+
+    bld.install_as(
+            '/etc/ohos/SystemUpdate.xml',
+            'src/Update/SystemUpdate.xml')
+
     # Build directory (dev) config file:
     bld(
             rule=file_template_task,
@@ -601,14 +626,12 @@ def build(bld):
                 'ohos__system-settings__console__attributes':'input="no" output="no" prompt="no"',
                 'ohos__system-settings__mdns__enable':'no',
                 'ohos__system-settings__system-app-config':'',
+                'ohos__system-settings__system-update-config':'./UpdateService.xml',
                 'ohos__app-settings__OhWidget__system-updates__enable':'no'
             },
             install_path=None
         )
 
-    #
-
-    # We can probably do a nicer job of assembling the list of all output files here:
     def get_dependency_files(d):
         return [os.path.split(f)[1] for f in d.get_paths_of_files_to_copy_to_output(bld)]
 

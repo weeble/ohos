@@ -9,18 +9,40 @@ using System.Xml.Linq;
 using OpenHome.Os.Apps;
 using OpenHome.Os.Host.Guardians;
 using OpenHome.Os.Platform;
+using OpenHome.Os.Platform.Clock;
 using OpenHome.Os.Platform.Logging;
 using OpenHome.Net.ControlPoint;
 using OpenHome.Net.Core;
 using OpenHome.Os.Platform.Threading;
 using OpenHome.Net.Device;
 using log4net;
+using OpenHome.Widget.Nodes.Global;
+using OpenHome.Widget.Update;
+
 //using Mono.Addins;
 
 //[assembly: AddinRoot("ohOs", "1.1")]
 
 namespace OpenHome.Os.Host
 {
+    class NullBootControl : IBootControl
+    {
+        static readonly ILog Logger = LogManager.GetLogger(typeof(NullBootControl));
+
+        public BootMode Current
+        {
+            get { return BootMode.eRfs0; }
+        }
+
+        public BootMode Pending
+        {
+            get { return BootMode.eRfs0; }
+            set
+            {
+                Logger.WarnFormat("NullBootControl: BootMode changed. If I were a Sheevaplug, next reboot I would be in {0} mode.", value.ToString());
+            }
+        }
+    }
 
     public class AppServices : IAppServices
     {
@@ -34,6 +56,7 @@ namespace OpenHome.Os.Host
         public ICommandRegistry CommandRegistry { get; set; }
         public ILogReader LogReader { get; set; }
         public ILogController LogController { get; set; }
+        public ISystemClock SystemClock { get; set; }
 
         readonly Dictionary<Type, object> iAdditionalServices = new Dictionary<Type, object>();
         public void RegisterService<T>(T aService)
@@ -70,6 +93,7 @@ namespace OpenHome.Os.Host
 
     class NodeRebooter : INodeRebooter
     {
+        static protected readonly ILog Logger = LogManager.GetLogger(typeof(NodeRebooter));
         readonly ConsoleInterface iConsole;
         readonly Channel<int> iExitChannel;
 
@@ -79,15 +103,35 @@ namespace OpenHome.Os.Host
             iExitChannel = aExitChannel;
         }
 
-        public void RebootNode()
+        public virtual void RebootNode()
         {
             iConsole.Quit(10);
             iExitChannel.Send(10);
         }
-        public void SoftRestartNode()
+        public virtual void SoftRestartNode()
         {
             iConsole.Quit(9);
             iExitChannel.Send(9);
+        }
+    }
+
+    class LinuxNodeRebooter : NodeRebooter
+    {
+        public LinuxNodeRebooter(ConsoleInterface aConsole, Channel<int> aExitChannel) : base(aConsole, aExitChannel)
+        {
+        }
+
+        public override void RebootNode()
+        {
+            try
+            {
+                Process.Start("reboot");
+            }
+            catch (Exception e)
+            {
+                Logger.Error("Failed to reboot.", e);
+            }
+            base.RebootNode();
         }
     }
 
@@ -186,6 +230,27 @@ namespace OpenHome.Os.Host
                     return p;
                 });
         }
+        
+        private static IUpdateService CreateUpdateService(INodeRebooter aNodeRebooter, bool aSheevaMode)
+        {
+            var updater = new Updater();
+
+            if (aSheevaMode)
+            {
+                var bootControl = new BootControlSheeva();
+                return new UpdateService(updater, bootControl, aNodeRebooter);
+            }
+            else
+            {
+                var bootControl = new NullBootControl();
+                return new UpdateService(updater, bootControl, aNodeRebooter);
+            }
+        }
+
+        private IUpdateService CreateNullUpdateService()
+        {
+            return new NullUpdateService();
+        }
 
         static int RunAsMainProcess(Options aOptions)
         {
@@ -224,6 +289,7 @@ namespace OpenHome.Os.Host
             }
             bool wsEnabled = sysConfig.GetAttributeAsBoolean(e=>e.Elements("websockets").Attributes("enable").FirstOrDefault()) ?? true;
             uint wsPort = uint.Parse(sysConfig.GetAttributeValue(e=>e.Elements("websockets").Attributes("port").FirstOrDefault()) ?? "54321");
+            string updateConfigFile = sysConfig.GetElementValueAsFilepath(e => e.Element("system-update-config"));
             initParams.DvNumWebSocketThreads = 10; // max 10 web based control points
             initParams.DvWebSocketPort = wsEnabled ? wsPort : 0;
             initParams.NumActionInvokerThreads = 8;
@@ -269,7 +335,8 @@ namespace OpenHome.Os.Host
 
                     var commandDispatcher = new CommandDispatcher();
                     var consoleInterface = new ConsoleInterface(commandDispatcher);
-                    var nodeRebooter = new NodeRebooter(consoleInterface, exitChannel);
+                    // TODO: Use an appropriate rebooter on non-Linux systems.
+                    var nodeRebooter = new LinuxNodeRebooter(consoleInterface, exitChannel);
                     if (guardianChild != null)
                     {
                         guardianChild.WhenGuardianTerminates +=
@@ -320,7 +387,15 @@ namespace OpenHome.Os.Host
                                                                        };
                     consoleInterface.Prompt = (sysConfig.GetAttributeAsBoolean(e=>e.Elements("console").Attributes("prompt").FirstOrDefault()) ?? true) ? "OpenHome>" : "";
 
+                    var updateService = CreateUpdateService(nodeRebooter, false);
+                    var systemClock = new LinuxSystemClock();
+                    var clockProvider = new SystemClockProvider(systemClock);
+                    var logControlProvider = new LogControlProvider(logSystem.LogReader, logSystem.LogController);
+
                     using (var nodeDevice = new NodeDevice(nodeGuid))
+                    using (var systemUpdateProvider = new ProviderSystemUpdate(nodeDevice.Device.RawDevice, updateService,
+                        updateConfigFile, Path.Combine(storeDirectory, "updates", "UpdateService.xml")))
+                    using (var nodeProvider = new ProviderNode(nodeDevice.Device.RawDevice, clockProvider, logControlProvider))
                     {
                         AppServices services = new AppServices
                                                    {
@@ -338,7 +413,8 @@ namespace OpenHome.Os.Host
                                                        LogReader = logSystem.LogReader,
                                                        NodeRebooter = nodeRebooter,
                                                        UpdateService = null,
-                                                       NodeDeviceAccessor = nodeDevice
+                                                       NodeDeviceAccessor = nodeDevice,
+                                                       SystemClock = systemClock
                                                    };
 
                         Console.WriteLine(storeDirectory);

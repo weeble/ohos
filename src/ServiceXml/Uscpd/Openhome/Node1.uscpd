@@ -1,0 +1,54 @@
+# Sequence number ticks every time the time or timezone is changed other
+# than due to the normal passage of time. (I.e. somebody called SetUtcTime
+# or possibly for corrections due to NTP.)
+var TimeSequenceNumber : ui4;
+
+type A_ARG_WriteData : bin.base64;
+type A_ARG_WriteFileName : string;
+type $UtcTime : string;
+type $TimeZoneName : string;
+type $TimeZoneOffset : string;
+type $TimeZoneList : string;
+type $LogText : string;
+type $LogLevelsXml : string;
+
+action WriteFile(Data : in A_ARG_WriteData, FileFullName : in A_ARG_WriteFileName);
+
+# Get the current time and time-zone.
+#     UtcTime is the UTC time in format: "2010-07-31T23:59:00"
+#     LocalOffset is the local timezone's offset in format: "+7:00" or "+0:00" or "-3:30"
+#     TimeZoneName is the name of the time-zone as reported by the OS.
+action GetTime(UtcTime : out $UtcTime, LocalOffset : out $TimeZoneOffset, TimeZoneName : out $TimeZoneName);
+
+# Set the current time in UTC.
+#     Time is the UTC time in format: "2010-07-31T23:59:00"
+action SetUtcTime(Time : in $UtcTime);
+
+# Get an XML list of available time zones.
+# Format:
+# <timezoneList>
+#     <timezone>
+#         <name>Europe/London</name>
+#         <daylightName>BST</daylightName>
+#         <standardName>GMT</standardName>
+#         <hasDaylight>yes</hasDaylight>
+#         <currentOffset>+1:00</currentOffset>
+#         <isDaylight>yes</isDaylight>
+#     </timezone>
+# </timezoneList>
+#
+# name is the name of the timezone, and can be passed back to SetTimeZone to set the timezone.
+# daylightName is the name of the timezone during daylight savings.
+# standardName is the name of the timezone during standard time.
+# hasDaylight is "yes" if the timezone is affected by daylight savings, "no" if not.
+# currentOffset is the offset applied to the time right now.
+# isDaylight is "yes" if daylight savings time is currently in effect in this timezone.
+action GetAvailableTimeZones(TimeZoneList : out $TimeZoneList);
+
+# Set the timezone for the node.
+action SetTimeZone(TimeZoneName : in $TimeZoneName);
+
+action GetRecentLog(LogText : out $LogText);
+
+action GetLogLevelsXml(LogLevelsXml : out $LogLevelsXml);
+action SetLogLevelsXml(LogLevelsXml : in $LogLevelsXml);
