@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using Moq;
 using NUnit.Framework;
 using OpenHome.Net.Device;
-using OpenHome.Os.Platform;
-using OpenHome.Os.Platform.Clock;
 
-namespace OpenHome.Os.Clock
+namespace OpenHome.Os.Platform.Clock
 {
     public class SystemClockProviderContext
     {

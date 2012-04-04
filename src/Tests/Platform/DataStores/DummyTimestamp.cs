@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace OpenHome.Os.DataStores
+namespace OpenHome.Os.Platform.DataStores
 {
     public class DummyTimestamp
     {

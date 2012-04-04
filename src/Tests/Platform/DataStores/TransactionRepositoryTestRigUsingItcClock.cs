@@ -1,7 +1,6 @@
 ﻿using Moq;
-using OpenHome.Os.Platform.DataStores;
 
-namespace OpenHome.Os.DataStores
+namespace OpenHome.Os.Platform.DataStores
 {
     public class TransactionRepositoryTestRigUsingItcClock : TransactionRepositoryTestRig
     {
