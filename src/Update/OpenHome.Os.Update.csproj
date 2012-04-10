@@ -5,12 +5,11 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{192EAE4A-07F8-4608-AC8C-3C07EDCDEF11}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <ProjectGuid>{D481FC2B-1091-4981-B436-BA3D5C19A7AE}</ProjectGuid>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>OpenHome.Os.Host</RootNamespace>
-    <AssemblyName>ohOs.Host</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <RootNamespace>OpenHome.Os.Update</RootNamespace>
+    <AssemblyName>ohOs.Update</AssemblyName>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile>Client</TargetFrameworkProfile>
   </PropertyGroup>
@@ -19,10 +18,8 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DvOpenhomeOrgNode1, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
     <Reference Include="DvOpenhomeOrgSystemUpdate1, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
     <Reference Include="log4net, Version=1.2.10.0, Culture=neutral, PublicKeyToken=1b44e1d426115821, processorArchitecture=MSIL" />
-    <Reference Include="Mono.Addins, Version=0.6.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL" />
     <Reference Include="ohNet.net, Version=0.0.0.0, Culture=neutral, processorArchitecture=x86" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -32,26 +29,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Guardians\Fifo.cs" />
-    <Compile Include="Guardians\Guardian.cs" />
-    <Compile Include="Program.cs" />
+    <Compile Include="BootControl.cs" />
+    <Compile Include="IBootControl.cs" />
+    <Compile Include="ProviderSystemUpdate.cs" />
+    <Compile Include="Update.cs" />
+    <Compile Include="UpdateService.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Apps\OpenHome.Os.Apps.csproj">
-      <Project>{AB03D699-04CE-48D6-B75C-A13E3AD75C1B}</Project>
-      <Name>OpenHome.Os.Apps</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Core\ohOs.Core.csproj">
-      <Project>{E7A375E0-3130-4BEA-8D81-5C7C75CB1CE4}</Project>
-      <Name>ohOs.Core</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Platform\OpenHome.Os.Platform.csproj">
       <Project>{72A13E61-F6E5-4966-B66D-FB3E23157EE1}</Project>
       <Name>OpenHome.Os.Platform</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Update\OpenHome.Os.Update.csproj">
-      <Project>{D481FC2B-1091-4981-B436-BA3D5C19A7AE}</Project>
-      <Name>OpenHome.Os.Update</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

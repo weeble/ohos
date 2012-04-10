@@ -114,6 +114,7 @@ namespace OpenHome.Os.Platform
         ICommandRegistry CommandRegistry { get; }
         ILogReader LogReader { get; }
         ILogController LogController { get; }
+        ISystemClock SystemClock { get; }
 
         T ResolveService<T>();
     }
