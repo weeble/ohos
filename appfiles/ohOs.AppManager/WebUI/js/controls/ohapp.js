@@ -20,7 +20,7 @@
             checkForSystemUpdate: true,
             displayAppManagerLink: true,
             restartWait: 5000,
-            restartRetry: 40000
+            restartRetry: 5000
         }, options || {});
 
         // Private render
