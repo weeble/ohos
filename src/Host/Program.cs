@@ -151,6 +151,7 @@ namespace OpenHome.Os.Host
             public OptionParser.OptionString InstallFile { get; private set; }
             public OptionParser.OptionString Subprocess { get; private set; }
             public OptionParser.OptionBool SingleProcess { get; private set; }
+            public OptionParser.OptionString LogLevel { get; private set; }
             public OptionParser.OptionString Uuid { get; private set; }
             public Options()
             {
@@ -158,6 +159,7 @@ namespace OpenHome.Os.Host
                 InstallFile = new OptionParser.OptionString("-i", "--install", null, "Install the given app and exit.", "APPFILE");
                 Subprocess = new OptionParser.OptionString(null, "--subprocess", null, "Reserved.", "SUBPROCESSDATA");
                 SingleProcess = new OptionParser.OptionBool(null, "--single-process", "Run as a single process. Disables soft restarts.");
+                LogLevel = new OptionParser.OptionString(null, "--loglevel", null, "Set default log level.", "LOGLEVEL");
                 Uuid = new OptionParser.OptionString(null, "--udn", null, "Override UDN.", "UDN");
             }
             public OptionParser Parse(string[] aArgs)
@@ -167,6 +169,7 @@ namespace OpenHome.Os.Host
                 parser.AddOption(InstallFile);
                 parser.AddOption(Subprocess);
                 parser.AddOption(SingleProcess);
+                parser.AddOption(LogLevel);
                 parser.AddOption(Uuid);
                 parser.Parse();
                 return parser;
@@ -196,7 +199,7 @@ namespace OpenHome.Os.Host
             ConfigFileCollection config;
             LoadConfig(aOptions, out config, out sysConfig);
             string storeDirectory = SetupStore(sysConfig);
-            /* LogSystem logSystem = */ SetupLogging(storeDirectory, config);
+            /* LogSystem logSystem = */ SetupLogging(storeDirectory, config, null);
             Logger.Info("Guardian process starting.");
 
             Guardian guardian = new Guardian(Path.Combine(storeDirectory, "fifos"))
@@ -269,7 +272,7 @@ namespace OpenHome.Os.Host
                 guardianChild.Start(aOptions.Subprocess.Value);
             }
 
-            LogSystem logSystem = SetupLogging(storeDirectory, config);
+            LogSystem logSystem = SetupLogging(storeDirectory, config, aOptions.LogLevel.Value);
             Logger.Info("Node starting.");
 
             string noErrorDialogs = Environment.GetEnvironmentVariable("OPENHOME_NO_ERROR_DIALOGS");
@@ -464,7 +467,7 @@ namespace OpenHome.Os.Host
             return exitCode;
         }
 
-        static LogSystem SetupLogging(string storeDirectory, ConfigFileCollection config)
+        static LogSystem SetupLogging(string storeDirectory, ConfigFileCollection config, string logLevel)
         {
             string exeDirectory = Path.GetDirectoryName(
                 System.Reflection.Assembly.GetExecutingAssembly().Location);
@@ -473,7 +476,10 @@ namespace OpenHome.Os.Host
                 logConfigFile,
                 Path.Combine(Path.Combine(storeDirectory, "logging"), "ohos.log"),
                 Path.Combine(Path.Combine(storeDirectory, "logging"), "loglevels.xml"));
-            logSystem.LogController.SetLogLevel("ROOT", "WARN");
+            if (logLevel != null)
+            {
+                logSystem.LogController.SetLogLevel("ROOT", logLevel);
+            }
             logSystem.LogController.SetLogLevel("OpenHome.Os.Host.Program", "DEBUG");
             //if (optionLogLevel.Value != null)
             //{

@@ -648,6 +648,7 @@ def build(bld):
                 "ohOs.Host.exe",
                 "ohOs.Core.dll",
                 "ohOs.Apps.dll",
+                "ohOs.Update.dll",
                 "ohOs.Platform.dll",
                 "ohOs.Remote.dll",
                 ) +
