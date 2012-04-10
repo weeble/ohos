@@ -612,7 +612,7 @@ def build(bld):
 
     bld.install_as(
             '/etc/ohos/SystemUpdate.xml',
-            'src/Update/SystemUpdate.xml')
+            'src/SystemUpdate.xml')
 
     # Build directory (dev) config file:
     bld(
