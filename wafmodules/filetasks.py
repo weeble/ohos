@@ -50,6 +50,8 @@ class FileTree(object):
         return FileTree(_strip_prefix(f, prefix) for f in self.files)
     def flatten(self):
         return FileTree(os.path.basename(f) for f in self.files)
+    def to_nodes(self, bld):
+        return [bld.root.find_or_declare(f) for f in self.files]
 
 def _must_have_at_least_one(sequence):
     if len(sequence) < 1:
