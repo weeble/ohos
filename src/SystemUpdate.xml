@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SystemUpdate>
+  <Server>www.openhome.org</Server>
+  <Channel>build/nightly/node/main</Channel>
+  <State>Idle</State>
+  <AutoUpdate>True</AutoUpdate>
+</SystemUpdate>

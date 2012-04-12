@@ -9,6 +9,7 @@
         <uuid>{ohos__system-settings__uuid}</uuid>
         <!-- Directory containing .xml configuration specifying what apps to auto-download. -->
         <system-app-config>{ohos__system-settings__system-app-config}</system-app-config>
+        <system-update-config>{ohos__system-settings__system-update-config}</system-update-config>
         <!-- Network settings. -->
         <network loopback="no"/>
         <!-- Control how errors are handled -->

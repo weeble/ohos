@@ -1,0 +1,14 @@
+var State : string ["Idle", "UpdateAvailable", "Downloading", "UpdateDownloaded", "Updating", "RebootNeeded"];
+var Progress : ui1 [0:100:1] = 0;
+var Server : string;
+var Channel : string;
+var LastError : string;
+var AutoUpdate : boolean = "true";
+type $Status : boolean;
+action SetSourceInfo(Server : in Server, Channel : in Channel, Status : out $Status);
+action SetAutoUpdate(Enable : in AutoUpdate, Status : out $Status);
+action CheckForUpdate(Status : out $Status);
+action DownloadUpdate(Status : out $Status);
+action DoUpdate(Status : out $Status);
+action CancelUpdate(Status : out $Status);
+action Reboot(Status : out $Status);
