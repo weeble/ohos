@@ -260,9 +260,10 @@ class CopyFile(object):
         self.target = target
 
 class OhOsApp(object):
-    def __init__(self, name, files):
+    def __init__(self, name, files, jsproxies):
         self.name = name
         self.files = files
+        self.jsproxies = jsproxies
 
 def create_csharp_tasks(bld, projects, csharp_dependencies):
     for project in projects:
@@ -336,6 +337,15 @@ def create_tgz_task(bld, tgzfile, sourceroot, tgzroot, sourcefiles):
                 tgzroot=tgzroot)
         task.deps_man = [tgzroot, sourceroot]
 
+def create_minify_task(bld, mintype, sources, target):
+    minoption = {'js':'--jsout', 'css':'--cssout'}[mintype]
+    sources=[bld.path.find_or_declare(s) if isinstance(s, (str,unicode)) else s for s in sources]
+    bld(
+        rule="${MONO} WebCompressor.exe " + minoption + ":${TGT[0].abspath()} " + ' '.join(s.abspath() for s in sources),
+        source=["WebCompressor.exe"] + sources,
+        target=target)
+
+
 # Simple templating for small files using str.format().
 def file_template_task(task):
     with open(task.inputs[0].abspath(),'r') as f:
@@ -359,6 +369,21 @@ upnp_services = [
     ]
 
 csharp_projects = [
+        # Javascript/CSS compressor tool:
+        #     Note: we build ohOs.Platform during the 'early' phase so that
+        #     the WebCompressor can reference it and make use of OptionParser.
+        CSharpProject(
+            name="ohOs.Platform", dir="Platform", type="library",
+            categories=["early"],
+            packages=['ohnet', 'log4net', 'systemxmllinq'],
+            references=[]
+            ),
+        CSharpProject(
+            name="WebCompressor", dir="WebCompressor", type="exe",
+            categories=["early"],
+            packages=['yui-compressor'],
+            references=['ohOs.Platform']),
+
         # Core node libraries:
         CSharpProject(
             name="ohOs.Apps", dir="Apps", type="library",
@@ -408,12 +433,6 @@ csharp_projects = [
                 'ohOs.Platform',
                 'DvOpenhomeOrgAppManager1',
             ]),
-        CSharpProject(
-            name="ohOs.Platform", dir="Platform", type="library",
-            categories=["core"],
-            packages=['ohnet', 'log4net', 'systemxmllinq'],
-            references=[]
-            ),
         CSharpProject(
             name="ohOs.Host", dir="Host", type="exe",
             categories=["core"],
@@ -469,6 +488,24 @@ csharp_projects = [
             ]),
     ]
 
+# Files for minification.
+# Format: ('output', 'type', [('location', 'pattern'), ...])
+#     output = name of output file
+#     type = 'js' or 'css'
+#     location =
+#         'top' for files in the source tree
+#         'bld' for files in the build tree
+#         'ohnetjs' for files in ohnet UI directory
+minification_files = [
+        ('ohj/oh.min.js', 'js', [
+            ('top', 'src/ohj/lib/**/*.js'),
+            ('top', 'src/ohj/util/**/*.js')]),
+        ('ohj/oh.ui.min.js', 'js', [
+            ('top', 'src/ohj/ui/js/**/*.js')]),
+        ('ohj/oh.ui.min.css', 'css', [
+            ('top', 'src/ohj/ui/css/**/*.css')]),
+    ]
+
 files_to_copy = [
         CopyFile('src/SystemUpdate.xml', 'SystemUpdate.xml')
     ]
@@ -478,11 +515,19 @@ ohos_apps = [
             name="ohOs.TestApp1",
             files=[
                 'ohOs.TestApp1.App.dll'
-            ]),
+            ],
+            jsproxies=[]
+            ),
         OhOsApp(
             name="ohOs.AppManager",
             files=[
                 'ohOs.AppManager.App.dll'
+            ],
+            jsproxies=[
+                'CpOpenhomeOrgRemoteAccess1.js',
+                'CpOpenhomeOrgAppManager1.js',
+                'CpOpenhomeOrgAppList1.js',
+                'CpOpenhomeOrgApp1.js',
             ]),
     ]
 
@@ -511,10 +556,9 @@ def build(bld):
             find_resource_or_fail(bld, bld.root, path.join(ohnett4dir.absolute_path, 'UpnpServiceTemplate.xsd'))])
 
 
-    #early_csharp_projects = [
-    #    CSharpProject("WebCompressor", "WebCompressor", "exe", ['yui-compressor'], [])]
-    #create_csharp_tasks(bld, early_csharp_projects, csharp_dependencies)
-    #bld.add_group()
+    early_csharp_projects = [prj for prj in csharp_projects if "early" in prj.categories]
+    create_csharp_tasks(bld, early_csharp_projects, csharp_dependencies)
+    bld.add_group()
 
     ttdir=ohnettemplatedir.absolute_path
     text_transform_exe_node = bld.path.find_or_declare('TextTransform.exe')
@@ -539,6 +583,8 @@ def build(bld):
     bld.add_group()
 
 
+
+
     for copyfile in files_to_copy:
         bld(rule=copy_task, source=copyfile.source, target=copyfile.target)
 
@@ -549,12 +595,39 @@ def build(bld):
 
     create_csharp_tasks(bld, [prj for prj in csharp_projects if categories_to_build.intersection(prj.categories)], csharp_dependencies)
 
+    # Minification (other than app files):
+
+    for filename, mintype, mininputs in minification_files:
+        input_files = []
+        for minsource, minpattern in mininputs:
+            if minsource=='top':
+                matched_files = glob_files_src(bld, minpattern).to_nodes(bld)
+                if len(matched_files)==0:
+                    bld.fatal("No files matched pattern '{0}'".format(minpattern))
+                input_files.extend(matched_files)
+            else:
+                bld.fatal("Can't handle source '{0}' for minification file.".format(minsource))
+        create_minify_task(bld, mintype,
+                sources=input_files,
+                target=filename)
+
+    # Apps
 
     all_apps_transfer = FileTransfer(FileTree([]))
     for ohos_app in ohos_apps:
         app_zip_transfer = (
                 FileTransfer(specify_files_bld(bld, *ohos_app.files)).targets_flattened().targets_prefixed(ohos_app.name) +
+                FileTransfer(specify_files_bld(bld, *[fname for (fname,typ,inp) in minification_files if typ=="js"])).targets_flattened().targets_prefixed(ohos_app.name+'/WebUi/js') +
+                FileTransfer(specify_files_bld(bld, *[fname for (fname,typ,inp) in minification_files if typ=="css"])).targets_flattened().targets_prefixed(ohos_app.name+'/WebUi/css') +
                 FileTransfer(glob_files_src(bld, "appfiles/"+ohos_app.name+"/**/*")).targets_stripped("appfiles"))
+        if len(ohos_app.jsproxies)>0:
+            create_minify_task(bld,
+                    'js',
+                    sources=ohos_app.jsproxies,
+                    target='appfiles/'+ohos_app.name+'/WebUi/js/proxy.min.js')
+            app_zip_transfer += FileTransfer(
+                    specify_files_bld(bld, 'appfiles/'+ohos_app.name+'/WebUi/js/proxy.min.js')
+                ).targets_flattened().targets_prefixed(ohos_app.name + '/WebUi/js')
         all_apps_transfer += app_zip_transfer
         app_zip_transfer.create_zip_task(bld, ohos_app.name + '.zip')
 
@@ -568,6 +641,7 @@ def build(bld):
                 type='library',
                 name=prefix + service.target,
                 install_path=None)
+
 
     # Shell script
 
@@ -643,7 +717,8 @@ def build(bld):
                 log4net.get_paths_of_files_to_copy_to_output(bld)+
                 sshnet.get_paths_of_files_to_copy_to_output(bld)))).targets_flattened()
 
-    ohos_core_transfer = FileTransfer(
+    ohos_core_transfer = (
+        FileTransfer(
             specify_files_bld(bld,
                 "ohOs.Host.exe",
                 "ohOs.Core.dll",
@@ -651,6 +726,7 @@ def build(bld):
                 "ohOs.Update.dll",
                 "ohOs.Platform.dll",
                 "ohOs.Remote.dll",
+                "WebCompressor.exe",
                 ) +
             specify_files_bld(bld, *
             [
@@ -658,6 +734,13 @@ def build(bld):
                 for service in upnp_services
                 for (prefix, suffix) in [('Cp', '.dll'), ('Dv', '.dll'), ('Cp', '.js')]
             ])).targets_flattened()
+        +
+        FileTransfer(
+            specify_files_bld(bld, *
+            [
+                filename
+                for (filename, mintype, inputs) in minification_files
+            ])).targets_stripped(bld.bldnode.abspath()))
 
     ohos_main_transfer = (dependencies_transfer + ohos_core_transfer)
 
