@@ -726,6 +726,7 @@ def build(bld):
                 "ohOs.Update.dll",
                 "ohOs.Platform.dll",
                 "ohOs.Remote.dll",
+                "WebCompressor.exe",
                 ) +
             specify_files_bld(bld, *
             [
