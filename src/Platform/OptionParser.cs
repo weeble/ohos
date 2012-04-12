@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Text;
 using System.Collections.Generic;
 
@@ -31,6 +32,8 @@ namespace OpenHome.Os.Platform
                     // long names must be of form "--[word]" e.g "--word"
                     if (!aLongName.StartsWith("--"))
                         throw new ArgumentException("long name " + aLongName + " does not start with \"--\"");
+                    if (aLongName.IndexOfAny(new[] { ':', '=' }) != -1)
+                        throw new ArgumentException("long name " + aLongName + " contains an illegal character");
                     iLongName = aLongName;
                 }
             }
@@ -50,6 +53,16 @@ namespace OpenHome.Os.Platform
             public string LongName
             {
                 get { return iLongName; }
+            }
+
+            public string DisplayName
+            {
+                get
+                {
+                    if (ShortName == null) return LongName;
+                    if (LongName == null) return ShortName;
+                    return ShortName + "/" + LongName;
+                }
             }
 
             protected string iShortName;
@@ -123,15 +136,17 @@ namespace OpenHome.Os.Platform
                 }
                 catch (FormatException)
                 {
-                    if (iShortName == null)
-                    {
-                        throw new OptionParserError("OptionInt " + iLongName + " has a non-integer value " + aOptArgs[0]);
-                    }
-                    if (iLongName == null)
-                    {
-                        throw new OptionParserError("OptionInt " + iShortName + " has a non-integer value " + aOptArgs[0]);
-                    }
-                    throw new OptionParserError("OptionInt " + iShortName + "/" + iLongName + " has a non-integer value " + aOptArgs[0]);
+                    throw new OptionParserError("OptionInt " + DisplayName + " has a non-integer value " + aOptArgs[0]);
+                }
+                catch (OverflowException)
+                {
+                    throw new OptionParserError(
+                        String.Format(
+                            "OptionInt {0} value out of range {1} to {2}: {3}",
+                            DisplayName,
+                            Int32.MinValue,
+                            Int32.MaxValue,
+                            aOptArgs[0]));
                 }
             }
             public override void Reset()
@@ -181,15 +196,17 @@ namespace OpenHome.Os.Platform
                 }
                 catch (FormatException)
                 {
-                    if (iShortName == null)
-                    {
-                        throw new OptionParserError("OptionInt " + iLongName + " has a non-integer value " + aOptArgs[0]);
-                    }
-                    if (iLongName == null)
-                    {
-                        throw new OptionParserError("OptionInt " + iShortName + " has a non-integer value " + aOptArgs[0]);
-                    }
-                    throw new OptionParserError("OptionInt " + iShortName + "/" + iLongName + " has a non-integer value " + aOptArgs[0]);
+                    throw new OptionParserError("OptionInt " + DisplayName + " has a non-integer value " + aOptArgs[0]);
+                }
+                catch (OverflowException)
+                {
+                    throw new OptionParserError(
+                        String.Format(
+                            "OptionInt {0} value out of range {1} to {2}: {3}",
+                            DisplayName,
+                            UInt32.MinValue,
+                            UInt32.MaxValue,
+                            aOptArgs[0]));
                 }
             }
             public override void Reset()
@@ -365,26 +382,44 @@ namespace OpenHome.Os.Platform
                 int i = 0;
                 while (i < aArgs.Length)
                 {
-                    Option opt = Find(aArgs[i]);
+                    string argString = aArgs[i];
+                    string[] argStringFragments = argString.Split(new[] { ':', '=' }, 2, StringSplitOptions.None);
+                    string optionString, valueString;
+                    if (argStringFragments.Length == 1)
+                    {
+                        optionString = argStringFragments[0];
+                        valueString = null;
+                    }
+                    else
+                    {
+                        optionString = argStringFragments[0];
+                        valueString = argStringFragments[1];
+                    }
+                    Option opt = Find(optionString);
                     if (opt == null)
                     {
                         // this is not an option - positional argument
-                        if (aArgs[i].StartsWith("-"))
+                        if (argString.StartsWith("-"))
                         {
                             // this is an unspecified option
                             throw new OptionParserError("No such option: " + aArgs[i]);
                         }
-                        iPosArgs.Add(iArgs[i]);
+                        iPosArgs.Add(argString);
                         i++;
                     }
                     else
                     {
                         // build an array of the number of arguments this option
                         // is expecting
+                        int argumentsToConsume = opt.ExpectedArgCount() - (valueString == null ? 0 : 1);
                         string[] optArgList = new string[opt.ExpectedArgCount()];
+                        if (valueString != null)
+                        {
+                            optArgList[0] = valueString;
+                        }
                         try
                         {
-                            Array.Copy(aArgs, i + 1, optArgList, 0, optArgList.Length);
+                            Array.Copy(aArgs, i + 1, optArgList, valueString == null ? 0 : 1, argumentsToConsume);
                         }
                         catch (ArgumentException)
                         {
@@ -402,7 +437,7 @@ namespace OpenHome.Os.Platform
 
                         // process this option
                         opt.Process(optArgList);
-                        i += 1 + optArgList.Length;
+                        i += 1 + argumentsToConsume;
                     }
                 }
             }
