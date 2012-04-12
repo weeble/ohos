@@ -58,15 +58,10 @@
     <Compile Include="IO\XmlDiskStore.cs" />
     <Compile Include="ISystemClock.cs" />
     <Compile Include="IUpdateService.cs" />
-    <Compile Include="Logging\ILogger.cs" />
     <Compile Include="Logging\Log4Net.cs" />
     <Compile Include="Logging\LogController.cs" />
     <Compile Include="Logging\LogLevelsSerialization.cs" />
-    <Compile Include="Logging\NullLogger.cs" />
     <Compile Include="Logging\PersistentLogController.cs" />
-    <Compile Include="Logging\TaggedLogger.cs" />
-    <Compile Include="Logging\TextWriterLogger.cs" />
-    <Compile Include="Logging\WrappedLog4NetLogger.cs" />
     <Compile Include="NodeResourceManager.cs" />
     <Compile Include="OptionParser.cs" />
     <Compile Include="Proxies\ProxyList.cs" />

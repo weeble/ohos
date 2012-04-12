@@ -258,7 +258,7 @@ namespace OpenHome.Os.Platform.IO
         private readonly DiskStore<XElement> iDiskStore;
 
         [Obsolete("aLogger will be ignored. Pass an XmlReaderWriter instead to control parsing and logging.")]
-        public XmlDiskStore(DirectoryInfo aStoreDirectory, ILogger aLogger, string aFileExtension)
+        public XmlDiskStore(DirectoryInfo aStoreDirectory, string aFileExtension)
             :this(aStoreDirectory, aFileExtension, new XmlReaderWriter(null, null))
         {
         }
