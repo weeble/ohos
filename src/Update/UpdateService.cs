@@ -1,15 +1,12 @@
 ﻿using System;
-using System.Net;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using log4net;
 using OpenHome.Os.Platform;
-using OpenHome.Os.Platform.Logging;
 
-namespace OpenHome.Widget.Update
+namespace OpenHome.Os.Update
 {
-    public class UpdateService : IUpdateService, IDisposable
+    public class UpdateService : IUpdateService
     {
         public const int PollTimeMilliseconds = 1000 * 60 * 60 * 8;
         private readonly Updater iUpdater;

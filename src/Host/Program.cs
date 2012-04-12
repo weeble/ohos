@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Security.Policy;
 using System.Xml.Linq;
 using OpenHome.Os.Apps;
 using OpenHome.Os.Host.Guardians;
@@ -17,7 +16,7 @@ using OpenHome.Os.Platform.Threading;
 using OpenHome.Net.Device;
 using log4net;
 using OpenHome.Widget.Nodes.Global;
-using OpenHome.Widget.Update;
+using OpenHome.Os.Update;
 
 //using Mono.Addins;
 
@@ -39,7 +38,7 @@ namespace OpenHome.Os.Host
             get { return BootMode.eRfs0; }
             set
             {
-                Logger.WarnFormat("NullBootControl: BootMode changed. If I were a Sheevaplug, next reboot I would be in {0} mode.", value.ToString());
+                Logger.WarnFormat("NullBootControl: BootMode changed. If I were a Sheevaplug, next reboot I would be in {0} mode.", value);
             }
         }
     }
@@ -175,8 +174,8 @@ namespace OpenHome.Os.Host
                 return parser;
             }
         }
-        static ILog Logger = LogManager.GetLogger(typeof(Program));
-        static ILog OhNetLogger = LogManager.GetLogger("OpenHome.Net");
+        static readonly ILog Logger = LogManager.GetLogger(typeof(Program));
+        static readonly ILog OhNetLogger = LogManager.GetLogger("OpenHome.Net");
         static int Main(string[] aArgs)
         {
             Options options = new Options();
@@ -223,7 +222,7 @@ namespace OpenHome.Os.Host
                     childArgs.AddRange(aArgs);
                     var p = Process.Start(
                         new ProcessStartInfo(
-                            System.Reflection.Assembly.GetExecutingAssembly().Location,
+                            Assembly.GetExecutingAssembly().Location,
                             string.Join(" ", childArgs.ToArray())
                         )
                         {
@@ -248,11 +247,6 @@ namespace OpenHome.Os.Host
                 var bootControl = new NullBootControl();
                 return new UpdateService(updater, bootControl, aNodeRebooter);
             }
-        }
-
-        private IUpdateService CreateNullUpdateService()
-        {
-            return new NullUpdateService();
         }
 
         static int RunAsMainProcess(Options aOptions)
@@ -396,9 +390,9 @@ namespace OpenHome.Os.Host
                     var logControlProvider = new LogControlProvider(logSystem.LogReader, logSystem.LogController);
 
                     using (var nodeDevice = new NodeDevice(nodeGuid))
-                    using (var systemUpdateProvider = new ProviderSystemUpdate(nodeDevice.Device.RawDevice, updateService,
+                    using (new ProviderSystemUpdate(nodeDevice.Device.RawDevice, updateService,
                         updateConfigFile, Path.Combine(storeDirectory, "updates", "UpdateService.xml")))
-                    using (var nodeProvider = new ProviderNode(nodeDevice.Device.RawDevice, clockProvider, logControlProvider))
+                    using (new ProviderNode(nodeDevice.Device.RawDevice, clockProvider, logControlProvider))
                     {
                         AppServices services = new AppServices
                                                    {
@@ -469,8 +463,7 @@ namespace OpenHome.Os.Host
 
         static LogSystem SetupLogging(string storeDirectory, ConfigFileCollection config, string logLevel)
         {
-            string exeDirectory = Path.GetDirectoryName(
-                System.Reflection.Assembly.GetExecutingAssembly().Location);
+            string exeDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             string logConfigFile = Path.Combine(exeDirectory, "Log4Net.config");
             var logSystem = Log4Net.SetupLog4NetLogging(
                 logConfigFile,

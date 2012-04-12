@@ -6,9 +6,8 @@ using System.Net;
 using System.Diagnostics;
 using System.Threading;
 using log4net;
-using OpenHome.Os.Platform.Logging;
 
-namespace OpenHome.Widget.Update
+namespace OpenHome.Os.Update
 {
     public class ProgressEventArgs : EventArgs
     {
@@ -35,13 +34,13 @@ namespace OpenHome.Widget.Update
 
         private const int kPollInterval = 1000;
 
-        private string      iLocalVersion;
-        private string      iRemoteVersion;
+        private readonly string iLocalVersion;
+        private string iRemoteVersion;
 
-        private string      iServer = "10.201.0.13";
-        private string      iChannel = "openhome/nightly/main";
-        private bool        iUpdateAvailable;
-        private WebClient   iWebClient;
+        private string iServer = "10.201.0.13";
+        private string iChannel = "openhome/nightly/main";
+        private bool iUpdateAvailable;
+        private readonly WebClient iWebClient;
 
         private delegate void ProgressUpdater();
 
@@ -173,7 +172,7 @@ namespace OpenHome.Widget.Update
             {
                 Logger.Error("Exception trying to fetch update: " + e.Message);
             }
-            return (status != 0) ? false : true; ;
+            return (status != 0) ? false : true;
         }
 
         public bool ApplyUpdate(BootMode target, CancellationToken ct)
@@ -192,7 +191,7 @@ namespace OpenHome.Widget.Update
             return (status != 0) ? false : true;
         }
 
-        private int WaitForProc(Process proc, CancellationToken ct, ProgressUpdater progressUpdater = null)
+        private static int WaitForProc(Process proc, CancellationToken ct, ProgressUpdater progressUpdater = null)
         {
             int id = proc.Id;
             while (!proc.HasExited)
@@ -214,9 +213,9 @@ namespace OpenHome.Widget.Update
             return proc.ExitCode;
         }
 
-        private void KillChildProcs(int procId)
+        private static void KillChildProcs(int procId)
         {
-            Process proc = Process.Start("pkill", "-P " + procId.ToString());
+            Process proc = Process.Start("pkill", "-P " + procId);
             proc.WaitForExit();
         }
         

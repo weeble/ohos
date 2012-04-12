@@ -9,7 +9,7 @@ using OpenHome.Net.Device.Providers;
 using OpenHome.Os.Platform;
 using log4net;
 
-namespace OpenHome.Widget.Nodes.Global
+namespace OpenHome.Os.Update
 {
     public class ProviderSystemUpdate : DvProviderOpenhomeOrgSystemUpdate1
     {
@@ -30,8 +30,6 @@ namespace OpenHome.Widget.Nodes.Global
 
         public const int kUpdateRetryInterval = 4 * 60 * 60 * 1000;
         public const int kAutoUpdateDelay = 2 * 1000;
-
-        private const string kStorageFileName = "SystemUpdate.xml";
 
         readonly string[] StateNames =
         {

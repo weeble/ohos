@@ -1,13 +1,12 @@
-using System;
 using System.IO;
 using System.Diagnostics;
 
-namespace OpenHome.Widget.Update
+namespace OpenHome.Os.Update
 {
     public class BootControlSheeva : IBootControl
     {
         private const string kBootModeFile = "/var/run/bootmode";
-        private BootMode currentBootMode;
+        private readonly BootMode iCurrentBootMode;
 
         public class CommandFailureException : System.Exception
         {
@@ -29,12 +28,12 @@ namespace OpenHome.Widget.Update
             if (File.Exists(kBootModeFile))
             {
                 string btMode = File.ReadAllText(kBootModeFile).Trim();
-                currentBootMode = btMode.Equals("0") ? BootMode.eRfs0 : BootMode.eRfs1;
+                iCurrentBootMode = btMode.Equals("0") ? BootMode.eRfs0 : BootMode.eRfs1;
             }
             else
             {
-                currentBootMode = Pending;
-                File.WriteAllText(kBootModeFile, (currentBootMode == BootMode.eRfs0) ? "0\n" : "1\n");
+                iCurrentBootMode = Pending;
+                File.WriteAllText(kBootModeFile, (iCurrentBootMode == BootMode.eRfs0) ? "0\n" : "1\n");
             }
         }
 
@@ -42,7 +41,7 @@ namespace OpenHome.Widget.Update
         {
             get
             {
-                return currentBootMode;
+                return iCurrentBootMode;
             }
         }
         
@@ -51,10 +50,11 @@ namespace OpenHome.Widget.Update
             get
             {
                 byte[] data = new byte[4];
-                var psi = new ProcessStartInfo("/usr/local/bin/smarties_get_bootmode");
-
-                psi.UseShellExecute = false;
-                psi.RedirectStandardOutput = true;
+                var psi = new ProcessStartInfo("/usr/local/bin/smarties_get_bootmode")
+                              {
+                                  UseShellExecute = false,
+                                  RedirectStandardOutput = true
+                              };
 
                 Process bmProcess = Process.Start(psi);
                 Stream s = bmProcess.StandardOutput.BaseStream;
@@ -70,8 +70,7 @@ namespace OpenHome.Widget.Update
                      data[2] == 0xff    &&
                      data[3] == 0xff )
                     return BootMode.eRfs0;
-                else
-                    return BootMode.eRfs1;
+                return BootMode.eRfs1;
             }
             
             set

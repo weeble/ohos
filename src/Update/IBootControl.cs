@@ -1,6 +1,5 @@
-using System;
 
-namespace OpenHome.Widget.Update
+namespace OpenHome.Os.Update
 {
     public enum BootMode
     {
