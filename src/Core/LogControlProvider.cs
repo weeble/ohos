@@ -4,7 +4,7 @@ using System.Xml.Linq;
 using OpenHome.Net.Device;
 using OpenHome.Os.Platform.Logging;
 
-namespace OpenHome.Widget.Nodes.Global
+namespace OpenHome.Os.Core
 {
     public interface ILogControlProvider
     {

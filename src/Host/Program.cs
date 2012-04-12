@@ -15,7 +15,7 @@ using OpenHome.Net.Core;
 using OpenHome.Os.Platform.Threading;
 using OpenHome.Net.Device;
 using log4net;
-using OpenHome.Widget.Nodes.Global;
+using OpenHome.Os.Core;
 using OpenHome.Os.Update;
 
 //using Mono.Addins;

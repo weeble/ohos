@@ -2,7 +2,7 @@ using OpenHome.Net.Device;
 using OpenHome.Net.Device.Providers;
 using OpenHome.Os.Platform.Clock;
 
-namespace OpenHome.Widget.Nodes.Global
+namespace OpenHome.Os.Core
 {
     public class ProviderNode : DvProviderOpenhomeOrgNode1
     {
