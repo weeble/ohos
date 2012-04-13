@@ -125,10 +125,14 @@ def publish_build(context):
                 '--exclude=*',
                 '%s@%s:/var/www/openhome/apt-repo/incoming/%s' %(username,host,repo))
 
-        reprepro_cmd_template = "sudo /bin/sh -c 'cd /var/www/openhome/apt-repo && reprepro -Vb . include {repo} incoming/{repo}/{changes}"
+        reprepro_cmd_template = "sudo /bin/sh -c 'cd /var/www/openhome/apt-repo && reprepro -Vb . include {repo} incoming/{repo}/{changes}'"
         publish_openhome_cmd = "sudo /bin/sh -c 'rsync -avz --del /var/www/openhome/apt-repo/ %s@%s:~/build/nightly/apt-repo'" %(oh_rsync_user, oh_rsync_host)
 
         with SshSession(host, username) as ssh:
-            ssh(reprepro_cmd_template.format(repo=repo, changes=changes_file))
-            ssh(publish_openhome_cmd)
+            retval = ssh(reprepro_cmd_template.format(repo=repo, changes=changes_file))
+            if retval!=0:
+                fail("repro failed")
+            retval = ssh(publish_openhome_cmd)
+            if retval!=0:
+                fail("publishing rsync failed")
 
