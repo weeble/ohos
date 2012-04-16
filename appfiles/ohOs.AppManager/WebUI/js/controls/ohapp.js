@@ -153,9 +153,6 @@
             }
         };
 
-        // DEBUG
-        // render();
-        //  hook('');
     };
 
     // Plugin
