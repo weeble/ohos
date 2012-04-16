@@ -528,6 +528,8 @@ ohos_apps = [
                 'CpOpenhomeOrgAppManager1.js',
                 'CpOpenhomeOrgAppList1.js',
                 'CpOpenhomeOrgApp1.js',
+                'CpOpenhomeOrgRemoteAccess1.js',
+                'CpOpenhomeOrgSystemUpdate1.js',
             ]),
     ]
 
