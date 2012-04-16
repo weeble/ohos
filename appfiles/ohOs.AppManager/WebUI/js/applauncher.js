@@ -278,10 +278,6 @@ function addApp(app) {
 	if (app.updateStatus && app.updateStatus == "available") {
         $('#detailedapp_' + app.handle + ' .btn-app-update').show();
 	    } 
-   
-//$('#progress_' + app.id).ohprogressbar({
-//		speed : 2000
-//	});
 
 }
 

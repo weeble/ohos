@@ -92,7 +92,6 @@ oh.app.applist.prototype.setupDownloadCountChanged = function () {
         {
         	_this.appHasDownloads();
         }
-        
     });
 }
 
