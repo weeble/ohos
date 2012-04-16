@@ -75,7 +75,7 @@
             });
         };
         if (settings.checkForSystemUpdate) {
-            var updateProxy = new CpProxyOpenhomeOrgSystemUpdate1(nodeUdn);
+            var updateProxy = new CpProxyOpenhomeOrgSystemUpdate1(_this.hostUdn);
             updateProxy.State_Changed(function (state) {
                 if (state == 'RebootNeeded') {
                     $('body').data('ohapp').showAlert(true);
@@ -88,6 +88,7 @@
         //                }, 2000);
         appProxy = new CpProxyOpenhomeOrgApp1(nodeUdn);
         appProxy.GetHostDevice(function (result) {
+            _this.hostUdn = result.Udn;
             var appManager = new CpProxyOpenhomeOrgAppManager1(result.Udn);
             appManager.GetPresentationUri(function (result) {
                 if (settings.displayAppManagerLink) {
@@ -103,7 +104,7 @@
         }
 
         this.restart = function (loadingText) {
-           
+
             setTimeout(function () { $(divsplash).css("opacity", 1); }, 0);
             $(divsplash).show();
             $(divsplash).find('.page-loader').data('ohloader').setText(loadingText);
