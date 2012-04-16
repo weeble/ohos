@@ -1,0 +1,64 @@
+﻿
+.ohscroll
+{
+    background-color: #DBE8FB;
+    overflow:auto;
+}
+
+.ohscroll-vscroll
+{
+    position:relative;
+    z-index:1;
+    height:300px;
+}
+
+.ohscroll-scroller
+{
+	width:100%;
+	padding:0;
+    float:left;
+    padding:0;
+}
+
+.ohscroll-vscroll.ohscroll-scroller
+{ 
+    position:absolute; 
+    z-index:1;
+}
+
+
+.ohscroll-scroller ul
+{
+    list-style:none;
+	display:block;
+	float:left;
+	width:100%;
+	height:100%;
+	padding:0;
+	margin:0;
+	text-align:left;
+}
+
+.ohscroll-scroller li
+{
+	font-size:14px;
+}
+.ohscroll-hscroll .ohscroll-scroller li
+{
+    display: inline-block;
+    float:left;
+    text-align:center;
+    cursor:pointer;
+}
+
+.ohscroll-scroller li.selected
+{
+    background-color: #A9C3DC;
+    color: #3C8CD5;
+}
+
+.ohscroll-hscroll
+{
+    height: auto;
+    white-space: nowrap;
+}
