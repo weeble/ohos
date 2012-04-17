@@ -714,6 +714,7 @@ def build(bld):
 
     dependencies_transfer = FileTransfer(
             specify_files_root(bld, *(
+                yuicompressor.get_paths_of_files_to_copy_to_output(bld)+
                 ohnet.get_paths_of_files_to_copy_to_output(bld)+
                 sharpziplib.get_paths_of_files_to_copy_to_output(bld)+
                 log4net.get_paths_of_files_to_copy_to_output(bld)+
