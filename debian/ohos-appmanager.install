@@ -1,10 +1,11 @@
 debian/tmp/var/ohos/installed-apps/ohOs.AppManager/* /var/ohos/installed-apps/ohOs.AppManager/
 debian/tmp/var/ohos/installed-apps/ohOs.AppManager/WebUI/* /var/ohos/installed-apps/ohOs.AppManager/WebUI/
 debian/tmp/var/ohos/installed-apps/ohOs.AppManager/WebUI/css/* /var/ohos/installed-apps/ohOs.AppManager/WebUI/css/
+debian/tmp/var/ohos/installed-apps/ohOs.AppManager/WebUI/css/ohapp/* /var/ohos/installed-apps/ohOs.AppManager/WebUI/css/ohapp
 debian/tmp/var/ohos/installed-apps/ohOs.AppManager/WebUI/images/* /var/ohos/installed-apps/ohOs.AppManager/WebUI/images/
 debian/tmp/var/ohos/installed-apps/ohOs.AppManager/WebUI/images/navigation/* /var/ohos/installed-apps/ohOs.AppManager/WebUI/images/navigation/
+debian/tmp/var/ohos/installed-apps/ohOs.AppManager/WebUI/images/ohapp/* /var/ohos/installed-apps/ohOs.AppManager/WebUI/images/ohapp/
 debian/tmp/var/ohos/installed-apps/ohOs.AppManager/WebUI/js/* /var/ohos/installed-apps/ohOs.AppManager/WebUI/js/
-debian/tmp/var/ohos/installed-apps/ohOs.AppManager/WebUI/js/controls/* /var/ohos/installed-apps/ohOs.AppManager/WebUI/js/controls/
+debian/tmp/var/ohos/installed-apps/ohOs.AppManager/WebUI/js/ohapp/* /var/ohos/installed-apps/ohOs.AppManager/WebUI/js/ohapp/
 debian/tmp/var/ohos/installed-apps/ohOs.AppManager/WebUI/js/dependencies/* /var/ohos/installed-apps/ohOs.AppManager/WebUI/js/dependencies/
-debian/tmp/var/ohos/installed-apps/ohOs.AppManager/WebUI/js/proxy/* /var/ohos/installed-apps/ohOs.AppManager/WebUI/js/proxy/
 
