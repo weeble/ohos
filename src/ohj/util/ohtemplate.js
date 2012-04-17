@@ -1,5 +1,7 @@
 var _tmplCache = {}
-this.parseTemplate = function (str, data) {
+var ohtemplate ={};
+
+ohtemplate.parse = function (str, data) {
 
     var err = "";
     try {

@@ -64,7 +64,7 @@ $().ready(function () {
         	});
             $('.app-list').html('');
             $('.app-detailedlist').html('');
-            applist = new oh.app.applist(nodeUdn,
+            applist = new ohapp.applist(nodeUdn,
             {
                 appListAddedFunction: appListAdded,
                 appListRemovedFunction: appListRemoved,
@@ -98,7 +98,7 @@ function addGhostApp(input)
 {
 
 	var ghostIndex = ghostApps.length;
-    var applauncher = parseTemplate($("#tpl_app_ghost").html(), {
+    var applauncher = ohtemplate.parse($("#tpl_app_ghost").html(), {
         url: input,
         id: ghostIndex
     });
@@ -206,13 +206,13 @@ function addApp(app) {
         ghostApps[ghost] = null;
     }
 
-    var applauncher = parseTemplate($("#tpl_app-launcher").html(), {
+    var applauncher = ohtemplate.parse($("#tpl_app-launcher").html(), {
 	    id: app.id,
 	    handle: app.handle,
 		name : app.friendlyName,
 		iconUri : app.iconUri
 	});
-	var appmanager = parseTemplate($("#tpl_app-manager").html(), {
+	var appmanager = ohtemplate.parse($("#tpl_app-manager").html(), {
 	    id: app.id,
 	    handle: app.handle,
 		name : app.friendlyName,

@@ -8,9 +8,9 @@
 /**
 @namespace oh.widget.devices
 */
-oh.namespace('oh.app');
+ohapp = {};
 
-oh.app.applist = function (node, options) {
+ohapp.applist = function (node, options) {
 	var _this = this;
     var defaults = {
         appReadyFunction: null,
@@ -47,13 +47,12 @@ oh.app.applist = function (node, options) {
 	this.setupDownloadCountChanged();
 };
 
-oh.app.applist.prototype.setupArrayIdChanged = function () {
-    try {
+ohapp.applist.prototype.setupArrayIdChanged = function () {
         var _this = this;
         this.appProxy.AppHandleArray_Changed(function (state) {
-            var newAppIds = oh.util.convert.byteStringToUint32Array(state);
+            var newAppIds = ohconvert.byteStringToUint32Array(state);
             _this.appIds.sort(function (a, b) { return a - b });
-            _this.appIds.diff(newAppIds
+            ohutil.diff(_this.appIds,newAppIds
                                     , function(seq) {
                                        	_this.appAdded.call(_this,seq);
                                    }
@@ -62,29 +61,21 @@ oh.app.applist.prototype.setupArrayIdChanged = function () {
                                    });
             _this.appIds = newAppIds;
         }, this);
-    }
-    catch (e) {
-        oh.logError('oh.app.applist.prototype.setupArrayIdChanged: ' + e.message);
-    }
+    
 }
 
-oh.app.applist.prototype.setupSequenceNumberChanged = function () {
-    try {
-
+ohapp.applist.prototype.setupSequenceNumberChanged = function () {
+    
         var _this = this;
         this.appProxy.AppSequenceNumberArray_Changed(
         function (state) {
-            _this.appSeqNums = oh.widget.util.hasSeqNumChanged(_this.appSeqNums, state, _this.appIds, function(seq) {
+            _this.appSeqNums = ohutil.hasSeqNumChanged(_this.appSeqNums, state, _this.appIds, function(seq) {
                                        	_this.appChanged.call(_this,seq);
                                  });
         });
-    }
-    catch (e) {
-        oh.logError('SequenceNumberArray_Changed: ' + e.message);
-    }
 }
 
-oh.app.applist.prototype.setupDownloadCountChanged = function () {
+ohapp.applist.prototype.setupDownloadCountChanged = function () {
 
     var _this = this;
     this.appProxy.DownloadCount_Changed(function (download) { 
@@ -96,7 +87,7 @@ oh.app.applist.prototype.setupDownloadCountChanged = function () {
 }
 
 
-oh.app.applist.prototype.appHasDownloads = function () {
+ohapp.applist.prototype.appHasDownloads = function () {
 	var _this = this;
     if (!this.downloadPoll) {
         this.downloadPoll = true;
@@ -104,7 +95,7 @@ oh.app.applist.prototype.appHasDownloads = function () {
         this.appProxy.GetAllDownloadsStatus(function (result) {
             _this.hasDownloads = false;
             var xml = result.DownloadStatusXml;
-            var downloadListObj = oh.util.dataformat.xmlStringToJson(xml);
+            var downloadListObj = ohconvert.xmlStringToJson(xml);
             for (var d in downloadListObj) {
             	if(downloadListObj[d])
             	{
@@ -145,7 +136,7 @@ oh.app.applist.prototype.appHasDownloads = function () {
   
 }
 
-oh.app.applist.prototype.appAdded = function (seq) {
+ohapp.applist.prototype.appAdded = function (seq) {
     var _this = this;
  
     this.appProxy.GetAppStatus(seq, function (result) {
@@ -154,7 +145,7 @@ oh.app.applist.prototype.appAdded = function (seq) {
         if(result.AppListXml)
         {
         
-	        var appListObj = oh.util.dataformat.xmlStringToJson(xml);
+	        var appListObj = ohconvert.xmlStringToJson(xml);
 		    if (appListObj.appList.app && appListObj.appList.app.id != 'ohOs.AppManager') {
 	            var handle = appListObj.appList.app.handle;
 	            _this.list[handle] = appListObj.appList.app;
@@ -166,12 +157,12 @@ oh.app.applist.prototype.appAdded = function (seq) {
 
 }
 
-oh.app.applist.prototype.appChanged = function (seq) {
+ohapp.applist.prototype.appChanged = function (seq) {
     var _this = this;
     this.appProxy.GetAppStatus(seq, function (result) {
   
         var xml = result.AppListXml;
-        var appListObj = oh.util.dataformat.xmlStringToJson(xml);
+        var appListObj = ohconvert.xmlStringToJson(xml);
 
         if (appListObj.appList.app) {
             var handle = appListObj.appList.app.handle;
@@ -183,23 +174,23 @@ oh.app.applist.prototype.appChanged = function (seq) {
     });
 }
 
-oh.app.applist.prototype.appRemoved = function (seq) {
+ohapp.applist.prototype.appRemoved = function (seq) {
    
     if (this.appListRemovedFunction)
         this.appListRemovedFunction(seq,this.list[seq]);
      delete this.list[seq];
 }
 
-oh.app.applist.prototype.remove = function (seq,successFunction, errorFunction) {
+ohapp.applist.prototype.remove = function (seq,successFunction, errorFunction) {
     this.appProxy.RemoveApp(seq,successFunction,errorFunction);
 }
 
-oh.app.applist.prototype.update = function (seq,successFunction, errorFunction) {
+ohapp.applist.prototype.update = function (seq,successFunction, errorFunction) {
     this.appProxy.UpdateApp(seq,successFunction,errorFunction);
 }
 
 
-oh.app.applist.prototype.install = function (url, successFunction, errorFunction) {
+ohapp.applist.prototype.install = function (url, successFunction, errorFunction) {
 
     var _this = this;
     this.appProxy.InstallAppFromUrl(url, function () {     
@@ -215,11 +206,11 @@ oh.app.applist.prototype.install = function (url, successFunction, errorFunction
 * The primary property array is changed whenever the device name or device room changes
 * @method PrimaryPropertiesArrayChanged
 */
-oh.app.applist.prototype.start = function () {
+ohapp.applist.prototype.start = function () {
     this.appProxy.subscribe();
 }
 
-oh.app.applist.prototype.getAppProxy = function () {
+ohapp.applist.prototype.getAppProxy = function () {
     return this.appProxy;
 }
 
@@ -227,7 +218,7 @@ oh.app.applist.prototype.getAppProxy = function () {
 * Class clean up, unsubscribes from node
 * @method Dispose
 */
-oh.app.applist.prototype.dispose = function () {
+ohapp.applist.prototype.dispose = function () {
     this.appProxy.Unsubscribe();
 }
 
