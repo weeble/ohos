@@ -133,7 +133,7 @@ body .main {
     display:block;
 	width: 100%;
 	height: 70px;
-	background: url(../images/oh-logo.png) no-repeat top right;
+	background: url(../img/oh-logo.png) no-repeat top right;
 }
 
 #back
@@ -224,7 +224,7 @@ header .logo {
 
 .app-icon-ghost {
 	border: 3px solid #C1C1C1;
-    background:#fff url('../images/oh-app.png') no-repeat center center;
+    background:#fff url('../img/oh-app.png') no-repeat center center;
 }
 
 .ghostapp-url
