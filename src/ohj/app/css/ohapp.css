@@ -1,0 +1,109 @@
+.ohapp {
+    position:absolute;
+    top:0px;
+    right:0px;
+    text-align: center;
+    height:25px;
+    background-color:#000;
+    width:110px;
+    color:#FFF;
+    letter-spacing:3px;
+    font-size:12px;
+    line-height:25px;
+    background: url('../img/oh.app/ohapp-back.png') repeat;
+    cursor:pointer;
+    z-index:9999;
+}
+
+.ohapp-icon {
+    position:absolute;
+    top:0px;
+    right:110px;
+    height:25px;
+    background-color:#34383C;
+    width:25px;
+    background: url('../img/oh.app/ohapp-icon-home.png') repeat;
+}
+
+.ohapp-icon-alert {
+    background: url('../img/oh.app/ohapp-icon-alert.png') repeat;
+}
+
+
+.ohapp-drawer button 
+{
+	border:1px solid #3D3D3D;
+	height:30px;
+	width:120px;
+	color:#fff;
+	font: normal 14px arial;
+	background-color:#000;
+	-webkit-border-radius: 3px;
+	-moz-border-radius: 3px;
+	border-radius: 3px;
+	background: #6a6a6a;
+	cursor:pointer;
+	cursor:hand;
+    background: -moz-linear-gradient(top,  #6a6a6a 0%, #333333 100%);
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#6a6a6a), color-stop(100%,#333333));
+    background: -webkit-linear-gradient(top,  #6a6a6a 0%,#333333 100%);
+    background: -o-linear-gradient(top,  #6a6a6a 0%,#333333 100%);
+    background: -ms-linear-gradient(top,  #6a6a6a 0%,#333333 100%);
+    background: linear-gradient(top,  #6a6a6a 0%,#333333 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#6a6a6a', endColorstr='#333333',GradientType=0 );
+}
+
+.ohapp button:hover
+{
+	background: #6a6a6a;
+}
+
+.ohapp-drawer .ohdrawer-questiontext
+{
+    text-shadow: 0.1em 0.1em 0.05em #333;
+}
+
+.ohapp-drawer .ohdrawer-subtext
+{
+    padding:8px 0px 8px 0px;
+    font-size:14px;
+}
+
+.ohapp-splash
+{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #fff;
+    opacity:1;
+    color:#546370;
+    z-index: 888;
+    background: #fff url('../img/oh.app/ohapp-logo.png') no-repeat center center;
+    -webkit-transition: opacity 1s ease 1s;
+}
+
+.ohapp-splash .noanimate
+{
+	-webkit-transition: opacity 0s ease 1s;
+}
+
+.ohapp-splash .page-loader
+{
+    position: relative;
+    top: 50%;
+    left: 50%;
+    margin-left:-37px;
+    margin-top:-16px;
+
+}
+
+.ohapp-splash .page-loader .ohloader-text
+{
+     margin-top: 70px;
+    width : 300px;
+    margin-left: -110px;
+    text-align: center;
+}
+   

@@ -502,8 +502,12 @@ minification_files = [
             ('top', 'src/ohj/util/**/*.js')]),
         ('ohj/oh.ui.min.js', 'js', [
             ('top', 'src/ohj/ui/js/**/*.js')]),
+        ('ohj/oh.app.min.js', 'js', [
+            ('top', 'src/ohj/app/js/**/*.js')]),
         ('ohj/oh.ui.min.css', 'css', [
             ('top', 'src/ohj/ui/css/**/*.css')]),
+        ('ohj/oh.app.min.css', 'css', [
+            ('top', 'src/ohj/app/css/**/*.css')]),
     ]
 
 files_to_copy = [
@@ -621,7 +625,8 @@ def build(bld):
                 FileTransfer(specify_files_bld(bld, *ohos_app.files)).targets_flattened().targets_prefixed(ohos_app.name) +
                 FileTransfer(specify_files_bld(bld, *[fname for (fname,typ,inp) in minification_files if typ=="js"])).targets_flattened().targets_prefixed(ohos_app.name+'/WebUi/js') +
                 FileTransfer(specify_files_bld(bld, *[fname for (fname,typ,inp) in minification_files if typ=="css"])).targets_flattened().targets_prefixed(ohos_app.name+'/WebUi/css') +
-                FileTransfer(glob_files_src(bld, "appfiles/"+ohos_app.name+"/**/*")).targets_stripped("appfiles"))
+                FileTransfer(glob_files_src(bld, "appfiles/"+ohos_app.name+"/**/*")).targets_stripped("appfiles") +
+                FileTransfer(glob_files_src(bld, "src/ohj/app/img/**/*")).targets_stripped("src/ohj/app/img").targets_prefixed(ohos_app.name+'/WebUI/img/oh.app'))
         if len(ohos_app.jsproxies)>0:
             create_minify_task(bld,
                     'js',
