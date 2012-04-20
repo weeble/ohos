@@ -500,15 +500,15 @@ minification_files = [
         ('ohj/oh.min.js', 'js', [
             ('top', 'src/ohj/lib/**/*.js'),
             ('top', 'src/ohj/util/**/*.js')]),
-        ('ohj/oh.ui.min.js', 'js', [
+        ('ohj/ui/oh.ui.min.js', 'js', [
             ('top', 'src/ohj/ui/js/**/*.js')]),
-        ('ohj/oh.app.min.js', 'js', [
+        ('ohj/app/oh.app.min.js', 'js', [
             ('top', 'src/ohj/app/js/**/*.js')]),
-        ('ohj/oh.ui.min.css', 'css', [
+        ('ohj/ui/oh.ui.min.css', 'css', [
             ('top', 'src/ohj/ui/css/**/*.css')]),
-        ('ohj/oh.app.min.css', 'css', [
+        ('ohj/app/oh.app.min.css', 'css', [
             ('top', 'src/ohj/app/css/**/*.css')]),
-        ('ohj/oh.net.min.js', 'js', [
+        ('ohj/net/oh.net.min.js', 'js', [
             ('ohnetjs','/lib/**/*.js')]),
     ]
 
@@ -590,8 +590,9 @@ def build(bld):
                 target=bld.path.find_or_declare(prefix + service.target + ext))
     bld.add_group()
 
-
-
+    # Move oh.app images to build 
+    static_ohj_app_img_file_transfer = FileTransfer(glob_files_src(bld,'src/ohj/app/img/**/*')).targets_stripped('src/ohj/app/img').targets_prefixed('ohj/app')
+    static_ohj_app_img_file_transfer.create_copy_tasks(bld)
 
     for copyfile in files_to_copy:
         bld(rule=copy_task, source=copyfile.source, target=copyfile.target)
