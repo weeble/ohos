@@ -10,7 +10,7 @@ from wafmodules.configuration import (
 from wafmodules.filetasks import (
     copy_task,
     glob_files_src,
-    #glob_files_root,
+    glob_files_root,
     #specify_files_src,
     specify_files_bld,
     specify_files_root,
@@ -495,7 +495,7 @@ csharp_projects = [
 #     location =
 #         'top' for files in the source tree
 #         'bld' for files in the build tree
-#         'ohnetjs' for files in ohnet UI directory
+#         'ohnetjs' for files in the ohnet js
 minification_files = [
         ('ohj/oh.min.js', 'js', [
             ('top', 'src/ohj/lib/**/*.js'),
@@ -508,6 +508,8 @@ minification_files = [
             ('top', 'src/ohj/ui/css/**/*.css')]),
         ('ohj/oh.app.min.css', 'css', [
             ('top', 'src/ohj/app/css/**/*.css')]),
+        ('ohj/oh.net.min.js', 'js', [
+            ('ohnetjs','/lib/**/*.js')]),
     ]
 
 files_to_copy = [
@@ -608,6 +610,11 @@ def build(bld):
         for minsource, minpattern in mininputs:
             if minsource=='top':
                 matched_files = glob_files_src(bld, minpattern).to_nodes(bld)
+                if len(matched_files)==0:
+                    bld.fatal("No files matched pattern '{0}'".format(minpattern))
+                input_files.extend(matched_files)
+            elif minsource=='ohnetjs':
+                matched_files = glob_files_root(bld,ohnetuidir.absolute_path + minpattern).to_nodes(bld)
                 if len(matched_files)==0:
                     bld.fatal("No files matched pattern '{0}'".format(minpattern))
                 input_files.extend(matched_files)

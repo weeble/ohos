@@ -2,6 +2,9 @@ import zipfile
 import os
 import shutil
 import tarfile
+import sys
+
+_ignorecase = sys.platform == 'win32'
 
 def find_resource_or_fail(bld, root, path):
     node = root.find_resource(path)
@@ -51,12 +54,30 @@ class FileTree(object):
     def flatten(self):
         return FileTree(os.path.basename(f) for f in self.files)
     def to_nodes(self, bld):
-        return [bld.root.find_or_declare(f) for f in self.files]
+        return [_find_or_declare_node_by_abspath(bld,f) for f in self.files]
 
 def _must_have_at_least_one(sequence):
     if len(sequence) < 1:
         raise ValueError("Expected a non-empty sequence.")
 
+def _find_or_declare_node_by_abspath(bld, abspath):
+    '''
+    Waf fights us tooth and nail to try to enforce its convoluted view of the file-system,
+    and falls to pieces any time it gets confused. This takes an absolute path and works
+    around waf's quirks to obtain the corresponding node.
+    If the node is in the build tree, it might not exist yet, and waf will do bizarre
+    things if we ask it to create the absolute path. If the node is outside of the build
+    tree, we require it to exist now, or we will fail immediately.
+    '''
+    try:
+        build_path = os.path.relpath(abspath, bld.bldnode.abspath())
+        if os.path.split(build_path)[0]!='..':
+            return bld.bldnode.find_or_declare(build_path)
+    except ValueError:
+        # relpath raises ValueError if abspath is on a different drive from bldnode.
+        # Fall through and treat as non-build file.
+        pass
+    return find_resource_or_fail(bld, bld.root, abspath)
 
 def glob_files_src(bld, *globs):
     '''
@@ -77,11 +98,27 @@ def glob_files_bld(bld, *globs):
     _must_have_at_least_one(globs)
     return combine_trees(FileTree(node.abspath() for node in bld.bldnode.ant_glob(g,remove=False)) for g in globs)
 
+def mk_virtual_tree(bld, rootpath, patterns):
+    bldpath = bld.bldnode.abspath()
+    toppath = bld.srcnode.abspath()
+    all_file_paths = []
+    for pattern in patterns:
+        pattern2 = os.path.join(rootpath, pattern).format(bld=bldpath, top=toppath)
+        if pattern2.startswith('/') or pattern2.startswith('\\'):
+            pattern2 = pattern2[1:]
+        if '*' in pattern2 or '?' in pattern2:
+            files = _root_glob(bld.root, pattern2)
+        else:
+            files = [_find_or_declare_node_by_abspath(bld, pattern2)]
+        all_file_paths.extend(f.abspath() for f in files)
+    transfer = FileTransfer(FileTree(all_file_paths))
+    result = transfer.targets_stripped(rootpath)
+    return result
 
 def _root_glob(root, glob):
     if glob.startswith('/') or glob.startswith('\\'):
         glob = glob[1:]
-    return root.ant_glob(glob, remove=False)
+    return root.ant_glob(glob,ignorecase=_ignorecase, remove=False)
 
 def glob_files_root(bld, *globs):
     '''
@@ -165,14 +202,14 @@ class FileTransfer(object):
         '''
         return bld(
                 rule=simpleziprule,
-                source=list(bld.root.find_or_declare(f) for f in self.sourcetree.files),
+                source=list(_find_or_declare_node_by_abspath(bld, f) for f in self.sourcetree.files),
                 arcnames=list(self.targettree.files),
                 target=target,
                 name=name)
     def create_tgz_task(self, bld, target, name=None):
         return bld(
                 rule=simpletgzrule,
-                source=list(bld.root.find_or_declare(f) for f in self.sourcetree.files),
+                source=list(_find_or_declare_node_by_abspath(bld, f) for f in self.sourcetree.files),
                 arcnames=list(self.targettree.files),
                 target=target,
                 name=name)
@@ -183,14 +220,14 @@ class FileTransfer(object):
         Target locations should be relative to the build directory.
         '''
         return [
-            bld(rule=copy_task, source=bld.root.find_or_declare(s), target=t)
+            bld(rule=copy_task, source=_find_or_declare_node_by_abspath(bld, s), target=t)
             for s,t in zip(self.sourcetree.files, self.targettree.files)]
     def install_files(self, bld):
         '''
         Copy the files at install-time.
         '''
         for source, target in zip(self.sourcetree.files, self.targettree.files):
-            bld.install_as(target, bld.root.find_or_declare(source))
+            bld.install_as(target, _find_or_declare_node_by_abspath(bld, source))
     def install_files_preserving_permissions(self, bld):
         '''
         Copy the files at install-time.
