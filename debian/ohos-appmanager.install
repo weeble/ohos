@@ -1,8 +1,8 @@
 debian/tmp/var/ohos/installed-apps/ohOs.AppManager/* /var/ohos/installed-apps/ohOs.AppManager/
 debian/tmp/var/ohos/installed-apps/ohOs.AppManager/WebUI/* /var/ohos/installed-apps/ohOs.AppManager/WebUI/
 debian/tmp/var/ohos/installed-apps/ohOs.AppManager/WebUI/css/* /var/ohos/installed-apps/ohOs.AppManager/WebUI/css/
-debian/tmp/var/ohos/installed-apps/ohOs.AppManager/WebUI/images/* /var/ohos/installed-apps/ohOs.AppManager/WebUI/img/
-debian/tmp/var/ohos/installed-apps/ohOs.AppManager/WebUI/images/navigation/* /var/ohos/installed-apps/ohOs.AppManager/WebUI/images/navigation/
-debian/tmp/var/ohos/installed-apps/ohOs.AppManager/WebUI/images/oh.app/* /var/ohos/installed-apps/ohOs.AppManager/WebUI/images/ohapp/
+debian/tmp/var/ohos/installed-apps/ohOs.AppManager/WebUI/img/* /var/ohos/installed-apps/ohOs.AppManager/WebUI/img/
+debian/tmp/var/ohos/installed-apps/ohOs.AppManager/WebUI/img/navigation/* /var/ohos/installed-apps/ohOs.AppManager/WebUI/img/navigation/
+debian/tmp/var/ohos/installed-apps/ohOs.AppManager/WebUI/img/oh.app/* /var/ohos/installed-apps/ohOs.AppManager/WebUI/img/oh.app/
 debian/tmp/var/ohos/installed-apps/ohOs.AppManager/WebUI/js/* /var/ohos/installed-apps/ohOs.AppManager/WebUI/js/
 
