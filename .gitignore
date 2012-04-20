@@ -2,6 +2,9 @@
 *.suo
 *.csproj.user
 
+#aptana project files
+.project
+
 # Resharper cache and user options
 _ReSharper.*
 *.ReSharper.user
