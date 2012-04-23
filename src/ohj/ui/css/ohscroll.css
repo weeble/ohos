@@ -45,7 +45,6 @@
 .ohscroll-hscroll .ohscroll-scroller li
 {
     display: inline-block;
-    float:left;
     text-align:center;
     cursor:pointer;
 }
