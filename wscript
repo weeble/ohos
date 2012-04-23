@@ -509,7 +509,8 @@ minification_files = [
         ('ohj/app/oh.app.min.css', 'css', [
             ('top', 'src/ohj/app/css/**/*.css')]),
         ('ohj/net/oh.net.min.js', 'js', [
-            ('ohnetjs','/lib/**/*.js')]),
+            ('ohnetjs','/lib/**/*.js'),
+            ('ohnetjs','/Proxies/CpOpenhomeOrgSubscriptionLongPoll1.js')]),
     ]
 
 files_to_copy = [
