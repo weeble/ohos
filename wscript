@@ -758,7 +758,7 @@ def build(bld):
                 for (filename, mintype, inputs) in minification_files
             ])).targets_stripped(bld.bldnode.abspath()))
 
-    ohos_main_transfer = (dependencies_transfer + ohos_core_transfer)
+    ohos_main_transfer = (dependencies_transfer + ohos_core_transfer + static_ohj_app_img_file_transfer)
 
     ohos_main_transfer.targets_prefixed('${PREFIX}/lib/ohos').install_files_preserving_permissions(bld)
     all_apps_transfer.targets_prefixed('/var/ohos/installed-apps').install_files(bld)

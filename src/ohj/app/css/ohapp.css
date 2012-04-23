@@ -10,7 +10,7 @@
     letter-spacing:3px;
     font-size:12px;
     line-height:25px;
-    background: url('../img/oh.app/ohapp-back.png') repeat;
+    background: url('ohapp-back.png') repeat;
     cursor:pointer;
     z-index:9999;
 }
@@ -22,11 +22,11 @@
     height:25px;
     background-color:#34383C;
     width:25px;
-    background: url('../img/oh.app/ohapp-icon-home.png') repeat;
+    background: url('ohapp-icon-home.png') repeat;
 }
 
 .ohapp-icon-alert {
-    background: url('../img/oh.app/ohapp-icon-alert.png') repeat;
+    background: url('ohapp-icon-alert.png') repeat;
 }
 
 
@@ -80,7 +80,7 @@
     opacity:1;
     color:#546370;
     z-index: 888;
-    background: #fff url('../img/oh.app/ohapp-logo.png') no-repeat center center;
+    background: #fff url('ohapp-logo.png') no-repeat center center;
     -webkit-transition: opacity 1s ease 1s;
 }
 
