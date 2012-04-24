@@ -20,7 +20,8 @@
             checkForSystemUpdate: true,
             displayAppManagerLink: true,
             restartWait: 5000,
-            restartRetry: 5000
+            restartRetry: 5000,
+            localize: true
         }, options || {});
 
         // Private render
@@ -99,6 +100,10 @@
 
         }, function () { hook(''); });
         render();
+        if(settings.localize)
+        {
+            ohlocal.parse('resources.xml')
+        }
         if (settings.displayAppManagerLink) {
             $(divlauncher).show();
         }
