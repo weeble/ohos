@@ -635,7 +635,7 @@ def build(bld):
                 FileTransfer(specify_files_bld(bld, *[fname for (fname,typ,inp) in minification_files if typ=="js"])).targets_flattened().targets_prefixed(ohos_app.name+'/WebUi/js') +
                 FileTransfer(specify_files_bld(bld, *[fname for (fname,typ,inp) in minification_files if typ=="css"])).targets_flattened().targets_prefixed(ohos_app.name+'/WebUi/css') +
                 FileTransfer(glob_files_src(bld, "appfiles/"+ohos_app.name+"/**/*")).targets_stripped("appfiles") +
-                FileTransfer(glob_files_src(bld, "src/ohj/app/img/**/*")).targets_stripped("src/ohj/app/img").targets_prefixed(ohos_app.name+'/WebUI/img/oh.app'))
+                FileTransfer(glob_files_src(bld, "src/ohj/app/img/**/*")).targets_stripped("src/ohj/app/img").targets_prefixed(ohos_app.name+'/WebUI/css/'))
         if len(ohos_app.jsproxies)>0:
             create_minify_task(bld,
                     'js',
