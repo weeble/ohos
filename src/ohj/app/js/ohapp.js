@@ -21,7 +21,7 @@
             displayAppManagerLink: true,
             restartWait: 5000,
             restartRetry: 5000,
-            localize: true
+            localize: false
         }, options || {});
 
         // Private render
@@ -100,10 +100,12 @@
 
         }, function () { hook(''); });
         render();
+      
         if(settings.localize)
-        {
-            ohlocal.parse('resources.xml')
+        {   
+            ohlocal.parse('resources.xml');
         }
+        
         if (settings.displayAppManagerLink) {
             $(divlauncher).show();
         }
