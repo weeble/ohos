@@ -75,15 +75,7 @@
                 }
             });
         };
-        if (settings.checkForSystemUpdate) {
-            var updateProxy = new CpProxyOpenhomeOrgSystemUpdate1(_this.hostUdn);
-            updateProxy.State_Changed(function (state) {
-                if (state == 'RebootNeeded') {
-                    $('body').data('ohapp').showAlert(true);
-                }
-            });
-            updateProxy.subscribe();
-        }
+        
         //                setTimeout(function () {
         //                    $('body').data('ohuiapplauncher').showAlert(true);
         //                }, 2000);
@@ -97,6 +89,15 @@
                     hook(result.AppManagerPresentationUri);
                 }
             });
+            if (settings.checkForSystemUpdate) {
+                var updateProxy = new CpProxyOpenhomeOrgSystemUpdate1(_this.hostUdn);
+                updateProxy.State_Changed(function (state) {
+                    if (state == 'RebootNeeded') {
+                        $('body').data('ohapp').showAlert(true);
+                    }
+                });
+                updateProxy.subscribe();
+            }
 
         }, function () { hook(''); });
         render();
