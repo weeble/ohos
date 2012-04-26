@@ -1,12 +1,12 @@
 debian/tmp/var/ohos/installed-apps/ohOs.AppManager/* /var/ohos/installed-apps/ohOs.AppManager/
-debian/tmp/var/ohos/installed-apps/ohOs.AppManager/WebUI/* /var/ohos/installed-apps/ohOs.AppManager/WebUI/
-debian/tmp/var/ohos/installed-apps/ohOs.AppManager/WebUI/css/* /var/ohos/installed-apps/ohOs.AppManager/WebUI/css/
-debian/tmp/var/ohos/installed-apps/ohOs.AppManager/WebUI/themes/classic/* /var/ohos/installed-apps/ohOs.AppManager/WebUI/themes/classic/
-debian/tmp/var/ohos/installed-apps/ohOs.AppManager/WebUI/themes/classic/images/* /var/ohos/installed-apps/ohOs.AppManager/WebUI/themes/classic/images
-debian/tmp/var/ohos/installed-apps/ohOs.AppManager/WebUI/themes/classic/images/navigation/* /var/ohos/installed-apps/ohOs.AppManager/WebUI/themes/classic/images/navigation
-debian/tmp/var/ohos/installed-apps/ohOs.AppManager/WebUI/themes/openhome/* /var/ohos/installed-apps/ohOs.AppManager/WebUI/themes/openhome/
-debian/tmp/var/ohos/installed-apps/ohOs.AppManager/WebUI/themes/openhome/fonts/* /var/ohos/installed-apps/ohOs.AppManager/WebUI/themes/openhome/fonts
-debian/tmp/var/ohos/installed-apps/ohOs.AppManager/WebUI/themes/openhome/images/* /var/ohos/installed-apps/ohOs.AppManager/WebUI/themes/openhome/images
-debian/tmp/var/ohos/installed-apps/ohOs.AppManager/WebUI/themes/openhome/images/navigation/* /var/ohos/installed-apps/ohOs.AppManager/WebUI/themes/openhome/images/navigation
-debian/tmp/var/ohos/installed-apps/ohOs.AppManager/WebUI/js/* /var/ohos/installed-apps/ohOs.AppManager/WebUI/js/
+debian/tmp/var/ohos/installed-apps/ohOs.AppManager/WebUi/* /var/ohos/installed-apps/ohOs.AppManager/WebUi/
+debian/tmp/var/ohos/installed-apps/ohOs.AppManager/WebUi/css/* /var/ohos/installed-apps/ohOs.AppManager/WebUi/css/
+debian/tmp/var/ohos/installed-apps/ohOs.AppManager/WebUi/themes/classic/* /var/ohos/installed-apps/ohOs.AppManager/WebUi/themes/classic/
+debian/tmp/var/ohos/installed-apps/ohOs.AppManager/WebUi/themes/classic/images/* /var/ohos/installed-apps/ohOs.AppManager/WebUi/themes/classic/images
+debian/tmp/var/ohos/installed-apps/ohOs.AppManager/WebUi/themes/classic/images/navigation/* /var/ohos/installed-apps/ohOs.AppManager/WebUi/themes/classic/images/navigation
+debian/tmp/var/ohos/installed-apps/ohOs.AppManager/WebUi/themes/openhome/* /var/ohos/installed-apps/ohOs.AppManager/WebUi/themes/openhome/
+debian/tmp/var/ohos/installed-apps/ohOs.AppManager/WebUi/themes/openhome/fonts/* /var/ohos/installed-apps/ohOs.AppManager/WebUi/themes/openhome/fonts
+debian/tmp/var/ohos/installed-apps/ohOs.AppManager/WebUi/themes/openhome/images/* /var/ohos/installed-apps/ohOs.AppManager/WebUi/themes/openhome/images
+debian/tmp/var/ohos/installed-apps/ohOs.AppManager/WebUi/themes/openhome/images/navigation/* /var/ohos/installed-apps/ohOs.AppManager/WebUi/themes/openhome/images/navigation
+debian/tmp/var/ohos/installed-apps/ohOs.AppManager/WebUi/js/* /var/ohos/installed-apps/ohOs.AppManager/WebUi/js/
 
