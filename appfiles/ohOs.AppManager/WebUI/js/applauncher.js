@@ -1,4 +1,4 @@
-var THEME = 'classic';
+var THEME = 'openhome';
 var THEMEPATH = 'themes/'+THEME+'/';
 
 var hit = 'click';
@@ -25,17 +25,15 @@ function appListChanged(handle,data) {
 
 
 $().ready(function () {
-    
+    loadCssFile(THEMEPATH+THEME+'.css');
     $('.help').hide();
     $('#back').hide();
     $('#back').ohanimate();
-    $('#oh-logo').css('background', 'url('+THEMEPATH+'images/oh-logo.png) no-repeat top right;');
+    
     $('#back img').attr('src',THEMEPATH+'images/navigation/back.png');
     $('.appmanager img').attr('src',THEMEPATH+'images/navigation/appmanager.png');
     $('.addapp img').attr('src',THEMEPATH+'images/navigation/addapp.png');
-    $('.help-img').attr('src',THEMEPATH+'images/navigation/helparrow.png');
-    $('.help-img').attr('src',THEMEPATH+'images/navigation/helparrow.png');
-   
+
     setTimeout(function () {
         $("#page-myapps .page-loader").hide();
         $("#page-appmanager .page-loader").hide();
@@ -317,4 +315,22 @@ function removeGhostApp(appid) {
 
 function isTouchDevice() {
 	return 'ontouchstart' in window;
+}
+
+/*
+* Load a css file dynamically
+*/
+function loadCssFile(filename) {
+    var styles = document.getElementsByTagName("head")[0].getElementsByTagName('link');
+    for (var i = 0; i < styles.length; i++) {
+        if (styles[i].getAttribute('href') == filename) {
+            return;
+        }
+    }
+    var fileref = document.createElement("link");
+    fileref.setAttribute("rel", "stylesheet");
+    fileref.setAttribute("type", "text/css");
+    fileref.setAttribute("href", filename);
+    if (typeof fileref != "undefined")
+        document.getElementsByTagName("head")[0].appendChild(fileref)
 }

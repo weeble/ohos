@@ -79,14 +79,6 @@ html {
 	min-height: 100%;
 }
 body {
-	background: #ffffff;
-	background: -moz-linear-gradient(top,  #ffffff 0%, #c1d8f9 100%);
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ffffff), color-stop(100%,#c1d8f9));
-	background: -webkit-linear-gradient(top,  #ffffff 0%,#c1d8f9 100%);
-	background: -o-linear-gradient(top,  #ffffff 0%,#c1d8f9 100%);
-	background: -ms-linear-gradient(top,  #ffffff 0%,#c1d8f9 100%);
-	background: linear-gradient(top,  #ffffff 0%,#c1d8f9 100%);
-	filter: progid :DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#c1d8f9',GradientType=0 );
 	width: 896px;
 	padding: 15px 0px 20px;
 	color: rgb(60,60,60);
@@ -143,10 +135,7 @@ body .main {
 	width:100px;
 }
 
-h1 {
-	color: #7DABF0;
-	font: normal 2em arial;
-}
+
 h3 {
 	color: #666666;
 	font: normal 0.9em arial;
@@ -481,11 +470,7 @@ button.sm
 	h1 {
 		font-size:1.5em;
 	}
-	#oh-logo
-	{
-	    background-image:none;
-	    height: 30px;
-	}
+
 	
 	.page-content {
 		padding: 3px 10% 50px 10%;

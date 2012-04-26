@@ -1,0 +1,26 @@
+body {
+    background: #ffffff;
+    background: -moz-linear-gradient(top,  #ffffff 0%, #c1d8f9 100%);
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ffffff), color-stop(100%,#c1d8f9));
+    background: -webkit-linear-gradient(top,  #ffffff 0%,#c1d8f9 100%);
+    background: -o-linear-gradient(top,  #ffffff 0%,#c1d8f9 100%);
+    background: -ms-linear-gradient(top,  #ffffff 0%,#c1d8f9 100%);
+    background: linear-gradient(top,  #ffffff 0%,#c1d8f9 100%);
+    filter: progid :DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#c1d8f9',GradientType=0 );
+}
+
+#oh-logo
+    {
+        background:url('images/oh-logo.png') no-repeat top right;
+    }
+
+
+.help-img
+{
+  background:url('images/navigation/helparrow.png') no-repeat
+}
+
+h1 {
+    color: #7DABF0;
+    font: normal 2em arial;
+}
