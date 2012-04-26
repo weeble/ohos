@@ -1,3 +1,6 @@
+var THEME = 'classic';
+var THEMEPATH = 'themes/'+THEME+'/';
+
 var hit = 'click';
 
 var applist;
@@ -6,6 +9,8 @@ var hasApp = false;
 var ghostApps = [];
 var debugxml = '';
 var debugprogressxml = '';
+
+
 function appListAdded(data) {
 	addApp(data);
 }
@@ -20,11 +25,17 @@ function appListChanged(handle,data) {
 
 
 $().ready(function () {
-
+    
     $('.help').hide();
     $('#back').hide();
     $('#back').ohanimate();
-
+    $('#oh-logo').css('background', 'url('+THEMEPATH+'images/oh-logo.png) no-repeat top right;');
+    $('#back img').attr('src',THEMEPATH+'images/navigation/back.png');
+    $('.appmanager img').attr('src',THEMEPATH+'images/navigation/appmanager.png');
+    $('.addapp img').attr('src',THEMEPATH+'images/navigation/addapp.png');
+    $('.help-img').attr('src',THEMEPATH+'images/navigation/helparrow.png');
+    $('.help-img').attr('src',THEMEPATH+'images/navigation/helparrow.png');
+   
     setTimeout(function () {
         $("#page-myapps .page-loader").hide();
         $("#page-appmanager .page-loader").hide();

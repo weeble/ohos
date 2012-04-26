@@ -133,7 +133,6 @@ body .main {
     display:block;
 	width: 100%;
 	height: 70px;
-	background: url(../img/oh-logo.png) no-repeat top right;
 }
 
 #back
@@ -220,11 +219,6 @@ header .logo {
 	text-align: center;
 	overflow:hidden;
 	text-overflow:ellipsis;
-}
-
-.app-icon-ghost {
-	border: 3px solid #C1C1C1;
-    background:#fff url('../img/oh-app.png') no-repeat center center;
 }
 
 .ghostapp-url
