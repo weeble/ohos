@@ -21,7 +21,8 @@
             displayAppManagerLink: true,
             restartWait: 5000,
             restartRetry: 5000,
-            localize: false
+            localize: false,
+            ready: null
         }, options || {});
 
         // Private render
@@ -98,6 +99,8 @@
                 });
                 updateProxy.subscribe();
             }
+            if(settings.ready)
+                settings.ready();
 
         }, function () { hook(''); });
         render();
