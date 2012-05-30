@@ -289,6 +289,7 @@ namespace OpenHome.Os.Host
             string updateConfigFile = sysConfig.GetElementValueAsFilepath(e => e.Element("system-update-config"));
             initParams.DvNumWebSocketThreads = 10; // max 10 web based control points
             initParams.DvWebSocketPort = wsEnabled ? wsPort : 0;
+            initParams.DvUpnpWebServerPort = 55178; // remote access requires that we select a port.  This value can be changed without updating remote access code however.
             initParams.NumActionInvokerThreads = 8;
             initParams.DvNumServerThreads = 8;
             initParams.TcpConnectTimeoutMs = 1000; // NOTE: Defaults to 500ms. At that value, we miss a lot of nodes during soak and stress tests.
