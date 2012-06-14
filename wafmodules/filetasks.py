@@ -102,6 +102,9 @@ def mk_virtual_tree(bld, rootpath, patterns):
     bldpath = bld.bldnode.abspath()
     toppath = bld.srcnode.abspath()
     all_file_paths = []
+    if isinstance(patterns, (str, unicode)):
+        # Treat a single string as a list of one pattern.
+        patterns = [patterns]
     for pattern in patterns:
         pattern2 = os.path.join(rootpath, pattern).format(bld=bldpath, top=toppath)
         if pattern2.startswith('/') or pattern2.startswith('\\'):
