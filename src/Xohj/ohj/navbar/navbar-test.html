@@ -1,0 +1,135 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../../lib/jquery-1.7.2.min.js"></script>
+    <link rel="stylesheet" href="../../lib/test/qunit.css" type="text/css" media="screen" />
+    <script type="text/javascript" src="../../lib/test/qunit.js"></script>
+     <link rel="stylesheet" href="../ohj.ui.css" type="text/css" media="screen" />
+    <script src="../ohj.util.js"></script>
+    <script src="../ohj.ui.js"></script>
+    <script src="../ohj.ui.bridge.js"></script>
+    <script src="ohj.navbar.js"></script>
+
+    <style>
+        
+        .ohjnavbar
+        {
+            background-color:#000;
+            color:#FFF;
+        }
+        
+        .ohjnavbar h1
+        {
+            font-size:18px;
+        }
+    </style>
+  <script>
+
+      var leftClickCount = 0;
+      var leftClick = function () {
+          leftClickCount++;
+      }
+
+      var rightClickCount = 0;
+      var rightClick = function () {
+          rightClickCount++;
+      }
+
+
+      $(document).ready(function () {
+          module("Basic Navbar");
+
+          test("Basic is inline decorated with Navbar", function () {
+              ok($('#basic').hasClass('ohjui'), 'We expect the Basic navbar to contain the class ohjui');
+              ok($('#basic').hasClass('ohjnavbar'), 'We expect the Basic navbar to contain the class ohjnavbar');
+              equal($('#basic > h1').length, 1, 'Basic contains H1 tag');
+          });
+
+          test("Basic has inline settings applied", function () {
+              equal($('#basic').height(), 50, "We expect Basic to have a height of 50 defined inline");
+              equal($('#basic > button').length, 0, "We expect no buttons to appear");
+              equal($('#basic > h1').text(), 'Basic Navbar', 'We expect the navbar to contain the inline defined header');
+          });
+
+          test("Basic method to change header", function () {
+              $('#basic').data('ohjnavbar').setTitle('Basic New Header');
+              equal($('#basic > h1').text(), 'Basic New Header', 'We expect the navbar to have updated it\'s header');
+          });
+
+          module("Small Navbar with left button");
+
+          test("Small has inline left button applied", function () {
+              equal($('#small button').length, 1, 'We expect Small  to contain 1 button');
+              ok($('#small button').hasClass('ohjnavbar-left'), 'We expect the Basic navbar to contain the class ohjnavbar-left');
+          });
+
+          test("Small has left button click handler", function () {
+              var current = leftClickCount;
+              $('#small .ohjnavbar-left').click();
+              equal(leftClickCount , current + 1, 'We expect the left button click to be handled');
+          });
+
+          module("Fluid Navbar with left and right buttons");
+
+          test("Fluid is code decorated with Navbar", function () {
+              $('#fluid').ohjnavbar({
+                  height: '40px',
+                  leftbuttontext: 'Prev',
+                  rightbuttontext: 'Next',
+                  onleftbuttonpress: leftClick,
+                  onrightbuttonpress: rightClick
+              });
+              ok($('#fluid').hasClass('ohjui'), 'We expect the Fluid navbar to contain the class ohjui');
+              ok($('#fluid').hasClass('ohjnavbar'), 'We expect the Fluid navbar to contain the class ohjnavbar');
+              equal($('#fluid > h1').length, 1, 'Fluid contains H1 tag');
+              equal($('#fluid > h1').text(), 'Fluid Navbar', 'We expect the navbar to ignore inner tags');
+          });
+
+          test("Fluid has left button click handler", function () {
+              var current = leftClickCount;
+              $('#fluid .ohjnavbar-left').click();
+              $('#fluid .ohjnavbar-left').click();
+              equal(leftClickCount ,current + 2, 'We expect the left button click to be handled');
+          });
+
+          test("Fluid has right button click handler", function () {
+              var current = rightClickCount;
+              $('#fluid .ohjnavbar-right').click();
+              $('#fluid .ohjnavbar-right').click();
+              $('#fluid .ohjnavbar-right').click();
+              equal(rightClickCount, current + 3, 'We expect the right button click to be handled');
+          });
+
+          module("Destroy Navbar");
+
+          test("Destroy the navbar", function () {
+              $('#destroy').ohjnavbar();
+              ok($('#destroy').data('ohjnavbar') != undefined, 'Destroy navbar created');
+              $('#destroy').data('ohjnavbar').destroy();
+              equal($('#destroy').data('ohjnavbar') , undefined, 'Destroy navbar destroyed');
+          });
+      });
+  </script>
+  
+</head>
+<body>
+    <h1 id="qunit-header">Navbar Tests</h1>
+    <h2 id="qunit-banner"></h2>
+    <div id="qunit-testrunner-toolbar"></div>
+    <h2 id="qunit-userAgent"></h2>
+    <ol id="qunit-tests"></ol>
+    <div id="qunit-fixture">test markup, will be hidden</div>
+
+        <h2>Basic</h2>
+        <div id="basic" data-height="50px" data-use-ohjnavbar="true" style="width:320px">Basic Navbar</div>
+
+        <h2>Small</h2>
+        <div id="small" data-height="40px" style="width:120px" data-onleftbuttonpress="leftClick" data-leftbuttontext="Back" data-use-ohjnavbar="true">Small Navbar</div>
+
+        <h2>Fluid</h2>
+        <div id="fluid"><h1><b>Fluid Navbar</b></h1></div>
+
+
+     <div id="destroy">Destroy Me</div>
+</body>
+</html>

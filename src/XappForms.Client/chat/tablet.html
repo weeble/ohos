@@ -1,0 +1,128 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../scripts/browser.js"></script>
+    <link href="/ohj/pagescroller/ohj.pagescroller.pointer.css" rel="stylesheet">
+    <link href="/theme/default/bootstrap.min.css" rel="stylesheet">
+    <link href="css/main.css" rel="stylesheet">
+    <link href="/ohj/ohj.ui.css" rel="stylesheet">
+    <link href="/ohj/list/ohj.list.css" rel="stylesheet">
+    <style>
+        #userlist img
+        {
+            width: 50px;
+            height: 50px;
+        }
+        #userlist p
+        {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="chatapp" data-use-ohjpageslider="true" data-height="100%" data-onpageload="pageload">
+        <div id="pgLogin" data-use-ohjpage="true" style="height: 100%">
+            <header>
+                    Chat App
+                </header>
+            <article>
+                    <div class="clearfix message login">
+                        <div class="modal-header">
+                            <h1>Chat App</h1>
+                        </div>
+                        <div class="modal-body">
+                        <form class="form-horizontal">
+                        <fieldset>
+                          <div class="control-group">
+                            <label class="control-label">Who are you?</label>
+                            <div class="controls">
+                                <select id="cbxUsers">
+                                </select>
+                            </div>
+                          </div>
+                        </fieldset>
+                      </form>
+                        </div>
+                       <div class="modal-footer">
+                          <a href="#" id="btnLogin" class="btn btn-primary btn-large">Start Chatting</a>
+                        </div>
+                    </div>
+                </article>
+        </div>
+        <div id="pgChat" data-use-ohjpage="true">
+            <div style="float: left; width: 25%; height: 100%;">
+                <div id="pgUser" data-use-ohjpage="true" style="height: 100%;">
+                    <header data-leftbuttontext="Back" data-onleftbuttonpress="goback">
+                        User List
+                </header>
+                    <article>
+  
+                <ul id="userlist" data-use-ohjlist="true">
+                </ul>
+                  
+                    </article>
+                </div>
+            </div>
+            <div style="float: left; width: 75%; height: 100%;">
+                <div id="pgConversation" data-use-ohjpage="true" style="height: 100%;">
+                    <header>
+                        The chat
+                </header>
+                    <article>
+                      
+                    </article>
+                    <footer>
+                        <br/>
+                        <table>
+                            <colgroup>
+                                <col style="width:100%"></col>
+                                <col style="width:200px"></col>
+                            </colgroup>
+                            <tr>
+                                <td>
+                                    <input id="txtMessage" type='text' placeholder="Enter your message here" /></td>
+                                <td> <button id="btnMessage" class="btn btn-primary">Send</button></td>
+                            </tr>
+                        </table>
+                    <br/>
+                    </footer>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="../scripts/lib/zepto-1.0rc1.min.js"></script>
+    <script src="../scripts/xapp.js"></script>
+    <script src="../ohj/ohj.util.js"></script>
+    <script src="../ohj/ohj.ui.js"></script>
+    <script src="../ohj/ohj.ui.bridge.js"></script>
+    <script src="../ohj/navbar/ohj.navbar.js"></script>
+    <script src="../ohj/pagescroller/ohj.pagescroller.js"></script>
+    <script src="../ohj/pagescroller/ohj.pagescroller.touch.js"></script>
+    <script src="../ohj/page/ohj.page.js"></script>
+    <script src="../ohj/pageslider/ohj.pageslider.js"></script>
+    <script src="../ohj/list/ohj.list.js"></script>
+    <script src="js/common.js"></script>
+    <script src="js/tablet.js"></script>
+
+    <script type="text/html" id="tplUser">
+    <li id="usr_<#= id #>">
+        <img src="/ohj/list/default.jpg" />
+         <h3><#= name #></h3>
+        <span class="ohjlist-info ohjlist-info-top "><span class="status label <#= (status==='ONLINE' ? 'label-success' : '') #>"><#= status #></span></span>
+    </li>
+    </script>
+    <script type="text/html" id="tplMessage">
+     <div class="chatmessage clearfix">
+        <div class="chatmessage-avatar">
+                <img src="<#= avatar #>" />
+            <p class="ellipsis"><strong><#= name #></strong></p>
+        </div>
+        <div class="chatmessage-arrow"></div>
+        <div class="message">
+            <#= message #> 
+        </div>              
+    </div>
+    </script>
+
+</body>
+</html>

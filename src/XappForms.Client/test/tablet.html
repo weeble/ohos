@@ -1,0 +1,69 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../scripts/browser.js"></script>
+    
+    <script src="../scripts/lib/jquery-1.7.2.min.js"></script>
+    <script src="../scripts/xapp.js"></script>
+    <script type="text/javascript" src="js/qunit.js"></script>
+    
+    <script>
+
+        var messages = [];
+        $().ready(function () {
+            $('body').on('xappevent', function (event, data) {
+               //console.log('[xappevent:' + data.type + '] ' + data.content + ' ' + data.value);
+                if (data.type == "message") {
+                    messages.push(data.content);
+                }
+
+            });
+        });
+
+        function stop() {
+            xapp.stopLongPoll();
+        }
+      
+        function testLastMessage(content) {
+            test("The content of the last message", function () {
+                equal(content, messages[messages.length - 1].toString(), "The content of the last messaage is not what we expect");
+            });
+        }
+
+        function testArrayMessage(array) {
+            test("the messages evented are correct and in order", function () {
+                equal(array.length, messages.length, "An incorrect number has been received by " + xapp.sessionid + '-' + xapp.tabid);
+                for (var i = 0; i < array.length; i++) {
+
+                    equal(array[i], messages[i], "The content of the last messaage is not what we expect");
+                }
+            });
+        }
+
+        function testCountMessage(count) {
+            test("the messages evented have all been recieved", function () {
+                equal(messages.length, count, "An incorrect number of events has been received by " + xapp.sessionid + '-' + xapp.tabid);
+            });
+        }
+
+        function sendMessage(num) {
+            xapp.tx(num);
+        }
+
+        function getMessages() {
+            for (var i in messages) {
+                console.log(xapp.sessionid + '-' + xapp.tabid + ' : ' + messages[i]);
+            }
+            return messages;
+        }
+
+        function clearMessages() {
+            messages = [];
+        }
+
+    </script>
+</head>
+<body>
+   
+</body>
+</html>

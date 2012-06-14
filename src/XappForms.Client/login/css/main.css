@@ -1,0 +1,155 @@
+﻿html {
+    height: 100%;
+}
+
+body {
+    height: 100%;
+}
+
+.ohjnavbar {
+    background-color: #2C2C2C;
+    height: 40px;
+    color: #FFF;
+    font-weight: 700;
+}
+
+#pgConversation article .content
+{
+    padding-top:20px;
+}
+
+.chatmessage 
+{
+    clear:both;
+}
+        
+.chatmessage img
+{
+    width:55px; 
+    height:55px;
+}
+        
+.chatmessage img
+{
+    width:55px; 
+    height:55px;
+}
+        
+.chatmessage p 
+{
+    padding-left:5px;
+    padding-right:5px;
+    padding-top:5px;
+    color:#FFF;
+    font-size:12px;
+}
+        
+        
+.chatmessage-avatar
+{
+    float:left;
+    width:100px;
+    margin-bottom:10px; 
+    text-align:center;
+}
+        
+.chatmessage-arrow
+{
+    float:left;
+    margin-top:15px;
+    margin-left:5px;
+    width:1px;
+    height:1px;
+    border: 10px solid;
+    border-color: transparent whiteSmoke whiteSmoke transparent;
+}
+        
+
+        
+.message {
+    margin:0px 20px 20px 120px;
+    word-wrap: break-word;
+    min-height: 20px;
+    padding: 19px;
+    background-color: whiteSmoke;
+    border: 1px solid #EEE;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+}
+
+.message.system-message {
+    font-style: italic;
+    margin-left:20px;
+    margin-bottom: 35px;
+    background-color:#CCC;
+}
+
+.message .sender {
+    font-weight: bold;
+    color: #999; 
+}
+
+footer {
+    background-color: whiteSmoke;
+}
+
+footer table td {
+
+    padding: 0px 20px 0px 10px;
+}
+
+#txtMessage {
+    margin-bottom: 0;
+    width: 100%;
+}
+
+article > .content
+{
+    margin-left:0px;
+    padding-bottom:10px;
+}
+
+#pgLogin article, #pgConversation article
+{
+    background-color: #6C6C6C;
+}
+        
+#pgLogin article .login
+{
+    max-width: 400px;
+    margin: 0 auto;
+    margin-top: 150px;
+    padding-top: 0px;
+}
+        
+        
+h1
+{
+    font-size: 16px;
+    line-height: 40px;
+}
+        
+#userlist li
+{
+    background-color: #EEE;
+    border-bottom: 1px solid #CCC;
+}
+#userlist > li > h3
+{
+    margin-top: 16px;
+    font-size: 13px;
+    line-height: 30px;
+    padding-left:6px;
+}
+#userlist img
+{
+    height: 60px;
+}
+
+#userlist > li.active
+{
+    background-color:#DCEAF4;
+}
+

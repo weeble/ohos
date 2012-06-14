@@ -25,6 +25,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ohOs.Core", "Core\ohOs.Core
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenHome.Os.Update", "Update\OpenHome.Os.Update.csproj", "{D481FC2B-1091-4981-B436-BA3D5C19A7AE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenHome.XappForms", "XappForms\OpenHome.XappForms.csproj", "{FE47990D-5AF0-468B-BDE9-DCF76217A742}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -79,6 +81,10 @@ Global
 		{D481FC2B-1091-4981-B436-BA3D5C19A7AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D481FC2B-1091-4981-B436-BA3D5C19A7AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D481FC2B-1091-4981-B436-BA3D5C19A7AE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FE47990D-5AF0-468B-BDE9-DCF76217A742}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FE47990D-5AF0-468B-BDE9-DCF76217A742}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FE47990D-5AF0-468B-BDE9-DCF76217A742}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FE47990D-5AF0-468B-BDE9-DCF76217A742}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

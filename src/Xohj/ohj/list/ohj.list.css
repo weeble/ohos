@@ -1,0 +1,46 @@
+.ohjlist
+{
+    list-style:none;
+    margin:0px;
+    display:block;
+}
+
+.ohjlist > li
+{
+    display:block;
+    padding-right:30%;
+    position:relative;
+}
+
+.ohjlist > li > p,.ohjlist > li > h3
+{
+     margin:0 0 0 10px; 
+}
+
+.ohjlist > li > img
+{
+    float:left; 
+    border-width: 0;
+}
+
+.ohjlist-info
+{
+    float: right;
+    text-align: right;
+    width:28%;
+    position:absolute; 
+    right:.8em;
+    font-size: 12px;
+    font-weight: normal;
+    word-wrap: break-word;
+}
+
+.ohjlist-info-bottom
+{
+    bottom:0;
+}
+
+.ohjlist-info-top
+{
+    top:.5em; 
+}

@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Chat App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link href="../../ohj/pagescroller/ohj.pagescroller.pointer.css" rel="stylesheet">
+    <link href="../../ohj/ohj.ui.css" rel="stylesheet">
+    <link href="../../ohj/list/ohj.list.css" rel="stylesheet">
+    <link href="chat.css" rel="stylesheet">
+    <!-- Le styles -->
+    <link href="../../docs/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        html
+        {
+            height: 100%;
+        }
+        
+        body
+        {
+            height: 100%;
+        }
+        
+        .ohjnavbar
+        {
+            background-color: #2C2C2C;
+            height: 40px;
+            color: #FFF;
+            font-weight: 700;
+        }
+        
+        .message
+        {
+            margin: 10px 10px 0px 10px;
+            min-height: 20px;
+            padding: 19px;
+            background-color: whiteSmoke;
+            border: 1px solid #EEE;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            -webkit-border-radius: 4px;
+            -moz-border-radius: 4px;
+            border-radius: 4px;
+        }
+        
+        footer
+        {
+            background-color: whiteSmoke;
+        }
+        
+        
+        footer table td
+        {
+            padding: 0px 20px 0px 10px;
+        }
+        
+        #txtMessage
+        {
+            margin-bottom: 0;
+            width: 100%;
+        }
+        
+        
+        #pgLogin article, #pgConversation article
+        {
+            background-color: #6C6C6C;
+        }
+        
+        #pgLogin article .login
+        {
+            max-width: 400px;
+            margin: 0 auto;
+            margin-top: 200px;
+            padding-top: 0px;
+        }
+        
+        
+        h1
+        {
+            font-size: 16px;
+            line-height: 40px;
+        }
+        
+        #userlist li
+        {
+            background-color: #EEE;
+            border-bottom: 1px solid #CCC;
+        }
+        #userlist p
+        {
+            margin-top: 28px;
+            font-size: 13px;
+            line-height: 30px;
+        }
+        #userlist img
+        {
+            height: 80px;
+        }
+    </style>
+    <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+        <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+</head>
+<body>
+    <div id="chatapp" data-use-ohjpageslider="true" data-height="100%" data-onpageload="pageload">
+        <div id="pgLogin" data-use-ohjpage="true" style="height: 100%">
+            <header>
+                    Chat App
+                </header>
+            <article>
+                    <div class="clearfix message login">
+                        <div class="modal-header">
+                            <h1>Chat App</h1>
+                        </div>
+                        <div class="modal-body">
+                        <form class="form-horizontal">
+                        <fieldset>
+                          <div class="control-group">
+                            <label class="control-label">Who are you?</label>
+                            <div class="controls">
+                                <select id="cbxUsers">
+                                    <option>Chris Cheung</option>
+                                    <option>Andrew Wilson</option>
+                                    <option>Simon Chisholm</option>
+                                    <option>Graham Darnell</option>
+                                </select>
+                            </div>
+                          </div>
+                        </fieldset>
+                      </form>
+                        </div>
+                       <div class="modal-footer">
+                          <a href="#" id="btnLogin" class="btn btn-primary btn-large">Start Chatting</a>
+                        </div>
+                    </div>
+                </article>
+        </div>
+        <div id="pgChat" data-use-ohjpage="true">
+           <div style="float:left; width:25%; height:100%;" >
+                        <div id="pgUser" data-use-ohjpage="true" style="height:100%;">
+                            <header data-leftbuttontext="Back" data-onleftbuttonpress="goback">
+                        User List
+                </header>
+                            <article>
+  
+                <ul id="userlist" data-use-ohjlist="true">
+                     <li>
+                        <img src="../../ohj/list/default.jpg" />
+                        <p><strong>Chris Cheung</strong></p>
+                        <span class="ohjlist-info ohjlist-info-top "><span class="label label-success">ONLINE</span></span>
+                    </li>
+                     <li >
+                        <img src="../../ohj/list/default.jpg" />
+                        <p><strong>Andrew Wilson</strong></p>
+                        <span class="ohjlist-info ohjlist-info-top "><span class="label label-success">ONLINE</span></span>
+                    </li>
+                     <li >
+                        <img src="../../ohj/list/default.jpg" />
+                        <p><strong>Simon Chisholm</strong></p>
+                        <span class="ohjlist-info ohjlist-info-top "><span class="label">OFFLINE</span></span>
+                    </li>
+                    <li >
+                        <img src="../../ohj/list/default.jpg" />
+                        <p><strong>Graham Darnell</strong></p>
+                        <span class="ohjlist-info ohjlist-info-top "><span class="label">OFFLINE</span></span>
+                    </li>
+                </ul>
+                  
+                    </article>
+                        </div>
+
+                        </div>
+                          <div style="float:left; width:75%; height:100%;">
+            
+                        <div id="pgConversation" data-use-ohjpage="true" style="height: 100%;">
+                            <header>
+                        The chat
+                </header>
+                            <article>
+
+                        <div class="chatmessage " style="clear:both;">
+                        <div style="float:left; width:120px;margin-bottom:15px; text-align:center;" >
+                             <img src="../../ohj/list/default.jpg" style="width:55px; height:55px;" />
+                            <p class="ellipsis" style="padding-left:5px; padding-right:5px;padding-top:5px;color:#FFF; font-size:12px;"><strong>Andrew Wilson</strong></p>
+                            </div>
+                            <div class="arrow" style="float:left;margin-top:15px;margin-left:5px;width:1px;	height:1px;	border: 10px solid;border-color: transparent whiteSmoke whiteSmoke transparent;"></div>
+                            <div class="message" style="margin-left:140px;margin-top:20px;margin-right:20px;">
+                                Message 1 
+                            </div>
+                            
+                        </div>
+
+                        <div class="chatmessage " style="clear:both;">
+                        <div style="float:left; width:120px; text-align:center;" >
+                             <img src="../../ohj/list/default.jpg" style="width:55px; height:55px;" />
+                            <p class="ellipsis" style="padding-left:5px; padding-right:5px;padding-top:5px;color:#FFF; font-size:12px;"><strong>Andrew Wilson</strong></p>
+                            </div>
+                            <div class="arrow" style="float:left;margin-top:15px;margin-left:5px;width:1px;	height:1px;	border: 10px solid;border-color: transparent whiteSmoke whiteSmoke transparent;"></div>
+                            <div class="message" style="margin-left:140px;margin-top:20px;margin-right:20px;">
+                                Message 1 
+                            </div>
+                        </div>
+            
+                       
+                    </article>
+                            <footer>
+                        <br/>
+                        <table>
+                            <colgroup>
+                                <col style="width:100%"></col>
+                                <col style="width:200px"></col>
+                            </colgroup>
+                            <tr>
+                                <td>
+                                    <input id="txtMessage" type='text' placeholder="Enter your message here" /></td>
+                                <td> <button id="btnMessage" class="btn btn-primary">Send</button></td>
+                            </tr>
+                        </table>
+                    <br/>
+                    </footer>
+                        </div>
+                    </div>
+                    
+          
+        </div>
+    </div>
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../../lib/jquery-1.7.2.min.js"></script>
+    <script src="../../ohj/ohj.util.js"></script>
+    <script src="../../ohj/ohj.ui.js"></script>
+        <script src="../../ohj/page/ohj.page.js"></script>
+    <script src="../../ohj/pageslider/ohj.pageslider.js"></script>
+    <script src="../../ohj/pagescroller/ohj.pagescroller.js"></script>
+    <script src="../../ohj/pagescroller/ohj.pagescroller.pointer.js"></script>
+    <script src="../../ohj/pagescroller/ohj.pagescroller.touch.js"></script>
+    <script src="../../ohj/navbar/ohj.navbar.js"></script>
+     
+
+   <script src="../../ohj/list/ohj.list.js"></script>
+    <script>
+        $().ready(function () {
+            $('#btnLogin').press(function () {
+                $('#chatapp').data('ohjpageslider').navigateNext();
+            });
+            
+        });
+
+        function pageload(page) {
+            switch (page.attr('id')) {
+                case 'pgChat':
+                    {
+                        $('#pgUser').data('ohjpage').refreshPage();
+                        $('#pgConversation').data('ohjpage').refreshPage();
+                        setTimeout(function () {
+                            $('#txtMessage').focus();
+                        }, 200);
+                        break;
+                    }
+                default:
+                    {
+                        page.data('ohjpage').refreshPage();
+                    }
+            }
+
+        }
+
+        function goback(page) {
+            $('#chatapp').data('ohjpageslider').navigateBack();
+        }
+
+        function showusers(page) {
+            $('#chatapp').data('ohjpageslider').navigateNext();
+        }
+    </script>
+</body>
+</html>

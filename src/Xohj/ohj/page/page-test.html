@@ -1,0 +1,145 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../../lib/jquery-1.7.2.min.js"></script>
+    <link rel="stylesheet" href="../../lib/test/qunit.css" type="text/css" media="screen" />
+    <script type="text/javascript" src="../../lib/test/qunit.js"></script>
+    <link rel="stylesheet" href="../ohj.ui.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../pagescroller/ohj.pagescroller.pointer.css" type="text/css" media="screen" />
+    <script src="../ohj.util.js"></script>
+    <script src="../ohj.ui.js"></script>
+    <script src="ohj.page.js"></script>
+    <script src="../navbar/ohj.navbar.js"></script>
+    <script src="../pagescroller/ohj.pagescroller.js"></script>
+    <script src="../pagescroller/ohj.pagescroller.touch.js"></script>
+    <script src="../pagescroller/ohj.pagescroller.pointer.js"></script>
+    <style>
+      header
+      {
+          background-color:Black;
+          font-size:12px;
+          height:40px;
+          color:#FFF;
+      }
+       
+       footer
+       {
+           
+          background-color:#777;
+          font-size:12px;
+          height:40px;
+          color:#FFF;
+       } 
+    </style>
+    <script>
+
+
+        $(document).ready(function () {
+            module("Basic Page");
+
+            test("Basic is inline decorated with Page", function () {
+                ok($('#basic').hasClass('ohjui'), 'We expect the class ohjui');
+                ok($('#basic').hasClass('ohjpage'), 'We expect the class ohjpage');
+                ok($('#basic header').hasClass('ohjnavbar'), 'We expect the class ohjnavbar on the header element');
+                ok($('#basic article').hasClass('ohjpagescroller'), 'We expect the class ohjpagescroller on the article element');
+            });
+
+            module("No Header Page");
+
+            $('#nohead').ohjpage();
+            test("No header page is code decorated with Page", function () {
+                ok($('#nohead').hasClass('ohjui'), 'We expect the class ohjui');
+                ok($('#nohead').hasClass('ohjpage'), 'We expect the class ohjpage');
+                ok($('#nohead article').hasClass('ohjpagescroller'), 'We expect the class ohjpagescroller on the article element');
+
+            });
+
+            module("Full Page");
+
+            var full = $('#full').ohjpage();
+            test("Full page is code decorated with Page", function () {
+                ok($('#full header').hasClass('ohjnavbar'), 'We expect the class ohjnavbar on the header element');
+                ok($('#full article').hasClass('ohjpagescroller'), 'We expect the class ohjpagescroller on the article element');
+                ok($('#full footer').hasClass('ohjnavbar'), 'We expect the class ohjnavbar on the footer element');
+
+            });
+
+            test('getPageScroller Method returns correct scroller', function () {
+                equal(full.getPageScroller(), $('#full article').data('ohjpagescroller'), 'getPageScroller return correctly');
+            });
+
+            test('resizing will refresh the inner controls', function () {
+                var currentScrollerHeight = $('#full article').height();
+                $('#full').css({ 'height': '300px' });
+                $(window).trigger('resize');
+                stop();
+                setTimeout(function () {
+                    ok($('#full article').height() > currentScrollerHeight, 'We expect the page scroller height to have changed');
+                    start();
+
+                }, 1000);
+
+            });
+
+
+            module("Destroy Page");
+
+            test("Destroy the page", function () {
+                $('#destroy').ohjpage();
+                ok($('#destroy').data('ohjpage') != undefined, 'Destroy page created');
+                $('#destroy').data('ohjpage').destroy();
+                equal($('#destroy').data('ohjpage'), undefined, 'Destroy page destroyed');
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1 id="qunit-header">
+        Page Tests</h1>
+    <h2 id="qunit-banner">
+    </h2>
+    <div id="qunit-testrunner-toolbar">
+    </div>
+    <h2 id="qunit-userAgent">
+    </h2>
+    <ol id="qunit-tests">
+    </ol>
+    <div id="qunit-fixture">
+        test markup, will be hidden</div>
+    <h2>
+        Basic</h2>
+        <div  id="basic" data-use-ohjpage="true"  style="background:whitesmoke;">
+            <header>Basic Page</header>
+            <article data-height='100px'>    <ul>
+                                <li>One</li><li>Two</li><li>Three</li><li>Four</li><li>Five</li><li>Six</li><li>Seven</li><li>Eight</li><li>Nine</li><li>Ten</li>
+                                <li>11</li><li>12</li><li>13</li><li>14</li><li>15</li><li>16</li><li>17</li><li>18</li><li>19</li><li>20</li>
+                            </ul>
+             </article>
+        </div>
+
+  <h2>
+        No header</h2>
+        <div  id="nohead" style="background:whitesmoke;" >
+            <article data-height='100px'>    <ul>
+                                <li>One</li><li>Two</li><li>Three</li><li>Four</li><li>Five</li><li>Six</li><li>Seven</li><li>Eight</li><li>Nine</li><li>Ten</li>
+                                <li>11</li><li>12</li><li>13</li><li>14</li><li>15</li><li>16</li><li>17</li><li>18</li><li>19</li><li>20</li>
+                            </ul>
+             </article>
+        </div>
+
+    <h2>
+        Full</h2>
+        <div  id="full" style="background:whitesmoke;width:320px;">
+            <header>Full Page</header>
+            <article data-height='100px'>    <ul>
+                                <li>One</li><li>Two</li><li>Three</li><li>Four</li><li>Five</li><li>Six</li><li>Seven</li><li>Eight</li><li>Nine</li><li>Ten</li>
+                                <li>11</li><li>12</li><li>13</li><li>14</li><li>15</li><li>16</li><li>17</li><li>18</li><li>19</li><li>20</li>
+                            </ul>
+             </article>
+             <footer data-use-ohjnavbar="true">Footer
+             </footer>
+        </div>
+
+    <div id="destroy"></div>
+</body>
+</html>

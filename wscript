@@ -16,6 +16,7 @@ from wafmodules.filetasks import (
     specify_files_root,
     FileTransfer,
     FileTree,
+    mk_virtual_tree,
     #combine_transfers,
     find_resource_or_fail)
 
@@ -149,6 +150,40 @@ sshnetdir = sshnet.add_directory(
 sshnetdir.add_assemblies(
         'Renci.SshNet.dll',
         reference=True, copy=True)
+
+def add_nuget_package(name, assembly=None, subdir='lib/net40'):
+    def to_option(s):
+        s = s.lower()
+        s = s.replace('.', '-')
+        s = ''.join(ch for ch in s if ch.isalpha() or ch=='-')
+        s = s.strip('-')
+        s = '--' + s
+        s = s + '-dir'
+        return s
+    option = to_option(name)
+    pkg = csharp_dependencies.add_package(name)
+    if assembly is None:
+        assembly = name + '.dll'
+    # Note: the following pattern is designed to accomodate packages
+    # whose names are prefixes of each other. For example, "Gate" and
+    # "Gate.Hosts.Firefly". We don't want the directory
+    # "Gate.Hosts.Firefly.1.2.3" to be a match for "Gate" itself. The
+    # "[0-9]" ensures that it won't match inappropriately.
+    dependency_path = 'nuget/%s.[0-9]*/%s' % (name, subdir)
+    pkgdir = pkg.add_directory(
+            unique_id = name + '-dir',
+            as_option = option,
+            option_help = 'Location of %s package' % name,
+            in_dependencies = dependency_path)
+    pkgdir.add_assemblies(assembly, copy=True)
+
+add_nuget_package("Firefly")
+add_nuget_package("Gate")
+add_nuget_package("Gate.Hosts.Firefly")
+add_nuget_package("Kayak", subdir='lib')
+add_nuget_package("Owin")
+
+
 
 # == Command-line options ==
 
@@ -306,7 +341,7 @@ def create_zip_task(bld, zipfile, sourceroot, ziproot, sourcefiles):
 
 
 def get_active_dependencies(env):
-    active_dependency_names = set(['ohnet', 'yui-compressor', 'sharpziplib', 'log4net', 'systemxmllinq', 'mef', 'sshnet'])
+    active_dependency_names = set(['ohnet', 'yui-compressor', 'sharpziplib', 'log4net', 'systemxmllinq', 'mef', 'sshnet', 'Gate', 'Owin', 'Gate.Hosts.Firefly', 'Firefly', 'Kayak'])
     if env.BUILDTESTS:
         active_dependency_names |= set(['nunit', 'ndeskoptions', 'moq'])
     return csharp_dependencies.get_subset(active_dependency_names)
@@ -486,6 +521,11 @@ csharp_projects = [
                 'ohOs.AppManager.App',
                 'ohOs.Platform',
             ]),
+        CSharpProject(
+            name="OpenHome.XappForms", dir="XappForms", type="exe",
+            categories=["xappforms"],
+            packages=['Owin', 'Gate', 'Firefly', 'Gate.Hosts.Firefly', 'Kayak'],
+            references=[]),
     ]
 
 # Files for minification.
@@ -599,7 +639,7 @@ def build(bld):
         bld(rule=copy_task, source=copyfile.source, target=copyfile.target)
 
     # Build all our assemblies.
-    categories_to_build = set(['core'])
+    categories_to_build = set(['core', 'xappforms'])
     if bld.env.BUILDTESTS:
         categories_to_build.update(['test','testsupport'])
 
@@ -658,6 +698,21 @@ def build(bld):
                 name=prefix + service.target,
                 install_path=None)
 
+    # Client scripts for XappForms
+
+    client_scripts_tree = mk_virtual_tree(
+            bld,
+            bld.srcnode.abspath() + '/src/XappForms.Client',
+            ['**/*'])
+
+    xohj_tree = mk_virtual_tree(
+            bld,
+            bld.srcnode.abspath() + '/src/Xohj',
+            [
+                'ohj/**/*',
+                'theme/**/*',
+                'lib/**/*',
+            ])
 
     # Shell script
 
@@ -763,6 +818,20 @@ def build(bld):
 
     ohos_main_transfer.targets_prefixed('${PREFIX}/lib/ohos').install_files_preserving_permissions(bld)
     all_apps_transfer.targets_prefixed('/var/ohos/installed-apps').install_files(bld)
+
+    ohos_main_transfer.targets_prefixed('install/OhOs').create_copy_tasks(bld)
+
+
+    xappforms_core_tree = mk_virtual_tree(bld, bld.bldnode.abspath(), [
+            'OpenHome.XappForms.exe',
+            'Firefly.dll',
+            'Gate.dll',
+            'Owin.dll',
+            'Gate.Hosts.Firefly.dll',
+        ])
+    xappforms_install_tree = (client_scripts_tree + xohj_tree + xappforms_core_tree)
+    xappforms_install_tree.targets_prefixed('install/XappForms').create_copy_tasks(bld)
+    xappforms_install_tree.targets_prefixed('${PREFIX}/lib/xappforms').install_files_preserving_permissions(bld)
 
 
     #apps_transfer = all_apps_transfer.targets_prefixed('apps')

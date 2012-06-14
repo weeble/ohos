@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Chat App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link href="../../ohj/pagescroller/ohj.pagescroller.pointer.css" rel="stylesheet">
+    <link href="../../ohj/ohj.ui.css" rel="stylesheet">
+    <link href="../../ohj/list/ohj.list.css" rel="stylesheet">
+    <link href="chat.css" rel="stylesheet">
+    <!-- Le styles -->
+    <link href="../../docs/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../../docs/css/bootstrap-responsive.min.css" rel="stylesheet">
+    <style>
+        html
+        {
+            height: 100%;
+        }
+        
+        body
+        {
+            height: 100%;
+        }
+        
+        .ohjnavbar
+        {
+            background-color: #2C2C2C;
+            height: 40px;
+            color: #FFF;
+            font-weight: 700;
+        }
+        
+        h1
+        {
+            font-size: 16px;
+        }
+        
+   
+        .tab
+        {
+           
+            background-color: #FFF;
+            border: 1px solid #CCC;
+            -webkit-border-radius: .6em;
+            -moz-border-radius: .6em;
+            border-radius: .6em;
+            min-height: 100px;
+            width: 200px;
+            float: left;
+            margin-bottom: 20px;
+            margin-right: 20px;
+        }
+        
+        .tab form 
+        {
+             padding: 19px;
+            
+        }
+        .tab-header
+        {
+            background-color: #2C2C2C;
+            -moz-border-radius-topleft: .6em;
+            -webkit-border-top-left-radius: .6em;
+            border-top-left-radius: .6em;
+            -moz-border-radius-topright: .6em;
+            -webkit-border-top-right-radius: .6em;
+            border-top-right-radius: .6em;
+            height: 25px;
+            color: #FFF;
+            text-align: center;
+            line-height: 25px;
+            font-weight: 700;
+        }
+        
+        .busy 
+        {
+            background-color: #FCF8E3;
+            border: 1px solid #FBEED5;
+        }
+        
+        .progress
+        {
+            margin-bottom: 0px;
+        }
+    </style>
+    <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+        <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+</head>
+<body>
+    <div id="pg1" data-use-ohjpage="true" style="height: 100%">
+        <header>
+            Server Health
+        </header>
+        <article>
+            <div class="container"> 
+                <br />
+                <div class="row">
+                    <div class="span12">
+                      <div class="breadcrumb">
+                        <h3>Session : 1231131321<small style="float:right"> 3 tabs</small></h3>
+                      </div>
+                      <div class="tab" >
+                        <div class="tab-header">Hello</div>
+                        <form class="">
+                           <label class="span1" style="margin-left:0px;">Tab Id</label>
+                           <label class="span1" style="font-weight:700;margin-left:0px;">17</label>
+                           <br />
+                           <label class="span1" style="margin-left:0px;">Queue</label>
+                           <label class="span1" style="font-weight:700;margin-left:0px;">2</label>
+
+                            <br />
+                            <br />
+                            <div class="progress progress-striped progress-success" >
+                              <div class="bar"
+                                   style="width: 20%;"></div>
+                            </div>
+                        </form>
+                      </div>
+                      <div class="tab" >
+                        <div class="tab-header">Hello</div>
+                        <form class="">
+                           <label class="span1" style="margin-left:0px;">Tab Id</label>
+                           <label class="span1" style="font-weight:700;margin-left:0px;">18</label>
+                           <br />
+                           <label class="span1" style="margin-left:0px;">Queue</label>
+                           <label class="span1" style="font-weight:700;margin-left:0px;">5</label>
+
+                            <br />
+                            <br />
+                            <div class="progress progress-striped progress-success" >
+                              <div class="bar"
+                                   style="width: 50%;"></div>
+                            </div>
+                        </form>
+                      </div>
+                      <div class="tab" >
+                        <div class="tab-header">Hello</div>
+                        <form class="">
+                           <label class="span1" style="margin-left:0px;">Tab Id</label>
+                           <label class="span1" style="font-weight:700;margin-left:0px;">19</label>
+                           <br />
+                           <label class="span1" style="margin-left:0px;">Queue</label>
+                           <label class="span1" style="font-weight:700;margin-left:0px;">11</label>
+
+                            <br />
+                            <br />
+                            <div class="progress progress-striped progress-danger" >
+                              <div class="bar"
+                                   style="width: 100%;"></div>
+                            </div>
+                        </form>
+                      </div>
+                    </div>
+                </div>
+            </div>
+          </article>
+    </div>
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../../lib/jquery-1.7.2.min.js"></script>
+    <script src="../../ohj/ohj.util.js"></script>
+    <script src="../../ohj/ohj.ui.js"></script>
+    <script src="../../ohj/pageslider/ohj.pageslider.js"></script>
+    <script src="../../ohj/pagescroller/ohj.pagescroller.js"></script>
+    <script src="../../ohj/pagescroller/ohj.pagescroller.pointer.js"></script>
+    <script src="../../ohj/pagescroller/ohj.pagescroller.touch.js"></script>
+    <script src="../../ohj/navbar/ohj.navbar.js"></script>
+    <script src="../../ohj/page/ohj.page.js"></script>
+    <script src="../../ohj/list/ohj.list.js"></script>
+    <script>
+        $().ready(function () {
+            $('#btnLogin').press(function () {
+                $('#chatapp').data('ohjpageslider').navigateNext();
+            });
+
+        });
+
+        function pageload(page) {
+            page.data('ohjpage').refreshPage();
+        }
+
+        function goback(page) {
+            $('#chatapp').data('ohjpageslider').navigateBack();
+        }
+
+        function showusers(page) {
+            $('#chatapp').data('ohjpageslider').navigateNext();
+        }
+    </script>
+</body>
+</html>

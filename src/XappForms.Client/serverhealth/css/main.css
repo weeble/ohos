@@ -1,0 +1,44 @@
+﻿html {
+    height: 100%;
+}
+
+body {
+    height: 100%;
+}
+
+.ohjnavbar {
+    background-color: #2C2C2C;
+    height: 40px;
+    color: #FFF;
+    font-weight: 700;
+}
+
+.message {
+    margin: 10px 10px 10px 10px;
+    min-height: 20px;
+    padding: 19px;
+    background-color: whiteSmoke;
+    border: 1px solid #EEE;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+    float:left;
+}
+
+#txtMessage {
+    margin-bottom: 0;
+    width: 100%;
+}
+
+article > .content
+{
+    margin-left:0px;
+    padding-bottom:10px;
+}
+
+h1
+{
+    font-size:16px;
+}
+  

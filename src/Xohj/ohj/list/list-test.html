@@ -1,0 +1,181 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../../lib/jquery-1.7.2.min.js"></script>
+    <link rel="stylesheet" href="../../lib/test/qunit.css" type="text/css" media="screen" />
+    <script type="text/javascript" src="../../lib/test/qunit.js"></script>
+    <link rel="stylesheet" href="../ohj.ui.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="ohj.list.css" type="text/css" media="screen" />
+    <script src="../ohj.util.js"></script>
+    <script src="../ohj.ui.js"></script>
+    <script src="../ohj.ui.bridge.js"></script>
+    <script src="ohj.list.js"></script>
+    <style>
+        .ohjlist li
+        {
+            background-color: #EEE;
+            border-bottom: 1px solid #CCC;
+         
+        }
+        
+        #small > li > h3
+        {
+            margin-top:30px;
+        }
+        
+        #fluid > li > h3
+        {
+            margin-top:20px;
+        }
+        
+        .ohjlist img
+        {
+            height: 80px;
+        }
+        
+
+    </style>
+    <script>
+
+
+
+        $(document).ready(function () {
+            module("Basic List");
+
+            test("Basic is inline decorated with Navbar", function () {
+                ok($('#basic').hasClass('ohjui'), 'We expect the Basic list to contain the class ohjui');
+                ok($('#basic').hasClass('ohjlist'), 'We expect the Basic list to contain the class ohjlist');
+                $('#basic > li').each(function () {
+                    ok($(this).hasClass('clearfix'), 'We expect the Basic list items to contain the class clearfix');
+                });
+                $('#basic > li > p').each(function () {
+                    ok($(this).hasClass('ellipsis'), 'We expect the Basic list items text to contain the class ellipsis');
+                });
+                $('#basic > li > h3').each(function () {
+                    ok($(this).hasClass('ellipsis'), 'We expect the Basic list items header to contain the class ellipsis');
+                });
+                equal($('#basic > li').length, 3, 'There should be 3 listitems');
+            });
+
+            test("Add Items to Basic", function () {
+                $('#basic').data('ohjlist').addListItem('<li><h3>ListItem 4</h3></li>');
+                $('#basic').data('ohjlist').addListItem('<li><h3>ListItem 5</h3></li>');
+                equal($('#basic > li').length, 5, 'There should be 5 listitems');
+                $('#basic > li').each(function () {
+                    ok($(this).hasClass('clearfix'), 'We expect the Basic list items to contain the class clearfix');
+                });
+                $('#basic > li > p').each(function () {
+                    ok($(this).hasClass('ellipsis'), 'We expect the Basic list items text to contain the class ellipsis');
+                });
+                $('#basic > li > h3').each(function () {
+                    ok($(this).hasClass('ellipsis'), 'We expect the Basic list items header to contain the class ellipsis');
+                });
+            });
+
+            module("Fluid List");
+
+            test("Fluid is code decorated with List", function () {
+                $('#fluid').ohjlist();
+                ok($('#fluid').hasClass('ohjui'), 'We expect the fluid list to contain the class ohjui');
+                ok($('#fluid').hasClass('ohjlist'), 'We expect the fluid list to contain the class ohjlist');
+                $('#fluid > li').each(function () {
+                    ok($(this).hasClass('clearfix'), 'We expect the fluid list items to contain the class clearfix');
+                });
+                $('#fluid > li > p').each(function () {
+                    ok($(this).hasClass('ellipsis'), 'We expect the fluid list items text to contain the class ellipsis');
+                });
+                $('#fluid > li > h3').each(function () {
+                    ok($(this).hasClass('ellipsis'), 'We expect the fluid list items header to contain the class ellipsis');
+                });
+                equal($('#fluid > li').length, 3, 'There should be 3 listitems');
+            });
+
+            module("Destroy List");
+
+            test("Destroy the list", function () {
+                $('#destroy').ohjlist();
+                ok($('#destroy').data('ohjlist') != undefined, 'Destroy list created');
+                $('#destroy').data('ohjlist').destroy();
+                equal($('#destroy').data('ohjlist'), undefined, 'Destroy list destroyed');
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1 id="qunit-header">
+        List Tests</h1>
+    <h2 id="qunit-banner">
+    </h2>
+    <div id="qunit-testrunner-toolbar">
+    </div>
+    <h2 id="qunit-userAgent">
+    </h2>
+    <ol id="qunit-tests">
+    </ol>
+    <div id="qunit-fixture">
+        test markup, will be hidden</div>
+    <h2>
+        Basic</h2>
+    <ul id="basic" data-use-ohjlist="true" style="width: 320px">
+        <li>
+            <h3>
+                ListItem 1</h3>
+        </li>
+        <li>
+            <h3>
+                ListItem 2</h3>
+        </li>
+        <li>
+            <h3>
+                ListItem 3</h3>
+        </li>
+    </ul>
+
+    <h2>
+        Small</h2>
+    <ul id="small" data-use-ohjlist="true" style="width: 200px">
+        <li>
+            <img src="default.jpg" />
+             <h3>ohjlist ListItem 1</h3>
+            <span class="ohjlist-info ohjlist-info-top ">OFFLINE</span> <span class="ohjlist-info ohjlist-info-bottom ">
+                TODAY</span> </li>
+        <li>
+            <img src="default.jpg" />
+            <h3>ohjlist ListItem 2</h3>
+            <span class="ohjlist-info ohjlist-info-top ">OFFLINE</span> <span class="ohjlist-info ohjlist-info-bottom ">
+                YESTERDAY</span> </li>
+        <li>
+            <img src="default.jpg" />
+             <h3>ohjlist ListItem 3</h3>
+            <span class="ohjlist-info ohjlist-info-top ">OFFLINE</span> <span class="ohjlist-info ohjlist-info-bottom ">
+                5 SEC AGO</span> </li>
+    </ul>
+    <h2>
+        Fluid</h2>
+    <ul id="fluid">
+        <li>
+            <img src="default.jpg" />
+          <h3>ohjlist ListItem 1</h3>
+                <p>
+               This is an ohjlist ListItem 1</p>
+            <span class="ohjlist-info ohjlist-info-top ">OFFLINE</span> <span class="ohjlist-info ohjlist-info-bottom ">
+                TODAY</span> </li>
+        <li>
+            <img src="default.jpg" />
+            <h3>ohjlist ListItem 2</h3>
+                    <p>
+               This is an ohjlist ListItem 2</p>
+            <span class="ohjlist-info ohjlist-info-top ">OFFLINE</span> <span class="ohjlist-info ohjlist-info-bottom ">
+                YESTERDAY</span> </li>
+        <li>
+            <img src="default.jpg" />
+            <h3>ohjlist ListItem 3</h3>
+                     <p>
+               This is an ohjlist ListItem 3</p>
+            <span class="ohjlist-info ohjlist-info-top ">OFFLINE</span> <span class="ohjlist-info ohjlist-info-bottom ">
+                5 SEC AGO</span> </li>
+    </ul>
+    <div id="destroy">
+        Destroy Me</div>
+</body>
+</html>

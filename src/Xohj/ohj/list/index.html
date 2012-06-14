@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>ohj UI - ohj.list</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <!-- Le styles -->
+        <link href="../../docs/css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../docs/css/prettify.css" rel="stylesheet">
+        <link href="../../docs/css/docs.css" rel="stylesheet">
+        
+        <link href="../list/ohj.list.css" rel="stylesheet">
+        <style>
+            body {
+                padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+            }
+
+            .ohjnavbar {
+                background-color: #2C2C2C;
+                height: 40px;
+                color: #FFF;
+                font-weight: 700;
+            }
+            
+            #userlist li
+            {
+                background-color:#EEE;
+                border-bottom:1px solid #CCC;
+            }
+            #userlist h3
+            {
+                margin-top:30px;
+                font-size:20px;
+                line-height:30px;
+            }
+            #userlist img
+            {
+                height:80px;        
+            }
+
+        </style>
+        <link href="../../docs/css/bootstrap-responsive.min.css" rel="stylesheet">
+
+        <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+        <!--[if lt IE 9]>
+        <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+
+    </head>
+
+    <body onload="prettyPrint()"  data-spy="scroll">
+        <div class="navbar navbar-fixed-top">
+            <div class="navbar-inner">
+                <div class="container">
+                    <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse"> <span class="icon-bar"></span> <span class="icon-bar"></span> <span class="icon-bar"></span> </a>
+                    <a class="brand " href="../../docs/index.html"><span class="ohj">ohj</span>.list</a>
+                    <div class="nav-collapse">
+                        <ul class="nav">
+                            <li class="active">
+                                <a href="#">Home</a>
+                            </li>
+                            <li>
+                                <a href="#usage">Usage</a>
+                            </li>
+                            <li>
+                                <a href="#examples">Examples</a>
+                            </li>
+                            <li>
+                                <a href="#style">Styling</a>
+                            </li>
+                            <li>
+                                <a href="#depend">Dependencies</a>
+                            </li>
+                            <li>
+                                <a href="#platforms">Platforms</a>
+                            </li>
+                             <li>
+                                <a href="#tests">Tests</a>
+                            </li>
+                            <li>
+                                <a href="#future">Future Developments</a>
+                            </li>
+                        </ul>
+                    </div><!--/.nav-collapse -->
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+
+            <h1>ohj.list UI control<small> b0.1</small></h1>
+            <p class="lead">
+                 Displays a list
+            </p>
+            <br/>
+            <br/>
+            <section id="usage">
+                <div class="page-header">
+                    <h2>Usage</h2>
+                </div>
+                <h3>Quick Start</h3>
+                <div class="row">
+
+                    <div class="span6">
+                        <pre class="prettyprint linenums">
+    &lt;script&gt;
+        $('#userlist').ohjlist();
+    &lt;/script&gt;
+    ...
+    &lt;ul id="userlist"&gt;
+        &lt;li&gt;
+            &lt;img src="img/default.jpg" /&gt;
+            &lt;h3&gt;User 1&lt;/h3&gt;
+            &lt;span class="ohjlist-info ohjlist-info-top "&gt;&lt;span class="label label-success"&gt;ONLINE&lt;/span&gt;&lt;/span&gt;
+        &lt;/li&gt;
+        &lt;li &gt;
+            &lt;img src="img/default.jpg" /&gt;
+            &lt;h3&gt;User 2&lt;/h3&gt;
+            &lt;span class="ohjlist-info ohjlist-info-top "&gt;&lt;span class="label label-success"&gt;ONLINE&lt;/span&gt;&lt;/span&gt;
+        &lt;/li&gt;
+        &lt;li &gt;
+            &lt;img src="img/default.jpg" /&gt;
+            &lt;h3&gt;User 3&lt;/h3&gt;
+            &lt;span class="ohjlist-info ohjlist-info-top "&gt;&lt;span class="label"&gt;OFFLINE&lt;/span&gt;&lt;/span&gt;
+        &lt;/li&gt;
+        &lt;li &gt;
+            &lt;img src="img/default.jpg" /&gt;
+            &lt;h3&gt;User 4&lt;/h3&gt;
+            &lt;span class="ohjlist-info ohjlist-info-top "&gt;&lt;span class="label"&gt;OFFLINE&lt;/span&gt;&lt;/span&gt;
+        &lt;/li&gt;
+    &lt;/ul&gt;
+                        </pre>                                                
+
+
+
+                    </div><!-- /.span -->
+                    <div class="span6">
+                           <ul id="userlist" data-use-ohjlist="true">
+                            <li>
+                                <img src="default.jpg" />
+                                <h3>User 1</h3>
+                                <span class="ohjlist-info ohjlist-info-top "><span class="label label-success">ONLINE</span></span>
+                            </li>
+                            <li >
+                                <img src="default.jpg" />
+                                <h3>User 2</h3>
+                                <span class="ohjlist-info ohjlist-info-top "><span class="label label-success">ONLINE</span></span>
+                            </li>
+                            <li >
+                                <img src="default.jpg" />
+                                <h3>User 3</h3>
+                                <span class="ohjlist-info ohjlist-info-top "><span class="label">OFFLINE</span></span>
+                            </li>
+                            <li >
+                                <img src="default.jpg" />
+                                <h3>User 4</h3>
+                                <span class="ohjlist-info ohjlist-info-top "><span class="label">OFFLINE</span></span>
+                            </li>
+                        </ul>
+
+                    </div>
+                </div>
+                    <div class="row">
+                        <div class="span12">
+                            <h3>Options</h3>
+                            <table class="table table-bordered table-striped">
+                                <colgroup>
+                                    <col class="span1">
+                                    <col class="span7">
+                                </colgroup>
+                                <thead>
+                                    <tr>
+                                        <th>Option</th>
+                                        <th>Description</th>
+                                        <th>Default</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                        <code>
+                                            extend
+                                        </code></td>
+                                        <td> Customise the browser discrimination logic to load control extensions </td>
+                                        <td>
+                                        <code>
+                                            null
+                                        </code></td>
+                                    </tr>
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="row">
+                       <div class="span12">
+                         <h3>Public Methods</h3>
+                        <p>
+                                None
+                            </p>
+                    </div>
+                    </div>
+                    <div class="row">
+                        <div class="span12">
+                            <h3>Events</h3>
+                            <p>
+                                None
+                            </p>
+                        </div>
+                    </div>
+            </section>
+            <section id="examples">
+                <div class="page-header">
+                    <h2>Examples</h2>
+                </div>
+                <p>
+                    None
+                </p>
+            </section>
+
+            <section id="style">
+                <div class="page-header">
+                    <h2>Styling</h2>
+                </div>
+                <div class="row">
+                    <div class="span12">
+                        <table class="table table-bordered table-striped">
+                            <colgroup>
+                                <col class="span1">
+                                <col class="span7">
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th>Class</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                    <code>
+                                        .ohjlist
+                                    </code></td>
+                                    <td> Class for the list </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                    <code>
+                                        .ohjlist-info
+                                    </code></td>
+                                    <td> Base class for top left or right info text </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                    <code>
+                                        .ohjlist-info-bottom
+                                    </code></td>
+                                    <td> Use with ohjlist-info to position info text on the bottom right of the list item </td>
+                                </tr>
+                                 <tr>
+                                    <td>
+                                    <code>
+                                        .ohjlist-info-top
+                                    </code></td>
+                                    <td> Use with ohjlist-info to position info text on the top right of the list item </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="row">
+
+                    <div class="span12">
+                        <pre class="prettyprint linenums">
+       &lt;ul id="userlist" class="ohjlist"&gt;
+            &lt;li&gt;
+                &lt;img src="img/1.jpg" /&gt;
+                &lt;p&gt;&lt;strong&gt;User 1&lt;/strong&gt;&lt;/p&gt;
+                &lt;span class="ohjlist-info ohjlist-info-top "&gt;ONLINE&lt;/span&gt;
+                &lt;span class="ohjlist-info ohjlist-info-bottom "&gt;11th Feb 2012&lt;/span&gt;
+            &lt;/li&gt;
+       &lt;/ul&gt;
+   </pre>
+                    </div><!-- /.span -->
+                </div>
+            </section>
+            <section id="depend">
+                <div class="page-header">
+                    <h2>Dependencies</h2>
+                </div>
+                <table class="table table-bordered table-striped">
+                    <colgroup>
+                        <col class="span3">
+                        <col class="span2">
+
+                        <col class="span7">
+
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th>Dependency</th>
+                            <th>Platform</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                            <code>
+                                jquery 1.7.2
+                            </code></td>
+                            <td>Desktop</td>
+                            <td> Core library for desktop browsers </td>
+
+                        </tr>
+                        <tr>
+                            <td>
+                            <code>
+                                zepto 1.0rc1
+                            </code></td>
+                            <td>Mobile Webkit</td>
+                            <td> Core library for android and ios browsers </td>
+
+                        </tr>
+                        <tr>
+                            <td><code>
+                                ohj.list.css</code></td>
+                            <td>Core</td>
+                            <td> Css file for the list and list items </td>
+ 
+                        </tr>
+                       
+                    </tbody>
+                </table>
+            </section>
+            <section id="platforms">
+                <div class="page-header">
+                    <h2>Platforms</h2>
+                </div>
+                <p>
+                    Tested on:
+                </p>
+                <ul>
+                    <li>
+                        IE 8+
+                    </li>
+                    <li>
+                        Chrome
+                    </li>
+
+                </ul>
+            </section>
+              <section id="tests">
+                <div class="page-header">
+                    <h2>Tests</h2>
+                </div>
+                <ul>
+                    <li>
+                        <a href="list-test.html">Run Tests</a>
+                    </li>
+                </ul>
+                <br />
+            </section>
+            <section id="future">
+                <div class="page-header">
+                    <h2>Future Developments</h2>
+                </div>
+                <ul>
+                    <li>
+                        Make an extensible way to change list item layouts
+                    </li>
+                    <li>
+                        Ability to dynamically add/remove/update the list
+                    </li>
+                    <li>
+                        Documentation to include examples or various currently supported layouts
+                    </li>
+                </ul>
+            </section>
+
+        </div>
+        <br/>
+        <br/>
+        <br/>
+        <br/>
+        <br/>
+        <!-- /container -->
+
+        <!-- Le javascript
+        ================================================== -->
+        <!-- Placed at the end of the document so the pages load faster -->
+        <script src="../../lib/jquery-1.7.2.min.js"></script>
+        <!--<script src="../../lib/zepto-1.0rc1.min.js"></script>-->
+        <script src="../../docs/js/bootstrap.min.js"></script>
+        <script src="../../docs/js/prettify.js"></script>
+        <script src="../ohj.util.js"></script>
+        <script src="../ohj.ui.js"></script>
+        <script src="../ohj.ui.bridge.js"></script>
+        <script src="../page/ohj.page.js"></script>
+        <script src="../pagescroller/ohj.pagescroller.js"></script>
+        <script src="../pagescroller/ohj.pagescroller.pointer.js"></script>
+        <script src="../pagescroller/ohj.pagescroller.touch.js"></script>
+        <script src="../navbar/ohj.navbar.js"></script>
+        <script src="../list/ohj.list.js"></script>
+    </body>
+</html>

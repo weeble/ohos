@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>ohj UI - ohj.grid</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <!-- Le styles -->
+        <link href="../../docs/css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../docs/css/prettify.css" rel="stylesheet">
+        <link href="../../docs/css/docs.css" rel="stylesheet">
+        <style>
+            body {
+                padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+            }
+
+            .ohjnavbar {
+                background-color: #2C2C2C;
+                height: 40px;
+                color: #FFF;
+                font-weight: 700;
+            }
+
+        </style>
+        <link href="../../docs/css/bootstrap-responsive.min.css" rel="stylesheet">
+
+        <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+        <!--[if lt IE 9]>
+        <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+
+    </head>
+
+    <body onload="prettyPrint()"  data-spy="scroll">
+
+        <div class="navbar navbar-fixed-top">
+            <div class="navbar-inner">
+                <div class="container">
+                    <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse"> <span class="icon-bar"></span> <span class="icon-bar"></span> <span class="icon-bar"></span> </a>
+                    <a class="brand " href="../../docs/index.html"><span class="ohj">ohj</span>.grid</a>
+                    <div class="nav-collapse">
+                        <ul class="nav">
+                            <li class="active">
+                                <a href="#">Home</a>
+                            </li>
+                            <li>
+                                <a href="#usage">Usage</a>
+                            </li>
+                            <li>
+                                <a href="#examples">Examples</a>
+                            </li>
+                            <li>
+                                <a href="#style">Styling</a>
+                            </li>
+                            <li>
+                                <a href="#depend">Dependencies</a>
+                            </li>
+                            <li>
+                                <a href="#platforms">Platforms</a>
+                            </li>
+                            <li>
+                                <a href="#future">Future Developments</a>
+                            </li>
+                        </ul>
+                    </div><!--/.nav-collapse -->
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+
+            <h1>ohj.grid UI control<small> b0.1</small></h1>
+            <p class="lead">
+                A grid control to use for positioning and displaying data in a table format
+            </p>
+            <br/>
+            <br/>
+            <section id="usage">
+                <div class="page-header">
+                    <h2>Usage</h2>
+                </div>
+                <h3>Quick Start</h3>
+                <div class="row">
+
+                    <div class="span6">
+                        <pre class="prettyprint linenums">
+    &lt;script&gt;
+        $('#header').ohjgrid();
+    &lt;/script&gt;
+    ...
+    &lt;div id="header"&gt;
+       Header
+    &lt;/div&gt;
+
+                        </pre>
+
+                    </div><!-- /.span -->
+                    <div class="span6">
+                        <div id="nb1" data-use-ohjgrid="true" data-columncount="3" data-rowcount="2">
+                            <div id="p1" data-row="0" data-col="0"></div>
+                            <div id="p2" data-row="0" data-col="1"></div>
+                            <div id="p3" data-row="0" data-col="2"></div>
+                            <div id="p4" data-row="1" data-col="0"></div>
+                            <div id="p5" data-row="1" data-col="1"></div>
+                            <div id="p6" data-row="1" data-col="2"></div>
+                        </div>
+                    </div><!-- /.span -->
+
+                </div>
+                <div class="row">
+                    <div class="span12">
+                        <h3>Options</h3>
+                        <table class="table table-bordered table-striped">
+                            <colgroup>
+                                <col class="span1">
+                                <col class="span7">
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th>Option</th>
+                                    <th>Description</th>
+                                    <th>Default</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                    <code>
+                                        height
+                                    </code></td>
+                                    <td> The height of the navbar in css format</td>
+                                    <td><code>
+                                        null</code></td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                    <code>
+                                        extend
+                                    </code></td>
+                                    <td> Customise the browser discrimination logic to load control extensions </td>
+                                    <td><code>
+                                        null</code></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="span12">
+                        <h3>Public Methods</h3>
+                        <table class="table table-bordered table-striped">
+                            <colgroup>
+                                <col class="span1">
+                                <col class="span7">
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th>Method</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                    <code>
+                                        setTitle
+                                    </code></td>
+                                    <td> Set the center text of the nav bar </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="span12">
+                        <h3>Events</h3>
+                        <p>
+                            None
+                        </p>
+                    </div>
+                </div>
+            </section>
+            <section id="examples">
+                <div class="page-header">
+                    <h2>Examples</h2>
+                </div>
+                <p>
+                    None
+                </p>
+            </section>
+
+            <section id="style">
+                <div class="page-header">
+                    <h2>Styling</h2>
+                </div>
+                <div class="row">
+                    <div class="span12">
+                        <table class="table table-bordered table-striped">
+                            <colgroup>
+                                <col class="span1">
+                                <col class="span7">
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th>Class</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                    <code>
+                                        .ohjnavbar
+                                    </code></td>
+                                    <td> Class for the navbar </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="row">
+
+                    <div class="span12">
+                        <pre class="prettyprint linenums">
+        &lt;div id="header" class="ohjpageslider"&gt;
+            Header
+        &lt;/div&gt;
+   </pre>
+                    </div><!-- /.span -->
+                </div>
+            </section>
+            <section id="depend">
+                <div class="page-header">
+                    <h2>Dependencies</h2>
+                </div>
+                <table class="table table-bordered table-striped">
+                    <colgroup>
+                        <col class="span3">
+                        <col class="span2">
+
+                        <col class="span7">
+
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th>Dependency</th>
+                            <th>Platform</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                            <code>
+                                jquery 1.7.2
+                            </code></td>
+                            <td>Desktop</td>
+                            <td> Core library for desktop browsers </td>
+
+                        </tr>
+                        <tr>
+                            <td>
+                            <code>
+                                zepto 1.0rc1
+                            </code></td>
+                            <td>Mobile Webkit</td>
+                            <td> Core library for android and ios browsers </td>
+
+                        </tr>
+
+                    </tbody>
+                </table>
+            </section>
+            <section id="platforms">
+                <div class="page-header">
+                    <h2>Platforms</h2>
+                </div>
+                <p>
+                    Tested on:
+                </p>
+                <ul>
+                    <li>
+                        IE 8+
+                    </li>
+                    <li>
+                        Chrome
+                    </li>
+
+                </ul>
+            </section>
+            <section id="future">
+                <div class="page-header">
+                    <h2>Future Developments</h2>
+                </div>
+                <ul>
+                    <li>
+                        Add left and right buttons
+                    </li>
+                    <li>
+                        render ohjnavbar for header and footer tags
+                    </li>
+                </ul>
+            </section>
+
+        </div>
+        <br/>
+        <br/>
+        <br/>
+        <br/>
+        <br/>
+        <!-- /container -->
+
+        <!-- Le javascript
+        ================================================== -->
+        <!-- Placed at the end of the document so the pages load faster -->
+        <script src="../../lib/jquery-1.7.2.min.js"></script>
+        <!--<script src="../../lib/zepto-1.0rc1.min.js"></script>-->
+        <script src="../../docs/js/bootstrap.min.js"></script>
+        <script src="../../docs/js/prettify.js"></script>
+        <script src="../ohj.util.js"></script>
+        <script src="../ohj.ui.js"></script>
+        <script src="ohj.grid.js"></script>
+    </body>
+</html>

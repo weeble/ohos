@@ -1,0 +1,27 @@
+﻿
+
+* {
+	-webkit-tap-highlight-color: rgba(0, 0, 0, 0);	
+}
+
+
+.clearfix {
+  *zoom: 1;
+}
+
+.clearfix:before,
+.clearfix:after {
+  display: table;
+  content: "";
+}
+
+.clearfix:after {
+  clear: both;
+}
+
+.ellipsis
+{
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}

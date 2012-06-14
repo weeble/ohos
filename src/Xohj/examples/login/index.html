@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>User Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link href="../../ohj/pagescroller/ohj.pagescroller.pointer.css" rel="stylesheet">
+    <link href="../../ohj/ohj.ui.css" rel="stylesheet">
+    <link href="../../ohj/list/ohj.list.css" rel="stylesheet">
+    <link href="chat.css" rel="stylesheet">
+    <!-- Le styles -->
+    <link href="../../docs/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        html
+        {
+            height: 100%;
+        }
+        
+        body
+        {
+            height: 100%;
+        }
+        
+        .ohjnavbar
+        {
+            background-color: #2C2C2C;
+            height: 40px;
+            color: #FFF;
+            font-weight: 700;
+        }
+        
+        .ohjnavbar h1
+        {
+            font-size: 16px;
+        }
+        
+        .page-header h1
+        {
+            
+        }
+   
+        .tab
+        {
+           
+            background-color: #FFF;
+            border: 1px solid #CCC;
+            -webkit-border-radius: .6em;
+            -moz-border-radius: .6em;
+            border-radius: .6em;
+            min-height: 100px;
+            width: 200px;
+            float: left;
+            margin-bottom: 20px;
+            margin-right: 20px;
+        }
+        
+        .tab form 
+        {
+             padding: 19px;
+            
+        }
+        .tab-header
+        {
+            background-color: #EEE;
+            -moz-border-radius-topleft: .6em;
+            -webkit-border-top-left-radius: .6em;
+            border-top-left-radius: .6em;
+            -moz-border-radius-topright: .6em;
+            -webkit-border-top-right-radius: .6em;
+            border-top-right-radius: .6em;
+            height: 25px;
+            color: #777;
+            text-align: center;
+            line-height: 25px;
+            font-weight: 700;
+        }
+        
+        .busy 
+        {
+            background-color: #FCF8E3;
+            border: 1px solid #FBEED5;
+        }
+        
+        .progress
+        {
+            margin-bottom: 0px;
+        }
+       
+        .ohjlist li
+        {
+            width:250px;
+            float:left;
+            margin-right:20px;
+        }
+        
+        .ohjlist li:hover
+        {
+            background:none;
+            background-color:#DCEAF4;
+            cursor:pointer;
+            cursor:hand;
+        }
+        .ohjlist p
+        {
+            margin-top: 28px;
+            font-size: 13px;
+            line-height: 30px;
+        }
+        
+        .ohjlist > li
+        {
+            padding-right:30px;
+        }
+    </style>
+    <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+        <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+</head>
+<body>
+    <div id="pg1" data-use-ohjpage="true" style="height: 100%">
+        <header>
+            User Login
+        </header>
+        <article>
+            <div class="container-fluid"> 
+                <br />
+
+               <div class="page-header">
+                    <h1>Who are you?</h1>
+               </div>
+
+               <div class="row-fluid">
+                    <div class="span1"></div>
+                    <div class="span10">
+                      <div class=" user  clearfix">
+                      <ul class="ohjlist">
+                        <li id="usr_chrisc" class="clearfix breadcrumb">
+                            <img src="../../ohj/list/default.jpg">
+                            <p class="ellipsis"><strong>Chris Cheunert ertert ert erte rt ert erg</strong></p>
+                            <span class="ohjlist-info ohjlist-info-top ">
+                                <span class="status label  label-success">ONLINE</span>
+                            </span>
+                        </li>
+                         <li id="Li1" class="clearfix breadcrumb">
+                            <img src="../../ohj/list/default.jpg">
+                            <p class="ellipsis"><strong>Chris Cheut erter</strong></p>
+                            <span class="ohjlist-info ohjlist-info-top ">
+                                <span class="status label  label-success">ONLINE</span>
+                            </span>
+                        </li>
+                      </ul>
+                      </div>
+                     
+                    </div>
+                    <div class="span1"></div>
+                </div>
+            </div>
+          </article>
+    </div>
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../../lib/jquery-1.7.2.min.js"></script>
+    <script src="../../ohj/ohj.util.js"></script>
+    <script src="../../ohj/ohj.ui.js"></script>
+    <script src="../../ohj/pageslider/ohj.pageslider.js"></script>
+    <script src="../../ohj/pagescroller/ohj.pagescroller.js"></script>
+    <script src="../../ohj/pagescroller/ohj.pagescroller.pointer.js"></script>
+    <script src="../../ohj/pagescroller/ohj.pagescroller.touch.js"></script>
+    <script src="../../ohj/navbar/ohj.navbar.js"></script>
+    <script src="../../ohj/page/ohj.page.js"></script>
+    <script src="../../ohj/list/ohj.list.js"></script>
+    <script>
+        $().ready(function () {
+            $('#btnLogin').press(function () {
+                $('#chatapp').data('ohjpageslider').navigateNext();
+            });
+
+        });
+
+        function pageload(page) {
+            page.data('ohjpage').refreshPage();
+        }
+
+        function goback(page) {
+            $('#chatapp').data('ohjpageslider').navigateBack();
+        }
+
+        function showusers(page) {
+            $('#chatapp').data('ohjpageslider').navigateNext();
+        }
+    </script>
+</body>
+</html>

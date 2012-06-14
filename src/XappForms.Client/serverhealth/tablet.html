@@ -1,0 +1,132 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../scripts/browser.js"></script>
+    <link href="/ohj/pagescroller/ohj.pagescroller.pointer.css" rel="stylesheet">
+    <link href="/theme/default/bootstrap.min.css" rel="stylesheet">
+    <link href="css/main.css" rel="stylesheet">
+    <link href="/ohj/ohj.ui.css" rel="stylesheet">
+    <link href="/ohj/list/ohj.list.css" rel="stylesheet">
+    
+    <style>
+    
+       
+        h1
+        {
+            font-size: 16px;
+        }
+        .tab
+        {
+           
+            background-color: #FFF;
+            border: 1px solid #CCC;
+            -webkit-border-radius: .6em;
+            -moz-border-radius: .6em;
+            border-radius: .6em;
+            min-height: 100px;
+            width: 200px;
+            float: left;
+            margin: 0px 0px 20px 20px;
+        }
+        
+        .tab form 
+        {
+             padding: 19px;
+            
+        }
+         .tab-header
+        {
+            background-color: #EEE;
+            -moz-border-radius-topleft: .6em;
+            -webkit-border-top-left-radius: .6em;
+            border-top-left-radius: .6em;
+            -moz-border-radius-topright: .6em;
+            -webkit-border-top-right-radius: .6em;
+            border-top-right-radius: .6em;
+            height: 25px;
+            color: #777;
+            text-align: center;
+            line-height: 25px;
+            font-weight: 700;
+        }
+        
+        .busy 
+        {
+            background-color: #FCF8E3;
+            border: 1px solid #FBEED5;
+        }
+        
+        .progress
+        {
+            margin-bottom: 0px;
+            
+        }
+        
+        
+
+        </style>
+       
+</head>
+<body>
+
+<div id="pg1" data-use-ohjpage="true" style="height: 100%">
+    <header>
+            Server Health
+    </header>
+    <article> 
+    <div class="row-fluid">
+        <div class="span12" id="sessionList">
+        </div>
+    </div>
+    </article>
+</div>    
+<script type="text/html" id="tplTab">
+    <div class="tab" id="tab_<#= tab #>">
+        <div class="tab-header"><#= app #></div>
+        <form class="form-horizontal">
+            <label class="span4" style="margin-left:0px;">Tab Id</label>
+            <label class="span8" style="font-weight:700;margin-left:0px;"><#= tab #></label>
+            <br />
+            <label class="span4" style="margin-left:0px;">Queue</label>
+            <label class="span8" id="queue_<#= tab #>" style="font-weight:700;margin-left:0px;"><#= queue #></label>
+
+            <br />
+            <br />
+            <div class="span12 progress progress-striped progress-success" style="height:18px;min-height:18px;" >
+                <div class="bar"
+                    style="width: 0%;"></div>
+            </div>
+        </form>
+    </div>
+</script>
+
+<script type="text/html" id="tplSession">
+<div style="clear:both;"></div>
+<div id="session_<#= session#>">
+    <div class="breadcrumb">
+        <h3>Session : <#= session#><small style="float:right" id="tabcount_<#= session#>">  <#= tabcount#></small></h3>
+    </div>
+    <div id="tablist_<#= session#>">
+    </div>
+</div>
+</script>
+
+
+<script src="../scripts/lib/zepto-1.0rc1.min.js"></script>
+
+<script src="../scripts/xapp.js"></script>
+<script src="../ohj/ohj.util.js"></script>
+<script src="../ohj/ohj.ui.js"></script>
+<script src="../ohj/ohj.ui.bridge.js"></script>
+<script src="../ohj/navbar/ohj.navbar.js"></script>
+<script src="../ohj/pagescroller/ohj.pagescroller.js"></script>
+<script src="../ohj/pagescroller/ohj.pagescroller.touch.js"></script>    
+<script src="../ohj/pagescroller/ohj.pagescroller.pointer.js"></script>    
+<script src="../ohj/pageslider/ohj.pageslider.js"></script> 
+<script src="../ohj/page/ohj.page.js"></script>
+<script src="../ohj/list/ohj.list.js"></script>
+<script src="js/common.js"></script>
+<script src="js/desktop.js"></script>  
+
+</body>
+</html>
