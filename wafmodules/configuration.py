@@ -102,52 +102,72 @@ class CSharpDependencyCollection(object):
     A collection of CSharpPackages
     '''
     def __init__(self):
-        self.packages = []
+        self._packagelist = []
+        self.packages = {}
     def add_package(self, name):
+        if name in self.packages:
+            raise ValueError("Duplicate package with name '%s'" % (name,))
         pkg = CSharpPackage(name)
-        self.packages.append(pkg)
+        self._packagelist.append(pkg)
+        self.packages[name] = pkg
         return pkg
     def options(self, opt):
-        for pkg in self.packages:
+        for pkg in self._packagelist:
             pkg.options(opt)
     def configure(self, conf, defaults = {}):
-        for pkg in self.packages:
+        for pkg in self._packagelist:
             pkg.configure(conf, defaults)
     def validate(self, conf):
-        for pkg in self.packages:
+        for pkg in self._packagelist:
             pkg.validate(conf)
     def load_from_env(self, env):
-        for pkg in self.packages:
+        for pkg in self._packagelist:
             pkg.load_from_env(env)
     def get_csflags_for_packages(self, bld, package_names):
         csflags = []
-        for pkg in self.packages:
-            if pkg.name in package_names:
+        remaining_package_names = set(package_names)
+        for pkg in self._packagelist:
+            if pkg.name in remaining_package_names:
                 csflags.extend(pkg.get_csflags(bld))
+                remaining_package_names.remove(pkg.name)
+        if remaining_package_names:
+            bld.fail("Cannot resolve package names: %s" % (list(remaining_package_names),))
         return csflags
     def get_assembly_names_for_packages(self, bld, package_names):
         assembly_names = []
-        for pkg in self.packages:
-            if pkg.name in package_names:
+        remaining_package_names = set(package_names)
+        for pkg in self._packagelist:
+            if pkg.name in remaining_package_names:
                 assembly_names.extend(pkg.get_referenced_assembly_names(bld))
+                remaining_package_names.remove(pkg.name)
+        if remaining_package_names:
+            raise Exception("Cannot resolve package names: %s" % (list(remaining_package_names),))
         return assembly_names
     def read_csshlibs(self, bld):
-        for pkg in self.packages:
+        for pkg in self._packagelist:
             for assembly_path in pkg.get_referenced_assembly_paths(bld):
                 assembly_dir, assembly_filename = os.path.split(assembly_path)
                 bld.read_csshlib(
                         assembly_filename,
                         [assembly_dir])
     def create_copy_assembly_tasks(self, bld):
-        for pkg in self.packages:
+        for pkg in self._packagelist:
             pkg.create_copy_assembly_tasks(bld)
+    def get_files_to_install(self):
+        for pkg in self._packagelist:
+            for filename in pkg.get_files_to_install():
+                yield filename
     def get_subset(self, package_names):
         ''' Get a subset of the dependencies. References the same instances. '''
-        packages = dict((pkg.name, pkg) for pkg in self.packages)
+        packages = dict((pkg.name, pkg) for pkg in self._packagelist)
         package_names = set(package_names)
         subset = CSharpDependencyCollection()
-        subset.packages = [packages[name] for name in package_names]
+        subset._packagelist = [packages[name] for name in package_names]
+        subset.packages = dict((name, packages[name]) for name in package_names)
         return subset
+    def __getitem__(self, key):
+        return self.packages[key]
+
 
 
 
