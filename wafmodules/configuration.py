@@ -97,6 +97,7 @@ def copy_task(task):
         raise Exception("copy_task can only handle 1 file at a time.")
     shutil.copy2(task.inputs[0].abspath(), task.outputs[0].abspath())
 
+
 class CSharpDependencyCollection(object):
     '''
     A collection of CSharpPackages
@@ -263,12 +264,14 @@ class CSharpDirectory(CSharpDirectoryContainer):
         #print "Searching. package=%s, platform=%s" %(self.package.name, plat)
         locations = []
         if self.in_dependencies is not None:
-            expanded_pattern = string.Template(self.in_dependencies).substitute(PLATFORM=plat)
-            #print "Pattern:", expanded_pattern
-            locations.extend(
-                    p for p in glob.glob(
-                        path.abspath(path.join('dependencies', expanded_pattern)))
-                    if path.isdir(p))
+            in_dependencies = [self.in_dependencies] if isinstance(self.in_dependencies, (str, unicode)) else self.in_dependencies
+            for dependency_location in in_dependencies:
+                expanded_pattern = string.Template(dependency_location).substitute(PLATFORM=plat)
+                #print "Pattern:", expanded_pattern
+                locations.extend(
+                        p for p in glob.glob(
+                            path.abspath(path.join('dependencies', expanded_pattern)))
+                        if path.isdir(p))
         if self.in_programfiles is not None:
             # Find all the "Program Files"/"Program Files (x86)" folders:
             programfiles_folders = set(
@@ -320,6 +323,8 @@ class CSharpDirectory(CSharpDirectoryContainer):
         if conf.env.CSHARPDEPENDENCIES == []:
             conf.env.CSHARPDEPENDENCIES = {}
             #print "Added", conf.env.CSHARPDEPENDENCIES
+        if self.unique_id in conf.env.CSHARPDEPENDENCIES:
+            conf.fatal("CSharpDirectory's unique_id must be unique. There was a clash on '%s'." % (self.unique_id))
         if self.active:
             self.absolute_path = self._determine_path(conf, plat, defaults)
             #print conf.env.CSHARPDEPENDENCIES
@@ -335,6 +340,9 @@ class CSharpDirectory(CSharpDirectoryContainer):
             conf.fatal('Directory "%s" does not exist.' % self.absolute_path)
         #for file in self.files:
         #    file.validate(conf)
+        for filepath in self.get_paths_of_files_to_copy_to_output(conf):
+            if not path.isfile(filepath):
+                conf.fatal('File "%s" does not exist.' % filepath)
         for subdir in self.directories:
             subdir.validate(conf)
 
@@ -506,6 +514,11 @@ class CSharpPackage(CSharpDirectoryContainer):
                 source=bld.root.find_node(path_to_copy),
                 target=filename,
                 name='copy_' + filename)
+    def get_files_to_install(self):
+        self._check_loaded()
+        for path_to_copy in self.get_paths_of_files_to_copy_to_output(bld):
+            file_dir, filename = os.path.split(path_to_copy)
+            yield filename
 
 
         
