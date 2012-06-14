@@ -98,6 +98,9 @@ def copy_task(task):
     shutil.copy2(task.inputs[0].abspath(), task.outputs[0].abspath())
 
 class CSharpDependencyCollection(object):
+    '''
+    A collection of CSharpPackages
+    '''
     def __init__(self):
         self.packages = []
     def add_package(self, name):
@@ -150,6 +153,10 @@ class CSharpDependencyCollection(object):
 
 
 class CSharpDirectoryContainer(object):
+    '''
+    Abstract base class for "things that contain CSharpDirectories".
+    Concrete sub-classes are CSharpDirectory and CSharpPackage.
+    '''
     def __init__(self, package, parent):
         self.directories = []
         self.package = package
@@ -172,6 +179,10 @@ def option_to_field_name(option):
     return option.replace('-','_')
 
 class CSharpDirectory(CSharpDirectoryContainer):
+    '''
+    A directory making up part of a CSharpPackage. Might contain
+    assemblies to reference, files to copy or further sub-directories.
+    '''
     def __init__(
             self,
             package,
@@ -183,6 +194,28 @@ class CSharpDirectory(CSharpDirectoryContainer):
             in_dependencies=None,
             in_programfiles=None,
             only_on_platform=None):
+        """
+        package - the package directly or indirectly containing this directory
+        parent - the package or directory directly containing this directory
+        unique_id - a unique string used as a key to store information about
+           this directory during waf configure.
+        relative_path - the relative path from the parent's path, only valid
+           when the parent is another CSharpDirectory. Can be None, in which
+           case the path must be found during configure by as_option,
+           in_dependencies or in_programfiles.
+        as_option - specifies a command-line option for waf configure to override
+           the location of this directory.
+        option_help - help displayed for the option when doing waf --help
+        in_dependencies - specifies a glob to search for this directory within
+           $TOP/dependencies. Can include ${PLATFORM} which expands to the
+           environment variable PLATFORM. (No other environment variables are
+           currently expanded.) Can also be a list of globs.
+        in_programfiles - specifies a glob to search for this directory within
+           Windows's "Program Files" directory. Slightly nasty.
+        only_on_platform - A string or a list of strings to test against
+           $PLATFORM as described above in platform_match. This is skipped if
+           the platform doesn't match.
+        """
         CSharpDirectoryContainer.__init__(self, package=package, parent=parent)
         self.unique_id = unique_id
         self.relative_path = relative_path
@@ -351,6 +384,16 @@ def check_pkg_config(conf, pkg):
 
 
 class CSharpPackage(CSharpDirectoryContainer):
+    '''
+    A C# package defines a set of build and install behaviours that will be
+    used by a number of C# assembly tasks. At its simplest, this will be to
+    reference a system assembly during compilation, but one package might
+    include a number of assemblies, might specify that the assemblies should
+    be copied to the application directory, might use Mono's special "-pkg"
+    argument, might use pkgconfig to look up compiler flags, might include
+    native libraries and might require slightly different behaviour on
+    different systems.
+    '''
     def __init__(self, name):
         CSharpDirectoryContainer.__init__(self, package=self, parent=None)
         self.name = name
