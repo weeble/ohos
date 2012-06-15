@@ -70,7 +70,7 @@ except ImportError:
     print "You need to update ohDevTools."
     sys.exit(1)
 
-require_version(10)
+require_version(11)
 
 
 # Command-line options. See documentation for Python's optparse module.
