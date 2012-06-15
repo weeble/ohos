@@ -56,9 +56,21 @@
 #  
 
 import os
+import sys
 import shutil
+from glob import glob
 
-require_version(6)
+try:
+    from ci import (
+        require_version, add_option, add_bool_option, modify_optional_steps,
+        specify_optional_steps, default_platform, get_dependency_args,
+        build_step, build_condition, userlock, python, rsync, SshSession,
+        fetch_dependencies, get_vsvars_environment, scp, fail, shell, cli)
+except ImportError:
+    print "You need to update ohDevTools."
+    sys.exit(1)
+
+require_version(10)
 
 
 # Command-line options. See documentation for Python's optparse module.
@@ -80,7 +92,8 @@ ALL_DEPENDENCIES = [
     "yui-compressor",
     "sharpziplib",
     "log4net",
-    "sshnet"]
+    "sshnet",
+    "nuget"]
 
 @build_step()
 def choose_optional_steps(context):
@@ -143,6 +156,10 @@ def setup_linux(context):
 @build_step("fetch", optional=True)
 def fetch(context):
     fetch_dependencies(ALL_DEPENDENCIES, platform=context.env["OH_PLATFORM"])
+    shutil.rmtree('dependencies/nuget')
+    os.mkdir('dependencies/nuget')
+    nuget_exe = os.path.normpath(list(glob('dependencies/AnyPlatform/NuGet.[0-9]*/NuGet.exe'))[0])
+    cli(nuget_exe, 'install', 'projectdata/packages.config', '-OutputDirectory', 'dependencies/nuget')
 
 @build_step("configure", optional=True)
 def configure(context):

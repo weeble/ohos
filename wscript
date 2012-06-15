@@ -157,11 +157,10 @@ def add_nuget_package(name, assembly=None, subdir='lib/net40'):
         s = s.replace('.', '-')
         s = ''.join(ch for ch in s if ch.isalpha() or ch=='-')
         s = s.strip('-')
-        s = '--' + s
-        s = s + '-dir'
+        s = '--nuget-' + s + '-dir'
         return s
     option = to_option(name)
-    pkg = csharp_dependencies.add_package(name)
+    pkg = csharp_dependencies.add_package('nuget-' + name)
     if assembly is None:
         assembly = name + '.dll'
     # Note: the following pattern is designed to accomodate packages
@@ -171,7 +170,7 @@ def add_nuget_package(name, assembly=None, subdir='lib/net40'):
     # "[0-9]" ensures that it won't match inappropriately.
     dependency_path = 'nuget/%s.[0-9]*/%s' % (name, subdir)
     pkgdir = pkg.add_directory(
-            unique_id = name + '-dir',
+            unique_id = 'nuget-' + name + '-dir',
             as_option = option,
             option_help = 'Location of %s package' % name,
             in_dependencies = dependency_path)
@@ -182,6 +181,8 @@ add_nuget_package("Gate")
 add_nuget_package("Gate.Hosts.Firefly")
 add_nuget_package("Kayak", subdir='lib')
 add_nuget_package("Owin")
+add_nuget_package("Moq")
+add_nuget_package("NUnit", assembly='nunit.framework.dll', subdir='lib')
 
 
 
@@ -341,7 +342,9 @@ def create_zip_task(bld, zipfile, sourceroot, ziproot, sourcefiles):
 
 
 def get_active_dependencies(env):
-    active_dependency_names = set(['ohnet', 'yui-compressor', 'sharpziplib', 'log4net', 'systemxmllinq', 'mef', 'sshnet', 'Gate', 'Owin', 'Gate.Hosts.Firefly', 'Firefly', 'Kayak'])
+    active_dependency_names = set([
+        'ohnet', 'yui-compressor', 'sharpziplib', 'log4net', 'systemxmllinq', 'mef', 'sshnet',
+        'nuget-Gate', 'nuget-Owin', 'nuget-Gate.Hosts.Firefly', 'nuget-Firefly', 'nuget-Kayak', 'nuget-Moq', 'nuget-NUnit'])
     if env.BUILDTESTS:
         active_dependency_names |= set(['nunit', 'ndeskoptions', 'moq'])
     return csharp_dependencies.get_subset(active_dependency_names)
@@ -524,8 +527,13 @@ csharp_projects = [
         CSharpProject(
             name="OpenHome.XappForms", dir="XappForms", type="exe",
             categories=["xappforms"],
-            packages=['Owin', 'Gate', 'Firefly', 'Gate.Hosts.Firefly', 'Kayak'],
+            packages=['nuget-Owin', 'nuget-Gate', 'nuget-Firefly', 'nuget-Gate.Hosts.Firefly', 'nuget-Kayak'],
             references=[]),
+        CSharpProject(
+            name="OpenHome.XappForms.Tests", dir="XappForms.Tests", type="library",
+            categories=["test"],
+            packages=['nuget-Moq', 'nuget-NUnit', 'nuget-Owin'],
+            references=['OpenHome.XappForms']),
     ]
 
 # Files for minification.
@@ -831,7 +839,10 @@ def build(bld):
         ])
     xappforms_install_tree = (client_scripts_tree + xohj_tree + xappforms_core_tree)
     xappforms_install_tree.targets_prefixed('install/XappForms').create_copy_tasks(bld)
-    xappforms_install_tree.targets_prefixed('${PREFIX}/lib/xappforms').install_files_preserving_permissions(bld)
+
+    # Commenting this out in case the debian scripts include it in the wrong package.
+    # Hopefully they should ignore it, but for now I'm leaving it out.
+    #xappforms_install_tree.targets_prefixed('${PREFIX}/lib/xappforms').install_files_preserving_permissions(bld)
 
 
     #apps_transfer = all_apps_transfer.targets_prefixed('apps')

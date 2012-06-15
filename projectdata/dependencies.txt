@@ -26,3 +26,4 @@
 "sharpziplib" "${OHNET_ARTIFACTS}/AnyPlatform/SharpZipLib_0840_Bin.tar.gz" "dependencies/AnyPlatform/" "--sharp-zip-lib-dir dependencies/AnyPlatform/SharpZipLib_0840_Bin/"
 "log4net" "${OHNET_ARTIFACTS}/AnyPlatform/log4net-1.2.10.tar.gz" "dependencies/AnyPlatform/" "--log4net-dir dependencies/AnyPlatform/log4net-1.2.10/bin/net/2.0/release/"
 "sshnet" "${OHNET_ARTIFACTS}/AnyPlatform/Renci.SshNet-14316.tar.gz" "dependencies/AnyPlatform/" "--sshnet-dir dependencies/AnyPlatform/Renci.SshNet-14316/"
+"nuget" "${OHNET_ARTIFACTS}/AnyPlatform/NuGet.1.7.30402.9028.tar.gz" "dependencies/AnyPlatform/" ""
