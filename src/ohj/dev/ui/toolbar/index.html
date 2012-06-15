@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>ohj UI - ohj.toolbar</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <!-- Le styles -->
+        <link href="../../docs/css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../docs/css/prettify.css" rel="stylesheet">
+        <link href="../../docs/css/docs.css" rel="stylesheet">
+        <style>
+            body {
+                padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+            }
+            
+            .ohjpageslider-page
+            {
+                background-color:#CCCCCC;
+                line-height:200px;
+                text-align:center;
+                vertical-align:middle;
+                font-size:70px;
+                color:#A3A3A3 ;
+                font-weight:700;
+            }
+        </style>
+        <link href="../../docs/css/bootstrap-responsive.min.css" rel="stylesheet">
+
+        <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+        <!--[if lt IE 9]>
+        <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+        
+    </head>
+
+    <body onload="prettyPrint()"  data-spy="scroll">
+
+        <div class="navbar navbar-fixed-top">
+            <div class="navbar-inner">
+                <div class="container">
+                    <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse"> <span class="icon-bar"></span> <span class="icon-bar"></span> <span class="icon-bar"></span> </a>
+                    <a class="brand " href="../../docs/index.html"><span class="ohj">ohj</span>.pageslider</a>
+                    <div class="nav-collapse">
+                        <ul class="nav">
+                            <li class="active">
+                                <a href="#">Home</a>
+                            </li>
+                            <li>
+                                <a href="#usage">Usage</a>
+                            </li>
+                            <li>
+                                <a href="#examples">Examples</a>
+                            </li>
+                            <li>
+                                <a href="#style">Styling</a>
+                            </li>
+                            <li>
+                                <a href="#depend">Dependencies</a>
+                            </li>
+                            <li>
+                                <a href="#platforms">Platforms</a>
+                            </li>
+                            <li>
+                                <a href="#future">Future Developments</a>
+                            </li>
+                        </ul>
+                    </div><!--/.nav-collapse -->
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+
+            <h1>ohj.pageslider UI control<small> b0.1</small></h1>
+            <p class="lead">
+                A container control to hold pages that can be navigated using slide animations.
+            </p>
+            <br/>
+            <br/>
+            <section id="usage">
+                <div class="page-header">
+                    <h2>Usage</h2>
+                </div>
+                <h3>Quick Start</h3>
+                <div class="row">
+                     
+                    <div class="span6">
+                       
+                        <pre class="prettyprint linenums">
+    &lt;script&gt;
+        $('#content').ohjpageslider();
+    &lt;/script&gt;
+    ...
+    &lt;div id="content"&gt;
+        &lt;div id="page1">1&lt;/div&gt;
+        &lt;div id="page2">2&lt;/div&gt;
+        &lt;div id="page3">3&lt;/div&gt;
+        &lt;div id="page4">4&lt;/div&gt;
+        &lt;div id="page5">5&lt;/div&gt;
+    &lt;/div&gt;
+
+                        </pre>
+                    </div><!-- /.span -->
+                    <div class="span6">
+                        <div class="row">
+                            <div class="span1"><button class="btn" id="btnP1Back"><i class="icon-chevron-left"></i>Back</button></div>
+                           <div class="offset4 span1"><button id="btnP1Next" class="btn">Next<i class="icon-chevron-right"></i></button></div>
+                        </div>
+                         <br/>
+                       <div id="ps1container">
+                           <div id="ps1p1" class="thumbnail">1</div>
+                           <div id="ps1p2" class="thumbnail">2</div>
+                           <div id="ps1p3" class="thumbnail">3</div>
+                           <div id="ps1p4" class="thumbnail">4</div>
+                           <div id="ps1p5" class="thumbnail">5</div>
+                       </div>
+                    </div><!-- /.span -->
+
+                </div>
+                <div class="row">
+                    <div class="span12">
+                         <h3>Options</h3>
+                        <table class="table table-bordered table-striped">
+                            <colgroup>
+                                <col class="span1">
+                                <col class="span7">
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th>Option</th>
+                                    <th>Description</th>
+                                    <th>Default</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>
+                                        height</code></td>
+                                    <td> The height of the page slider in css format </td>
+                                    <td> 450px </td>
+                                </tr>
+                                <tr>
+                                    <td><code>
+                                        speed</code></td>
+                                    <td> The speed in milliseconds at which the page slides at </td>
+                                    <td>200</td>
+                                </tr>
+                                <tr>
+                                    <td><code>
+                                        onload</code></td>
+                                    <td> The callback to call when a page has been navigated to.</td>
+                                    <td> <code>
+                                        null</code> </td>
+                                </tr>
+                                <tr>
+                                     <td><code>
+                                        onunload</code></td>
+                                    <td> The callback to call when a page has been navigated away from.</td>
+                                    <td> <code>
+                                        null</code> </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="span12">
+                         <h3>Public Methods</h3>
+                        <table class="table table-bordered table-striped">
+                            <colgroup>
+                                <col class="span1">
+                                <col class="span7">
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th>Method</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>
+                                        navigateToPage(pageElement)</code></td>
+                                    <td> Causes the page slider to navigate to a page using the slide animation </td>
+         
+                                </tr>
+                                <tr>
+                                    <td><code>
+                                        navigateBack()</code></td>
+                                    <td> Causes the page slider to navigate back to the previous page </td>
+                                </tr>
+                                <tr>
+                                    <td><code>
+                                        navigateNext()</code></td>
+                                    <td> Causes the page slider to navigate to the next page defined within the DOM </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="span12">
+                         <h3>Events</h3>
+                        <table class="table table-bordered table-striped">
+                            <colgroup>
+                                <col class="span1">
+                                <col class="span7">
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th>Event</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>
+                                        onload(toPageElement)</code></td>
+                                    <td> Evented when a page has been navigated to </td>
+                                </tr>
+                                <tr>
+                                    <td><code>
+                                        onunload(fromPageElement)</code></td>
+                                    <td> Evented when a page has been navigated away from </td>
+                                </tr>
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+            <section id="examples">
+                <div class="page-header">
+                    <h2>Examples</h2>
+                </div>
+                <p>
+                    None
+                </p>
+            </section>
+
+            <section id="style">
+                <div class="page-header">
+                    <h2>Styling</h2>
+                </div>
+                <div class="row">
+                    <div class="span12">
+                        <table class="table table-bordered table-striped">
+                            <colgroup>
+                                <col class="span1">
+                                <col class="span7">
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th>Class</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>
+                                        .ohjpageslider</code></td>
+                                    <td> Class for the container </td>
+                                </tr>
+                                <tr>
+                                    <td><code>
+                                        .ohjpageslider-page</code></td>
+                                    <td> Class that applies to every page </td>
+                                </tr>
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="row">
+
+                    <div class="span12">
+                        <pre class="prettyprint linenums">
+        &lt;div id="content" class="ohjpageslider"&gt;
+            &lt;div id="page1" class="ohjpageslider-page">1&lt;/div&gt;
+            &lt;div id="page2" class="ohjpageslider-page">2&lt;/div&gt;
+            &lt;div id="page3" class="ohjpageslider-page">3&lt;/div&gt;
+            &lt;div id="page4" class="ohjpageslider-page">4&lt;/div&gt;
+            &lt;div id="page5" class="ohjpageslider-page">5&lt;/div&gt;
+        &lt;/div&gt;
+   </pre>
+                    </div><!-- /.span -->
+                </div>
+            </section>
+             <section id="depend">
+                <div class="page-header">
+                    <h2>Dependencies</h2>
+                </div>
+                 <table class="table table-bordered table-striped">
+                            <colgroup>
+                                <col class="span3">
+                                <col class="span2">
+                                
+                                <col class="span7">
+                                
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th>Dependency</th>
+                                    <th>Platform</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>
+                                        jquery 1.7.2</code></td>
+                                    <td>Desktop</td>
+                                    <td> Core library for desktop browsers </td>
+         
+                                </tr>
+                                <tr>
+                                    <td><code>
+                                        zepto 1.0rc1</code></td>
+                                    <td>Mobile Webkit</td>
+                                    <td> Core library for android and ios browsers </td>
+         
+                                </tr>
+                                
+                            </tbody>
+                        </table>
+            </section>
+             <section id="platforms">
+                <div class="page-header">
+                    <h2>Platforms</h2>
+                 </div>
+                <p>Tested on:</p>
+                <ul>
+                    <li>
+                       IE 8+
+                    </li>
+                    <li>
+                       Chrome
+                    </li>
+                    
+                </ul>
+            </section>
+            <section id="future">
+                <div class="page-header">
+                    <h2>Future Developments</h2>
+                </div>
+                <ul>
+                    <li>
+                        3d Transform for capable devices
+                    </li>
+                    <li>
+                        Auto manage history to allow browser back, forward and bookmark
+                    </li>
+                    <li>
+                        Dynamically add pages
+                    </li>
+                </ul>
+            </section>
+
+        </div>
+        <br/>
+        <br/>
+        <br/>
+        <br/>
+        <br/>
+        <!-- /container -->
+
+        <!-- Le javascript
+        ================================================== -->
+        <!-- Placed at the end of the document so the pages load faster -->
+        <script src="../../lib/jquery-1.7.2.min.js"></script>
+        <!--<script src="../../lib/zepto-1.0rc1.min.js"></script>-->
+        <script src="../../docs/js/bootstrap.min.js"></script>
+        <script src="../../docs/js/prettify.js"></script>
+        <script src="../ohj.util.js"></script>
+        <script src="../ohj.ui.js"></script>
+        <script src="ohj.toolbar.js"></script>
+        <script>
+            $().ready(function() {
+               
+            });
+
+        </script>
+    </body>
+</html>
