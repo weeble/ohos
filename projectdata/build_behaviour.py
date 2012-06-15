@@ -156,7 +156,8 @@ def setup_linux(context):
 @build_step("fetch", optional=True)
 def fetch(context):
     fetch_dependencies(ALL_DEPENDENCIES, platform=context.env["OH_PLATFORM"])
-    shutil.rmtree('dependencies/nuget')
+    if os.path.isdir('dependencies/nuget'):
+        shutil.rmtree('dependencies/nuget')
     os.mkdir('dependencies/nuget')
     nuget_exe = os.path.normpath(list(glob('dependencies/AnyPlatform/NuGet.[0-9]*/NuGet.exe'))[0])
     cli(nuget_exe, 'install', 'projectdata/packages.config', '-OutputDirectory', 'dependencies/nuget')
