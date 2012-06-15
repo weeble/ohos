@@ -16,6 +16,9 @@
                 
                     if (target.tagName != 'SELECT' && target.tagName != 'INPUT' && target.tagName != 'TEXTAREA')
                         e.preventDefault();
+                },
+                 onScroll: function() {
+                    elem.trigger('scroll');
                 }
             });
         };
@@ -57,6 +60,7 @@
 /*!
  * iScroll v4.1.9 ~ Copyright (c) 2011 Matteo Spinelli, http://cubiq.org
  * Released under MIT license, http://cubiq.org/license
+ * ohj: added an onscroll event (onscroll events for momentum too)
  */
 (function(){
 var m = Math,
@@ -163,7 +167,9 @@ var m = Math,
 			onDestroy: null,
 			onZoomStart: null,
 			onZoom: null,
-			onZoomEnd: null
+			onZoomEnd: null,
+            // ohj
+            onScroll:null
 		};
 
 		// User defined options
@@ -331,6 +337,9 @@ iScroll.prototype = {
 
 		this._scrollbarPos('h');
 		this._scrollbarPos('v');
+
+        //ohj
+        if (this.options.onScroll) this.options.onScroll.call(this);
 	},
 
 	_scrollbarPos: function (dir, hidden) {

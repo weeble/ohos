@@ -2,12 +2,20 @@
 ;(function($) {
     ohjui['ohjpagesliderpointer'] = function(elem, settings) {
         this.renderScroller = function() {
-           elem.addClass('nano');
-               elem.css({'height':settings.height});
-               var innerDiv = $('<div/>').html(elem.html());
-               elem.html(innerDiv);
-               elem.children('div').addClass('content');
-               elem.nanoScroller();
+            elem.addClass('nano');
+            elem.css({'height':settings.height});
+            var innerDiv = $('<div/>').html(elem.html());
+            elem.html(innerDiv);
+            elem.children('div').addClass('content');
+            elem.nanoScroller();
+
+            elem.on('mousewheel',function() {
+                elem.trigger('scroll');
+            });
+
+            elem.find('.slider').on('mousemove',function() {
+                elem.trigger('scroll');
+            });
         };
             
         this.refreshScroller = function() {
@@ -29,6 +37,7 @@
         };
 
         this.destroy = function() {
+            elem.find('.slider').off('mousemove');
             elem.nanoScroller({ stop: true });
             elem.destroyPlugin();
         };
