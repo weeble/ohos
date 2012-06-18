@@ -20,9 +20,7 @@ set -e
 
 case "$1" in
     configure)
-    	[ -d /proc/sys/fs/binfmt_misc ] && \
-        [ -n "`which update-binfmts`" ] && \
-        update-binfmts --package ohmono --install cli /usr/bin/mono --magic MZ
+        mozroots --import --sync --machine
     	;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

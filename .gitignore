@@ -41,7 +41,7 @@ debian/usr
 /scripts/mono/run/debian/ohmono/
 /scripts/mono/dev/debian/ohmono-dev/
 /scripts/mono/*/debian/files
-mono-2.10.*/
+mono-2.11.*/
 gtk-sharp-2.12.*/
 scripts/oh-sheeva-setup/debian/oh-sheeva-setup
 scripts/oh-sheeva-setup/debian/files

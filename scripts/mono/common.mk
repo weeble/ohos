@@ -1,4 +1,4 @@
-MONO_VERSION = 2.10.8
+MONO_VERSION = 2.11.1
 
 SBOX2 = /usr/bin/sb2
 
@@ -22,21 +22,21 @@ MONO_CONFIG_OPTS  = --prefix=$(prefix)                \
                     --without-mcs-docs                \
                     --without-sgen
 
-RUNTIME_ASSEMBLIES =  CustomMarshalers               \
-                      Mono.Posix                     \
-                      Mono.Security                  \
-                      Mono.CSharp                    \
-                      Microsoft.CSharp               \
-                      System.Configuration.Install   \
-                      System.Configuration           \
-                      System.Core                    \
-                      System.EnterpriseServices      \
-                      System.Management              \
-                      System.Security                \
-                      System.ServiceProcess          \
-                      System.Transactions            \
-                      System.Xml.Linq                \
-                      System.Xml                     \
+RUNTIME_ASSEMBLIES =  CustomMarshalers                  \
+                      Mono.Posix                        \
+                      Mono.Security                     \
+                      Mono.CSharp                       \
+                      Microsoft.CSharp                  \
+                      System.Configuration.Install      \
+                      System.Configuration              \
+                      System.Core                       \
+                      System.EnterpriseServices         \
+                      System.Management                 \
+                      System.Security                   \
+                      System.ServiceProcess             \
+                      System.Transactions               \
+                      System.Xml.Linq                   \
+                      System.Xml                        \
                       System.ComponentModel.Composition \
                       System
 
@@ -51,15 +51,19 @@ ETC_PREFIX=$(prefix)/etc/mono
 LIB_PREFIX=$(prefix)/lib/mono
 
 assemblies_install = for f in $(3) ; do  \
-                         $(2) -i $(TMP_INSTALL_DIR)-x86$(LIB_PREFIX)/$(1)/$${f}.dll -root $(DESTDIR)$(prefix)/lib -package $(1) ; \
+                         if [ -e $(TMP_INSTALL_DIR)-x86$(LIB_PREFIX)/$(1)/$${f}.dll ] ; then \
+                             $(2) -i $(TMP_INSTALL_DIR)-x86$(LIB_PREFIX)/$(1)/$${f}.dll -root $(DESTDIR)$(prefix)/lib -package $(1) ; \
+                         else \
+                             echo "WARNING: $${f}.dll [$(1)] not found. Skipping ..." ; \
+                         fi; \
                      done
 
+gacutil_install = install -D $(TMP_INSTALL_DIR)-x86$(LIB_PREFIX)/$(1)/gacutil.exe   $(DESTDIR)$(LIB_PREFIX)/$(1)/gacutil.exe ; \
+                  install -D $(TMP_INSTALL_DIR)-$(BIN_ARCH)$(prefix)/bin/$(2)       $(DESTDIR)$(prefix)/bin/$(2)
 
 clr_install = install -d $(DESTDIR)$(ETC_PREFIX) ; \
               cp -a $(TMP_INSTALL_DIR)-$(BIN_ARCH)$(prefix)/etc/mono/$(1)       $(DESTDIR)$(ETC_PREFIX) ; \
-	      install -D $(TMP_INSTALL_DIR)-x86$(LIB_PREFIX)/$(1)/mscorlib.dll  $(DESTDIR)$(LIB_PREFIX)/$(1)/mscorlib.dll ; \
-              install -D $(TMP_INSTALL_DIR)-x86$(LIB_PREFIX)/$(1)/gacutil.exe   $(DESTDIR)$(LIB_PREFIX)/$(1)/gacutil.exe ; \
-              install -D $(TMP_INSTALL_DIR)-$(BIN_ARCH)$(prefix)/bin/$(2)       $(DESTDIR)$(prefix)/bin/$(2)
+              install -D $(TMP_INSTALL_DIR)-x86$(LIB_PREFIX)/$(1)/mscorlib.dll  $(DESTDIR)$(LIB_PREFIX)/$(1)/mscorlib.dll ; \
 
 builder:
 	@if ! [ -d $(MONO_SRC_DIR) ]; then  \
