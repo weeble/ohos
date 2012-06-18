@@ -1,6 +1,7 @@
 ;(function($) {
     ohjui['ohjlazylist'] = function(element, options) {
-        var lazyloadInProgress = false,viewPortverticalItems = 0,viewPortHorizontalItems = 0,listitemHeight = 0,resizeThrottle =null, noData = false;
+        var LOADTEXTFOOTERSPEED = 200;
+        var lazyloadInProgress = false,viewPortverticalItems = 0,viewPortHorizontalItems = 0,listitemHeight = 0,resizeThrottle =null, noData = false,loadTextHeight = 0;
         var elem = $(element);
         var _this = this;
         var currentStartIndex = 0;
@@ -11,7 +12,7 @@
             threshold: 5,
             overflow: 0.5,
             loadText: 'Loading...',
-            showLoadText: true
+            showLoadText: 'footer'
         }, options || {});
 
         // Private Methods
@@ -58,15 +59,22 @@
         };
 
         var showProgress = function() {
-            if(settings.showLoadText) {
+            if(settings.showLoadText === 'footer') {
                 var html = '<div class="ohjlazylist-loader">'+settings.loadText+'</div>';
                 elem.append(html);
+                var loadText = elem.find('.ohjlazylist-loader');
+                loadTextHeight = loadText.height();
+                loadText.css({'bottom': '-'+loadTextHeight+'px'});
+                loadText.animate({'bottom':'0'},LOADTEXTFOOTERSPEED);
             }
         };
 
         var hideProgress = function() {
             if(settings.showLoadText) {
-                elem.find('.ohjlazylist-loader').remove();
+                elem.find('.ohjlazylist-loader').animate({'bottom': '-'+loadTextHeight+'px'},LOADTEXTFOOTERSPEED);
+                setTimeout(function() {
+                    elem.find('.ohjlazylist-loader').remove();
+                },LOADTEXTFOOTERSPEED);
             }
         };
 
