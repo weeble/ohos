@@ -563,11 +563,11 @@
 
                 var lazylist = $("#lazylist1").ohjlazylist({
                     threshold: 30,
-                    overflow: 1,
+                    overflow: 2,
                     onrendersegment: function (e, data) {
                         var html = '';
                         for (var i = 1; i < arguments.length; i++) {
-                            html += '<li id="li_' + arguments[i] + '">  <img src="../ohj/list/default.jpg" /><h3>' + arguments[i] + '</h3></li>'; // console.log(arguments[i]);
+                            html += '<li id="li_' + i + '">  <img src="../ohj/list/default.jpg" /><h3>' + arguments[i] + '</h3></li>'; // console.log(arguments[i]);
                         }
 
                          $("#lazylist1 ul").data('ohjlist').addListItem(html);

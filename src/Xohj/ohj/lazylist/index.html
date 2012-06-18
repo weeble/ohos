@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>ohj UI - ohj.lazylist</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <!-- Le styles -->
+        <link href="../../docs/css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../docs/css/prettify.css" rel="stylesheet">
+        <link href="../../docs/css/docs.css" rel="stylesheet">
+           <link href="../list/ohj.list.css" rel="stylesheet">
+        <link href="../pagescroller/ohj.pagescroller.pointer.css" rel="stylesheet">
+        <style>
+            body {
+                padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+            }
+
+            .ohjnavbar {
+                background-color: #2C2C2C;
+                height: 40px;
+                color: #FFF;
+                font-weight: 700;
+            }
+   
+            
+              
+             .ohjlazylist li
+            {
+                background-color:#EEE;
+                border-bottom:1px solid #CCC;
+ 
+            }
+            .ohjlazylist h3
+            {
+                margin-top:10px;
+                font-size:15px;
+                line-height:40px;
+            }
+             .ohjlazylist img
+            {
+                height:40px;        
+            }
+            
+            
+            .ohjlazylist-loader
+            {
+                opacity:0.5;
+                background-color:#000;
+                color:#FFF;
+                text-align:center;
+                position:absolute;
+                width:100%;
+                height:20px;
+                font-size:10px;
+            }
+
+        </style>
+        <link href="../../docs/css/bootstrap-responsive.min.css" rel="stylesheet">
+
+        <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+        <!--[if lt IE 9]>
+        <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+
+    </head>
+
+    <body onload="prettyPrint()"  data-spy="scroll">
+        <div class="navbar navbar-fixed-top">
+            <div class="navbar-inner">
+                <div class="container">
+                    <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse"> <span class="icon-bar"></span> <span class="icon-bar"></span> <span class="icon-bar"></span> </a>
+                    <a class="brand " href="../../docs/index.html"><span class="ohj">ohj</span>.lazylist</a>
+                    <div class="nav-collapse">
+                        <ul class="nav">
+                            <li class="active">
+                                <a href="#">Home</a>
+                            </li>
+                            <li>
+                                <a href="#usage">Usage</a>
+                            </li>
+                            <li>
+                                <a href="#examples">Examples</a>
+                            </li>
+                            <li>
+                                <a href="#style">Styling</a>
+                            </li>
+                            <li>
+                                <a href="#depend">Dependencies</a>
+                            </li>
+                            <li>
+                                <a href="#platforms">Platforms</a>
+                            </li>
+                             <li>
+                                <a href="#tests">Tests</a>
+                            </li>
+                            <li>
+                                <a href="#future">Future Developments</a>
+                            </li>
+                        </ul>
+                    </div><!--/.nav-collapse -->
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+
+            <h1>ohj.lazylist UI control<small> b0.1</small></h1>
+            <p class="lead">
+                  A list control where data is loaded as the user scrolls down
+            </p>
+            <br/>
+            <br/>
+            <section id="usage">
+                <div class="page-header">
+                    <h2>Usage</h2>
+                </div>
+                <h3>Quick Start</h3>
+                <div class="row">
+
+                    <div class="span8">
+                        <pre class="prettyprint linenums">
+    &lt;script&gt;
+        $('#lazylist').ohjlazylist({
+            threshold: 30,
+            overflow: 1,
+            onrendersegment: function (e, data) {
+                var html = '';
+                for (var i = 1; i < arguments.length; i++) {
+                    html += '&lt;li id="li_' + i + '"&gt;' +
+                                '&lt;img src="default.jpg" /&gt;' +
+                                '&lt;h3&gt;' + arguments[i] + '&lt;/h3&gt;' +
+                            '&lt;/li&gt;';
+                }
+
+                $('#lazylist ul').data('ohjlist').addListItem(html);
+                $('#lazylist').data('ohjlazylist').getPageScroller().refreshScroller();
+            },
+            ongetdata: function (e, startIndex, endIndex, onSuccess) {
+                // Ajax call
+                onSuccess(ajaxdata);
+            }
+        });
+    &lt;/script&gt;
+    ...
+    &lt;div id="lazylist"&gt;
+        &lt;div data-use-ohjpagescroller="true"&gt;
+            &lt;ul data-use-ohjlist="true"&gt;
+            &lt;/ul&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+                        </pre>                                                
+
+
+
+                    </div><!-- /.span -->
+                    <div class="span4">
+                          <div id="lazylist">
+                            <div data-use-ohjpagescroller="true">
+                                <ul data-use-ohjlist="true">
+                                </ul>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                    <div class="row">
+                        <div class="span12">
+                            <h3>Options</h3>
+                            <table class="table table-bordered table-striped">
+                                <colgroup>
+                                    <col class="span1">
+                                    <col class="span7">
+                                </colgroup>
+                                <thead>
+                                    <tr>
+                                        <th>Option</th>
+                                        <th>Description</th>
+                                        <th>Default</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                 <tr>
+                                        <td>
+                                        <code>
+                                            extend
+                                        </code></td>
+                                        <td> Customise the browser discrimination logic to load control extensions </td>
+                                        <td>
+                                        <code>
+                                            null
+                                        </code></td>
+                                    </tr>
+                                     <tr>
+                                        <td>
+                                        <code>
+                                            onrendersegment
+                                        </code></td>
+                                        <td> Call back function whenever a data block is ready to be rendered. </td>
+                                        <td>
+                                        <code>
+                                            null
+                                        </code></td>
+                                    </tr>
+                                     <tr>
+                                        <td>
+                                        <code>
+                                            ongetdata
+                                        </code></td>
+                                        <td> Call back function whenever data for a specific start and end index is required. </td>
+                                        <td>
+                                        <code>
+                                            null
+                                        </code></td>
+                                    </tr>
+                                     <tr>
+                                        <td>
+                                        <code>
+                                            threshold
+                                        </code></td>
+                                        <td> The number of items from the bottom of the list that triggers the next block of data </td>
+                                        <td>
+                                        <code>
+                                            5
+                                        </code></td>
+                                    </tr>
+                                      <tr>
+                                        <td>
+                                        <code>
+                                            overflow
+                                        </code></td>
+                                        <td> A decimal representing the amount of additional data to retreive.  If your list could display 10 visible list items then an overflow of 0.5 would bring back 15 list items.  An overflow of 2 would bring back 20 list items. </td>
+                                        <td>
+                                        <code>
+                                            1
+                                        </code></td>
+                                    </tr>
+                                     <tr>
+                                        <td>
+                                        <code>
+                                            loadText
+                                        </code></td>
+                                        <td> The text to display when retreiving the next block of data. </td>
+                                        <td>
+                                        <code>
+                                            Loading...
+                                        </code></td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                        <code>
+                                            showLoadText
+                                        </code></td>
+                                        <td> 'none':  Hides the load text.<br />
+                                        'footer': Displays the load text at the bottom of the lazy item control.</td>
+                                        <td>
+                                        <code>
+                                            footer
+                                        </code></td>
+                                    </tr>
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="row">
+                       <div class="span12">
+                         <h3>Public Methods</h3>
+                               <table class="table table-bordered table-striped">
+                            <colgroup>
+                                <col class="span1">
+                                <col class="span7">
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th>Method</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>getPageScroller
+                                        </code></td>
+                                    <td>Retrieves the page scroller instance for the lazy list</td>
+         
+                                </tr> 
+                                 <tr>
+                                    <td><code>destroy
+                                        </code></td>
+                                    <td>Destroys the lazy list, list and pagescroller.</td>
+         
+                                </tr> 
+                            </tbody>
+                        </table>
+                    </div>
+                    </div>
+                    <div class="row">
+                        <div class="span12">
+                            <h3>Events</h3>
+                             <table class="table table-bordered table-striped">
+                            <colgroup>
+                                <col class="span1">
+                                <col class="span7">
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th>Event</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody
+                                <tr>
+                                    <td><code>
+                                        onrendersegment(event, [data,...])</code></td>
+                                    <td> Evented when a block of data has been retreived. </td>
+                                </tr>
+                                <tr>
+                                    <td><code>
+                                        ongetdata(event, startIndex, endIndex, onSuccess)</code></td>
+                                    <td> Evented when the lazy list requires the next block of data </td>
+                                </tr>
+                               
+
+                            </tbody>
+                        </table>
+                        </div>
+                    </div>
+            </section>
+            <section id="examples">
+                <div class="page-header">
+                    <h2>Examples</h2>
+                </div>
+                <p>
+                    None
+                </p>
+            </section>
+
+            <section id="style">
+                <div class="page-header">
+                    <h2>Styling</h2>
+                </div>
+                <div class="row">
+                    <div class="span12">
+                        <table class="table table-bordered table-striped">
+                            <colgroup>
+                                <col class="span1">
+                                <col class="span7">
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th>Class</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                    <code>
+                                        .ohjlazylist
+                                    </code></td>
+                                    <td> Class for the lazylist </td>
+                                </tr>
+                             
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="row">
+
+                    <div class="span12">
+                        <pre class="prettyprint linenums">
+       &lt;div id="lazylist" class="ohjlazylist"&gt;
+            &lt;div class="ohjpagescroller"&gt;
+                &lt;div class="content" style="right: -17px; "&gt;
+                    &lt;ul class="ohjlist"&gt;
+                        &lt;li id="li_0" class="clearfix"&gt;  
+                            &lt;img src="default.jpg"&gt;&lt;h3 class="ellipsis"&gt;This is listitem 0&lt;/h3&gt;
+                        &lt;/li&gt;
+                        &lt;li id="li_1" class="clearfix"&gt; 
+                            &lt;img src="default.jpg"&gt;&lt;h3 class="ellipsis"&gt;This is listitem 1&lt;/h3&gt;
+                        &lt;/li&gt;
+                    &lt;/ul&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+       &lt;/div&gt;
+   </pre>
+                    </div><!-- /.span -->
+                </div>
+            </section>
+            <section id="depend">
+                <div class="page-header">
+                    <h2>Dependencies</h2>
+                </div>
+                <table class="table table-bordered table-striped">
+                    <colgroup>
+                        <col class="span3">
+                        <col class="span2">
+
+                        <col class="span7">
+
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th>Dependency</th>
+                            <th>Platform</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                            <code>
+                                jquery 1.7.2
+                            </code></td>
+                            <td>Desktop</td>
+                            <td> Core library for desktop browsers </td>
+
+                        </tr>
+                        <tr>
+                            <td>
+                            <code>
+                                zepto 1.0rc1
+                            </code></td>
+                            <td>Mobile Webkit</td>
+                            <td> Core library for android and ios browsers </td>
+
+                        </tr>
+                        <tr>
+                            <td><code>
+                                ohj.list.css</code></td>
+                            <td>Core</td>
+                            <td> Css file for the list and list items </td>
+ 
+                        </tr>
+                       
+                    </tbody>
+                </table>
+            </section>
+            <section id="platforms">
+                <div class="page-header">
+                    <h2>Platforms</h2>
+                </div>
+                <p>
+                    Tested on:
+                </p>
+                <ul>
+                    <li>
+                        IE 8+
+                    </li>
+                    <li>
+                        Chrome
+                    </li>
+
+                </ul>
+            </section>
+              <section id="tests">
+                <div class="page-header">
+                    <h2>Tests</h2>
+                </div>
+                <ul>
+                    <li>
+                        <a href="lazylist-test.html">Run Tests</a>
+                    </li>
+                </ul>
+                <br />
+            </section>
+            <section id="future">
+                <div class="page-header">
+                    <h2>Future Developments</h2>
+                </div>
+                <ul>
+                    <li>
+                        Make scrolling up retreive data segments too.  This will allow only a set number of list items available within the list.
+                    </li>
+                </ul>
+            </section>
+
+        </div>
+        <br/>
+        <br/>
+        <br/>
+        <br/>
+        <br/>
+        <!-- /container -->
+
+        <!-- Le javascript
+        ================================================== -->
+        <!-- Placed at the end of the document so the pages load faster -->
+        <script src="../../lib/jquery-1.7.2.min.js"></script>
+        <!--<script src="../../lib/zepto-1.0rc1.min.js"></script>-->
+        <script src="../../docs/js/bootstrap.min.js"></script>
+        <script src="../../docs/js/prettify.js"></script>
+        <script src="../ohj.util.js"></script>
+        <script src="../ohj.ui.js"></script>
+        <script src="../ohj.ui.bridge.js"></script>
+        <script src="../page/ohj.page.js"></script>
+        <script src="../pagescroller/ohj.pagescroller.js"></script>
+        <script src="../pagescroller/ohj.pagescroller.pointer.js"></script>
+        <script src="../pagescroller/ohj.pagescroller.touch.js"></script>
+        <script src="../navbar/ohj.navbar.js"></script>
+        <script src="../list/ohj.list.js"></script>
+        <script src="../lazylist/ohj.lazylist.js"></script>
+
+        <script>
+            $().ready(function () {
+                var lazylist = $("#lazylist").ohjlazylist({
+                    threshold: 30,
+                    overflow: 2,
+                    onrendersegment: function (e, data) {
+                        var html = '';
+                        for (var i = 1; i < arguments.length; i++) {
+                            html += '<li id="li_' + i + '">  <img src="default.jpg" /><h3>' + arguments[i] + '</h3></li>'; // console.log(arguments[i]);
+                        }
+
+                        $("#lazylist ul").data('ohjlist').addListItem(html);
+                        $('#lazylist').data('ohjlazylist').getPageScroller().refreshScroller();
+                    },
+                    ongetdata: function (e, startIndex, endIndex, onSuccess) {
+                        // Mock ajax call
+                        if (onSuccess != null) {
+                            setTimeout(function () {
+                                onSuccess(listdata.slice(startIndex, endIndex));
+                            }, 500);
+                        }
+                    }
+                });
+            });
+
+            // Mock data
+            var listdata = [];
+            for (var i = 0; i < 10000; i++) {
+                listdata.push('This is listitem ' + i);
+            }
+        </script>
+    </body>
+</html>
