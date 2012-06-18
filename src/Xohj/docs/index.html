@@ -65,6 +65,38 @@
             {
                 height:80px;        
             }
+            
+              
+            .ohjlazylist li
+            {
+                background-color:#EEE;
+                border-bottom:1px solid #CCC;
+ 
+            }
+            .ohjlazylist h3
+            {
+                margin-top:10px;
+                font-size:15px;
+                line-height:40px;
+            }
+             .ohjlazylist img
+            {
+                height:40px;        
+            }
+            
+            
+            .ohjlazylist-loader
+            {
+                opacity:0.5;
+                background-color:#000;
+                color:#FFF;
+                text-align:center;
+                position:absolute;
+                width:100%;
+                height:20px;
+                font-size:10px;
+            }
+            
         </style>
         <link href="css/bootstrap-responsive.min.css" rel="stylesheet">
 
@@ -393,6 +425,26 @@
                             </div>
                         </div>
                     </div><!-- /.span -->
+                    <div class="span3 well">
+                        <div class="demo">
+                            <h3>Lazy List</h3>
+                            <p>
+                               A list control where data is loaded as the user scrolls down
+                            </p>
+                             <div id="lazylist1" >
+                                <div data-use-ohjpagescroller="true" data-height="300px" >
+                                    <ul data-use-ohjlist="true">
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="span3"  style="text-align:center">
+                                <br/>
+                                <a class="btn btn-warning btn-large" href="../ohj/lazylist/index.html"> Learn more </a>
+                            </div>
+                        </div>
+                    </div><!-- /.span -->
                 </div>
             </section>
             <section id="lib">
@@ -423,7 +475,8 @@
     &lt;script src="../ohj/navbar/ohj.navbar.js"&gt;&lt;/script&gt;
     &lt;script src="../ohj/page/ohj.page.js"&gt;&lt;/script&gt;
     &lt;script src="../ohj/list/ohj.list.js"&gt;&lt;/script&gt;
-    
+    &lt;script src="../ohj/lazylist/ohj.lazylist.js"&gt;&lt;/script&gt;
+
     &lt;!-- css Files --&gt;
     &lt;link href="../ohj/pagescroller/ohj.pagescroller.pointer.css" rel="stylesheet"&gt;
     &lt;link href="../ohj/list/ohj.list.css" rel="stylesheet"&gt;
@@ -483,8 +536,16 @@
         <script src="../ohj/navbar/ohj.navbar.js"></script>
         <script src="../ohj/page/ohj.page.js"></script>
         <script src="../ohj/list/ohj.list.js"></script>
+        <script src="../ohj/lazylist/ohj.lazylist.js"></script>
         <script>
-            $().ready(function() {
+            $().ready(function () {
+
+                // Temp
+                var listdata = [];
+                for (var i = 0; i < 10000; i++) {
+                    listdata.push('This is listitem ' + i);
+                }
+
                 var ps = $('#ps1container').ohjpageslider({
                     height : '200px'
                 });
@@ -499,6 +560,27 @@
                 });
 
                 $('#pagescroller1').ohjpagescroller();
+
+                var lazylist = $("#lazylist1").ohjlazylist({
+                    threshold: 30,
+                    overflow: 1,
+                    onrendersegment: function (e, data) {
+                        var html = '';
+                        for (var i = 1; i < arguments.length; i++) {
+                            html += '<li id="li_' + arguments[i] + '">  <img src="../ohj/list/default.jpg" /><h3>' + arguments[i] + '</h3></li>'; // console.log(arguments[i]);
+                        }
+
+                         $("#lazylist1 ul").data('ohjlist').addListItem(html);
+                         $('#lazylist1').data('ohjlazylist').getPageScroller().refreshScroller();
+                    },
+                    ongetdata: function (e, startIndex, endIndex, onSuccess) {
+                        if (onSuccess != null) {
+                            setTimeout(function () {
+                                onSuccess(listdata.slice(startIndex, endIndex));
+                            }, 500);
+                        }
+                    }
+                });
             });
         </script>
     </body>
