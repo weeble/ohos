@@ -283,7 +283,7 @@ namespace OpenHome.XappForms
             string[] path = aRequest.RelativePath;
             if (path.Length != 1)
             {
-                aRequest.Send404NotFound();
+                aRequest.Responder.Send404NotFound();
             }
             string appname = path[0].TrimEnd('/');
             iAppsState.GetApp(appname).ContinueWith(
@@ -291,7 +291,7 @@ namespace OpenHome.XappForms
                 {
                     if (task.Result == null)
                     {
-                        aRequest.Send404NotFound();
+                        aRequest.Responder.Send404NotFound();
                         return;
                     }
                     var mappings = task.Result.App.GetBrowserDiscriminationMappings();
@@ -300,7 +300,7 @@ namespace OpenHome.XappForms
                         {"appid", appname},
                         {"browserTypes", mappingObj}
                     };
-                    aRequest.SendPage("200 OK", PageSource.MakeSourceFromString(StringType.Json, appObject.ToString()));
+                    aRequest.Responder.SendPage("200 OK", PageSource.MakeSourceFromString(StringType.Json, appObject.ToString()));
                 });
         }
 
@@ -319,7 +319,7 @@ namespace OpenHome.XappForms
             string[] path = aRequest.RelativePath;
             if (path.Length == 0)
             {
-                aRequest.SendPage("200 OK", PageSource.MakeSourceFromString(StringType.Html, String.Format(IndexPageTemplate, "")));
+                aRequest.Responder.SendPage("200 OK", PageSource.MakeSourceFromString(StringType.Html, String.Format(IndexPageTemplate, "")));
             }
             else
             {
@@ -334,7 +334,7 @@ namespace OpenHome.XappForms
                             {
                                 Dictionary<string, string> mappings = app.App.GetBrowserDiscriminationMappings();
                                 var mappingObj = DiscriminationMappingsToJson(mappings);
-                                aRequest.SendPage("200 OK", PageSource.MakeSourceFromString(StringType.Html, String.Format(IndexPageTemplate, mappingObj.ToString())));
+                                aRequest.Responder.SendPage("200 OK", PageSource.MakeSourceFromString(StringType.Html, String.Format(IndexPageTemplate, mappingObj.ToString())));
                             }
                             else
                             {
@@ -344,7 +344,7 @@ namespace OpenHome.XappForms
                         }
                         else
                         {
-                            aRequest.Send404NotFound();
+                            aRequest.Responder.Send404NotFound();
                         }
                     });
             }
@@ -370,7 +370,7 @@ namespace OpenHome.XappForms
                             var app = task.Result;
                             if (app == null)
                             {
-                                aRequest.Send404NotFound();
+                                aRequest.Responder.Send404NotFound();
                                 return;
                             }
                             iAppsState.GetSession(sessionId).ContinueWith(
@@ -379,7 +379,7 @@ namespace OpenHome.XappForms
                                     var requestSession = task2.Result;
                                     if (requestSession == null)
                                     {
-                                        aRequest.Send404NotFound();
+                                        aRequest.Responder.Send404NotFound();
                                         return;
                                     }
                                     requestSession.CreateTab(app).ContinueWith(
@@ -387,7 +387,7 @@ namespace OpenHome.XappForms
                                         {
                                             var serverTab = task3.Result;
                                             //Console.WriteLine("CREATING TAB FOR APP. Session {0}   App {1}   Tab {2}", requestSession.Key, app.Id, tab.TabKey);
-                                            aRequest.SendPage("200 OK", PageSource.MakeSourceFromString(StringType.Json,
+                                            aRequest.Responder.SendPage("200 OK", PageSource.MakeSourceFromString(StringType.Json,
                                                 new JsonObject{
                                                     {"tabUrl", new JsonString(String.Format("/poll/{0}/{1}", requestSession.Key, serverTab.TabKey))},
                                                     {"tabId", new JsonString(serverTab.TabKey)}}.ToString()));
@@ -408,14 +408,14 @@ namespace OpenHome.XappForms
                         var serverTab = task.Result;
                         if (serverTab == null)
                         {
-                            aRequest.Send404NotFound();
+                            aRequest.Responder.Send404NotFound();
                             return;
                         }
                         aRequest.ServeLongPoll("200 OK", aRequest.DefaultResponseHeaders, "application/json", serverTab.Serve());
                     });
                 return;
             }
-            aRequest.Send404NotFound();
+            aRequest.Responder.Send404NotFound();
         }
 
         void HandleSend(IServerWebRequest aRequest)
@@ -433,7 +433,7 @@ namespace OpenHome.XappForms
                         ServerTab serverTab = task.Result;
                         if (serverTab == null)
                         {
-                            aRequest.Send404NotFound();
+                            aRequest.Responder.Send404NotFound();
                             return;
                         }
                         SendHandler handler = new SendHandler(serverTab.AppTab, aRequest);
@@ -441,7 +441,7 @@ namespace OpenHome.XappForms
                     });
                 return;
             }
-            aRequest.Send404NotFound();
+            aRequest.Responder.Send404NotFound();
         }
 
         private class SendHandler
@@ -486,16 +486,16 @@ namespace OpenHome.XappForms
                     catch (ArgumentException ae)
                     {
                         Console.WriteLine("Parse error: {0}", ae);
-                        iRequest.Send400BadRequest();
+                        iRequest.Responder.Send400BadRequest();
                         return;
                     }
-                    iRequest.Send202Accepted();
+                    iRequest.Responder.Send202Accepted();
                     iAppTab.Receive(json);
                     return;
                 }
                 else
                 {
-                    iRequest.Send400BadRequest();
+                    iRequest.Responder.Send400BadRequest();
                 }
             }
         }
