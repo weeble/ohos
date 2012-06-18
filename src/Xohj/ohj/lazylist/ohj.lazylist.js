@@ -1,7 +1,7 @@
 ;(function($) {
     ohjui['ohjlazylist'] = function(element, options) {
         var LOADTEXTFOOTERSPEED = 200;
-        var lazyloadInProgress = false,viewPortverticalItems = 0,viewPortHorizontalItems = 0,listitemHeight = 0,resizeThrottle =null, noData = false,loadTextHeight = 0;
+        var lazyloadInProgress = false,viewPortverticalItems = 0,viewPortHorizontalItems = 0,listitemHeight = 0,resizeThrottle =null, noData = false,loadTextHeight = 0,loadTextTimer = null,  loadTextInProgress = false;
         var elem = $(element);
         var _this = this;
         var currentStartIndex = 0;
@@ -10,9 +10,9 @@
             onrendersegment: null,
             ongetdata: null,
             threshold: 5,
-            overflow: 0.5,
+            overflow: 1,
             loadText: 'Loading...',
-            showLoadText: 'footer'
+            showLoadText: 'footer' 
         }, options || {});
 
         // Private Methods
@@ -60,6 +60,13 @@
 
         var showProgress = function() {
             if(settings.showLoadText === 'footer') {
+                clearTimeout(loadTextTimer);
+                if(loadTextInProgress) 
+                {
+                     elem.find('.ohjlazylist-loader').remove();  
+                }
+                loadTextInProgress = true;
+
                 var html = '<div class="ohjlazylist-loader">'+settings.loadText+'</div>';
                 elem.append(html);
                 var loadText = elem.find('.ohjlazylist-loader');
@@ -72,8 +79,10 @@
         var hideProgress = function() {
             if(settings.showLoadText) {
                 elem.find('.ohjlazylist-loader').animate({'bottom': '-'+loadTextHeight+'px'},LOADTEXTFOOTERSPEED);
-                setTimeout(function() {
-                    elem.find('.ohjlazylist-loader').remove();
+                loadTextTimer = setTimeout(function() {
+                    elem.find('.ohjlazylist-loader').remove();  
+                    loadTextTimer = null;
+                    loadTextInProgress = false;
                 },LOADTEXTFOOTERSPEED);
             }
         };
@@ -83,7 +92,7 @@
             elem.hookPlugin(settings);
             elem.css({'position':'relative'});
 
-            elem.find('ul').html('<li style="float:left;">&nbsp;</li>'); // Dummy to work out height of list item
+            elem.find('ul').html('<li>&nbsp;</li>'); // Dummy to work out height of list item
             elem.find('.ohjpagescroller').on('scroll',function() {
                 var overflowheight = elem.find('.content')[0].scrollHeight- $.fn.getOuterHeight(elem);
                 if(!lazyloadInProgress && 
