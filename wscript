@@ -181,7 +181,7 @@ add_nuget_package("Gate")
 add_nuget_package("Gate.Hosts.Firefly")
 add_nuget_package("Kayak", subdir='lib')
 add_nuget_package("Owin")
-add_nuget_package("Moq")
+add_nuget_package("Moq", subdir='lib/NET40')
 add_nuget_package("NUnit", assembly='nunit.framework.dll', subdir='lib')
 
 

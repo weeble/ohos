@@ -107,8 +107,6 @@ def mk_virtual_tree(bld, rootpath, patterns):
         patterns = [patterns]
     for pattern in patterns:
         pattern2 = os.path.join(rootpath, pattern).format(bld=bldpath, top=toppath)
-        if pattern2.startswith('/') or pattern2.startswith('\\'):
-            pattern2 = pattern2[1:]
         if '*' in pattern2 or '?' in pattern2:
             files = _root_glob(bld.root, pattern2)
         else:
