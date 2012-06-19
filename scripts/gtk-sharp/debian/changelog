@@ -1,3 +1,9 @@
+ohgtksharp (2.12.10-3) testing; urgency=low
+
+  * Moved to testing repository
+
+ -- Openhome <admin@openhome.org>  Tue, 19 Jun 2012 15:02:58 +0100
+
 ohgtksharp (2.12.10-2) nightly; urgency=low
 
   * Added conflict with gtk-sharp2 Debian package 
