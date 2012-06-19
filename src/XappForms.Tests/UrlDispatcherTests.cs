@@ -19,6 +19,8 @@ namespace UnitTests
     {
         Mock<ITestRequestHandler> iMockHandler;
         AppUrlDispatcher iDispatcher;
+        Mock<IAppWebRequest> iMockRequest;
+        Mock<IWebRequestResponder> iMockResponder;
 
         [SetUp]
         public void SetUp()
@@ -29,61 +31,59 @@ namespace UnitTests
             iDispatcher.MapPrefix(new[] { "foo/" }, iMockHandler.Object.HandleFoo);
             iDispatcher.MapPrefixToDirectory(new[] { "directory/" }, Path.Combine("x:/", "test", "directory"));
             iDispatcher.MapPrefix(new string[] { }, iMockHandler.Object.HandleRoot);
+            iMockRequest = new Mock<IAppWebRequest>();
+            iMockResponder = new Mock<IWebRequestResponder>();
+            iMockRequest.SetupAllProperties();
+            iMockRequest.Setup(x => x.Responder).Returns(iMockResponder.Object);
         }
 
         [Test]
         public void TestSpecificPathIsHandled()
         {
-            var mockRequest = new Mock<IAppWebRequest>();
-            mockRequest.Setup(x => x.RelativePath).Returns(new[] { "foo/", "bar/", "baz" });
-            iDispatcher.ServeRequest(mockRequest.Object);
-            iMockHandler.Verify(x => x.HandleFooBarBaz(mockRequest.Object), Times.Once());
+            iMockRequest.Setup(x => x.RelativePath).Returns(new[] { "foo/", "bar/", "baz" });
+            iDispatcher.ServeRequest(iMockRequest.Object);
+            iMockHandler.Verify(x => x.HandleFooBarBaz(iMockRequest.Object), Times.Once());
             iMockHandler.Verify(x => x.HandleFooBarBaz(It.IsAny<IAppWebRequest>()), Times.Once());
-            mockRequest.Verify(x => x.Send404NotFound(), Times.Never());
+            iMockResponder.Verify(x => x.Send404NotFound(), Times.Never());
         }
 
         [Test]
         public void TestIntermediatePathIsHandled()
         {
-            var mockRequest = new Mock<IAppWebRequest>();
-            mockRequest.Setup(x => x.RelativePath).Returns(new[] { "foo/" });
-            iDispatcher.ServeRequest(mockRequest.Object);
-            iMockHandler.Verify(x => x.HandleFoo(mockRequest.Object), Times.Once());
+            iMockRequest.Setup(x => x.RelativePath).Returns(new[] { "foo/" });
+            iDispatcher.ServeRequest(iMockRequest.Object);
+            iMockHandler.Verify(x => x.HandleFoo(iMockRequest.Object), Times.Once());
             iMockHandler.Verify(x => x.HandleFoo(It.IsAny<IAppWebRequest>()), Times.Once());
-            mockRequest.Verify(x => x.Send404NotFound(), Times.Never());
+            iMockResponder.Verify(x => x.Send404NotFound(), Times.Never());
         }
 
         [Test]
         public void TestIntermediatePathIsHandledWithSubPath()
         {
-            var mockRequest = new Mock<IAppWebRequest>();
-            mockRequest.Setup(x => x.RelativePath).Returns(new[] { "foo/", "spam/", "eggs" });
-            iDispatcher.ServeRequest(mockRequest.Object);
-            iMockHandler.Verify(x => x.HandleFoo(mockRequest.Object), Times.Once());
+            iMockRequest.Setup(x => x.RelativePath).Returns(new[] { "foo/", "spam/", "eggs" });
+            iDispatcher.ServeRequest(iMockRequest.Object);
+            iMockHandler.Verify(x => x.HandleFoo(iMockRequest.Object), Times.Once());
             iMockHandler.Verify(x => x.HandleFoo(It.IsAny<IAppWebRequest>()), Times.Once());
-            mockRequest.Verify(x => x.Send404NotFound(), Times.Never());
+            iMockResponder.Verify(x => x.Send404NotFound(), Times.Never());
         }
 
         [Test]
         public void TestRootPathIsHandled()
         {
-            var mockRequest = new Mock<IAppWebRequest>();
-            mockRequest.Setup(x => x.RelativePath).Returns(new string[] { });
-            iDispatcher.ServeRequest(mockRequest.Object);
-            iMockHandler.Verify(x => x.HandleRoot(mockRequest.Object), Times.Once());
+            iMockRequest.Setup(x => x.RelativePath).Returns(new string[] { });
+            iDispatcher.ServeRequest(iMockRequest.Object);
+            iMockHandler.Verify(x => x.HandleRoot(iMockRequest.Object), Times.Once());
             iMockHandler.Verify(x => x.HandleRoot(It.IsAny<IAppWebRequest>()), Times.Once());
-            mockRequest.Verify(x => x.Send404NotFound(), Times.Never());
+            iMockResponder.Verify(x => x.Send404NotFound(), Times.Never());
         }
 
         [Test]
         public void TestServeFromDirectory()
         {
-            var mockRequest = new Mock<IAppWebRequest>();
-            mockRequest.SetupAllProperties();
-            mockRequest.Object.RelativePath = new[] { "directory/", "filename.txt" };
-            iDispatcher.ServeRequest(mockRequest.Object);
-            mockRequest.Verify(x => x.SendFile("text/plain; charset=utf-8", Path.Combine("x:/", "test", "directory", "filename.txt")));
-            mockRequest.Verify(x => x.Send404NotFound(), Times.Never());
+            iMockRequest.Object.RelativePath = new[] { "directory/", "filename.txt" };
+            iDispatcher.ServeRequest(iMockRequest.Object);
+            iMockResponder.Verify(x => x.SendFile("text/plain; charset=utf-8", Path.Combine("x:/", "test", "directory", "filename.txt")));
+            iMockResponder.Verify(x => x.Send404NotFound(), Times.Never());
         }
     }
 }

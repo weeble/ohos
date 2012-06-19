@@ -190,7 +190,7 @@ namespace OpenHome.XappForms
         readonly ChatApp iChatApp;
         readonly IBrowserTabProxy iBrowserTabProxy;
         readonly int iId;
-        readonly UserList iUserList;
+        //readonly UserList iUserList;
 
         /// <summary>
         /// Protects iUser.
@@ -203,7 +203,7 @@ namespace OpenHome.XappForms
             iChatApp = aChatApp;
             iBrowserTabProxy = aBrowserTabProxy;
             iId = aId;
-            iUserList = aUserList;
+            //iUserList = aUserList;
         }
 
 
