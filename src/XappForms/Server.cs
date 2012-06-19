@@ -30,10 +30,18 @@ namespace OpenHome.XappForms
             public RequestPath(string path)
             {
                 var uri = new Uri(new Uri("http://dummy/"), path);
-                Query = HttpUtility.ParseQueryString(uri.Query);
+                Query = new NameValueCollection();
+                foreach (string queryPart in uri.Query.Split('&'))
+                {
+                    string[] keyAndValue = queryPart.Split(new[] { '=' }, 2);
+                    if (keyAndValue.Length != 2) continue;
+                    Query.Add(keyAndValue[0], keyAndValue[1]);
+                }
+                //Query = HttpUtility.ParseQueryString(uri.Query);
                 //Query = uri.Query == "" ? "" : HttpUtility.UrlDecode(uri.Query.Substring(1));
                 //HttpUtility.ParseQueryString(uri.Query);
-                PathSegments = uri.Segments.Skip(1).Select(seg => HttpUtility.UrlDecode(seg)).ToList<string>().AsReadOnly();
+
+                PathSegments = uri.Segments.Skip(1).Select(Uri.UnescapeDataString).ToList<string>().AsReadOnly();
                 //Console.WriteLine("Path:{0}",path);
                 //Console.WriteLine("Segments:{0}", String.Join("///", PathSegments));
                 //Console.WriteLine("Query:{0}", uri.Query);
