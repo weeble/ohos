@@ -4,7 +4,7 @@ using OpenHome.XappForms.Json;
 
 namespace OpenHome.XappForms
 {
-    class LoginApp : IApp
+    class LoginApp : IAppLayer0
     {
         class LoginUser
         {
@@ -27,9 +27,9 @@ namespace OpenHome.XappForms
             iUrlDispatcher.MapPrefixToDirectory(new string[] { }, "login");
         }
 
-        public void ServeWebRequest(IAppWebRequest aRequest)
+        public void ServeWebRequest(RequestData aRequest, IWebRequestResponder aResponder)
         {
-            iUrlDispatcher.ServeRequest(aRequest);
+            iUrlDispatcher.ServeRequest(aRequest, aResponder);
         }
 
         public IAppTab CreateTab(IBrowserTabProxy aTabProxy, User aUser)

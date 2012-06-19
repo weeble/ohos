@@ -35,9 +35,9 @@ namespace OpenHome.XappForms
         public IEnumerator<T> GetEnumerator()
         {
             Validate();
-            for (int i=iSegment.Offset; i<iSegment.Count; ++i)
+            for (int i=0; i<iSegment.Count; ++i)
             {
-                yield return iSegment.Array[i];
+                yield return iSegment.Array[i+iSegment.Offset];
             }
         }
 

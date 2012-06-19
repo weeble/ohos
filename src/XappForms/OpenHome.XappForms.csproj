@@ -42,6 +42,7 @@
   <ItemGroup>
     <Compile Include="AppsState.cs" />
     <Compile Include="AppWebRequest.cs" />
+    <Compile Include="ArraySlice.cs" />
     <Compile Include="BinaryHeap.cs" />
     <Compile Include="LoginApp.cs" />
     <Compile Include="Config\AssemblyInfo.cs" />

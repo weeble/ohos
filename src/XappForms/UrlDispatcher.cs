@@ -7,24 +7,24 @@ namespace OpenHome.XappForms
 {
     interface IUrlDispatcher<T>
     {
-        void MapPrefix(string[] aPath, Action<T> aHandlerFunc);
-        void MapPath(string[] aPath, Action<T> aHandlerFunc);
+        void MapPrefix(string[] aPath, Action<RequestData, T> aHandlerFunc);
+        void MapPath(string[] aPath, Action<RequestData, T> aHandlerFunc);
         void MapPrefixToDirectory(string[] aPrefix, string aLocalDirectory);
         void MapPathToFile(string[] aPath, string aLocalFile);
     }
 
-    class AppUrlDispatcher : UrlDispatcher<IAppWebRequest> { }
-    class ServerUrlDispatcher : UrlDispatcher<IServerWebRequest> { }
+    class AppUrlDispatcher : UrlDispatcher<IWebRequestResponder> { }
+    class ServerUrlDispatcher : UrlDispatcher<IServerWebRequestResponder> { }
 
-    class UrlDispatcher<T> : IUrlDispatcher<T> where T : IAppWebRequest
+    class UrlDispatcher<T> : IUrlDispatcher<T> where T : IWebRequestResponder
     {
         class PathBinding
         {
             readonly string[] iPath;
             readonly bool iAllowSuffixes;
-            readonly Action<T> iHandler;
+            readonly Action<RequestData, T> iHandler;
 
-            public PathBinding(string[] aPath, bool aAllowSuffixes, Action<T> aHandler)
+            public PathBinding(string[] aPath, bool aAllowSuffixes, Action<RequestData, T> aHandler)
             {
                 iPath = aPath;
                 iAllowSuffixes = aAllowSuffixes;
@@ -41,7 +41,7 @@ namespace OpenHome.XappForms
                 get { return iAllowSuffixes; }
             }
 
-            public Action<T> Handler
+            public Action<RequestData, T> Handler
             {
                 get { return iHandler; }
             }
@@ -58,39 +58,38 @@ namespace OpenHome.XappForms
                             && aSeg != "") && aPath.Any();
         }
 
-        public void ServeRequest(T aRequest)
+        public void ServeRequest(RequestData aRequest, T aResponder)
         {
-            string[] requestPath = aRequest.RelativePath;
+            IList<string> requestPath = aRequest.Path.PathSegments;
             foreach (var binding in iBindings)
             {
                 string[] bindingPath = binding.Path;
-                if (bindingPath.Length > requestPath.Length) continue;
+                if (bindingPath.Length > requestPath.Count) continue;
                 if (!bindingPath.SequenceEqual(requestPath.Take(bindingPath.Length))) continue;
-                if (bindingPath.Length < requestPath.Length && !binding.AllowSuffixes) continue;
-                aRequest.RelativePath = requestPath.Skip(bindingPath.Length).ToArray();
-                binding.Handler(aRequest);
+                if (bindingPath.Length < requestPath.Count && !binding.AllowSuffixes) continue;
+                binding.Handler(aRequest.SkipPathSegments(bindingPath.Length), aResponder);
                 return;
             }
-            aRequest.Responder.Send404NotFound();
+            aResponder.Send404NotFound();
         }
 
-        public void MapPrefix(string[] aPath, Action<T> aHandlerFunc)
+        public void MapPrefix(string[] aPath, Action<RequestData, T> aHandlerFunc)
         {
             iBindings.Add(new PathBinding(aPath, true, aHandlerFunc));
         }
-        public void MapPath(string[] aPath, Action<T> aHandlerFunc)
+        public void MapPath(string[] aPath, Action<RequestData, T> aHandlerFunc)
         {
             iBindings.Add(new PathBinding(aPath, false, aHandlerFunc));
         }
         public void MapPrefixToDirectory(string[] aPrefix, string aLocalDirectory)
         {
             MapPrefix(aPrefix,
-                aAppWebRequest =>
+                (aAppWebRequest, aResponder) =>
                 {
-                    string[] path = aAppWebRequest.RelativePath.Select(aSegment => aSegment.TrimEnd('/')).ToArray();
+                    string[] path = aAppWebRequest.Path.PathSegments.Select(aSegment => aSegment.TrimEnd('/')).ToArray();
                     if (!ValidatePath(path))
                     {
-                        aAppWebRequest.Responder.Send404NotFound();
+                        aResponder.Send404NotFound();
                         return;
                     }
                     string filepath = Path.Combine(aLocalDirectory, Path.Combine(path));
@@ -98,28 +97,28 @@ namespace OpenHome.XappForms
                     string contentType;
                     if (Server.MimeTypesByExtension.TryGetValue(extension, out contentType))
                     {
-                        aAppWebRequest.Responder.SendFile(contentType, filepath);
+                        aResponder.SendFile(contentType, filepath);
                     }
                     else
                     {
-                        aAppWebRequest.Responder.Send404NotFound();
+                        aResponder.Send404NotFound();
                     }
                 });
         }
         public void MapPathToFile(string[] aPath, string aLocalFile)
         {
             MapPath(aPath,
-                aAppWebRequest =>
+                (aAppWebRequest, aResponder) =>
                 {
                     string extension = Path.GetExtension(aLocalFile) ?? "";
                     string contentType;
                     if (Server.MimeTypesByExtension.TryGetValue(extension, out contentType))
                     {
-                        aAppWebRequest.Responder.SendFile(contentType, aLocalFile);
+                        aResponder.SendFile(contentType, aLocalFile);
                     }
                     else
                     {
-                        aAppWebRequest.Responder.Send404NotFound();
+                        aResponder.Send404NotFound();
                     }
                 });
         }

@@ -89,7 +89,7 @@ namespace OpenHome.XappForms
             Sessions = new Dictionary<string, SessionRecord>();
         }
 
-        public Task<AppRecord> AddApp(string aName, IApp aApp)
+        public Task<AppRecord> AddApp(string aName, IAppLayer0 aApp)
         {
             return iAppsStateThread.ScheduleExclusive(
                 () =>
@@ -359,10 +359,10 @@ namespace OpenHome.XappForms
 
     class AppRecord
     {
-        public IApp App { get; private set; }
+        public IAppLayer0 App { get; private set; }
         public string Id { get; private set; }
 
-        public AppRecord(IApp aApp, string aId)
+        public AppRecord(IAppLayer0 aApp, string aId)
         {
             App = aApp;
             Id = aId;
@@ -379,9 +379,9 @@ namespace OpenHome.XappForms
         }
     }
 
-    public interface IApp
+    public interface IAppLayer0
     {
-        void ServeWebRequest(IAppWebRequest aRequest);
+        void ServeWebRequest(RequestData aRequest, IWebRequestResponder aResponder);
         IAppTab CreateTab(IBrowserTabProxy aTabProxy, User aUser);
         Dictionary<string, string> GetBrowserDiscriminationMappings();
     }

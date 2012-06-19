@@ -23,29 +23,15 @@ namespace OpenHome.XappForms
 
     public class Server : IDisposable
     {
-        class RequestPath
+        /*class RequestPath
         {
             public NameValueCollection Query { get; private set; }
             public IList<string> PathSegments { get; private set; }
             public RequestPath(string path)
             {
                 var uri = new Uri(new Uri("http://dummy/"), path);
-                Query = new NameValueCollection();
-                foreach (string queryPart in uri.Query.Split('&'))
-                {
-                    string[] keyAndValue = queryPart.Split(new[] { '=' }, 2);
-                    if (keyAndValue.Length != 2) continue;
-                    Query.Add(keyAndValue[0], keyAndValue[1]);
-                }
-                //Query = HttpUtility.ParseQueryString(uri.Query);
-                //Query = uri.Query == "" ? "" : HttpUtility.UrlDecode(uri.Query.Substring(1));
-                //HttpUtility.ParseQueryString(uri.Query);
-
-                PathSegments = uri.Segments.Skip(1).Select(Uri.UnescapeDataString).ToList<string>().AsReadOnly();
-                //Console.WriteLine("Path:{0}",path);
-                //Console.WriteLine("Segments:{0}", String.Join("///", PathSegments));
-                //Console.WriteLine("Query:{0}", uri.Query);
-                //Console.WriteLine("Parsed query:{0}", Query.AllKeys.Select(key => String.Format("{0}={1}", key, Query[key])));
+                Query = HttpUtility.ParseQueryString(uri.Query);
+                PathSegments = uri.Segments.Skip(1).Select(seg => HttpUtility.UrlDecode(seg)).ToList<string>().AsReadOnly();
             }
             private RequestPath(NameValueCollection query, IEnumerable<string> path)
             {
@@ -56,17 +42,6 @@ namespace OpenHome.XappForms
             {
                 return new RequestPath(Query, PathSegments.Skip(n));
             }
-        }
-
-        /*
-        static Dictionary<string, IEnumerable<string>> MakeHeaders(params string[][] headers)
-        {
-            var result = new Dictionary<string, IEnumerable<string>>();
-            foreach (string[] header in headers)
-            {
-                result[header[0]] = header.Skip(1);
-            }
-            return result;
         }*/
 
         static void ServePage(ResultDelegate aResult, string aStatus, Dictionary<string, IEnumerable<string>> aHeaders, IPageSource aPageSource)
@@ -75,14 +50,6 @@ namespace OpenHome.XappForms
             headers["Content-Length"] = new[] { aPageSource.ContentLength.ToString() };
             headers["Content-Type"] = new[] { aPageSource.ContentType };
             aResult(aStatus, headers, aPageSource.Serve());
-        }
-
-        static void ServeLongPoll(ResultDelegate aResult, string aStatus, Dictionary<string, IEnumerable<string>> aHeaders, string aContentType, BodyDelegate aBodyDelegate)
-        {
-            Dictionary<string, IEnumerable<string>> headers = new Dictionary<string, IEnumerable<string>>(aHeaders);
-            //headers["Content-Length"] = new[] { aPageSource.ContentLength.ToString() };
-            headers["Content-Type"] = new[] { aContentType };
-            aResult(aStatus, headers, aBodyDelegate);
         }
 
         static readonly internal Dictionary<string, string> MimeTypesByExtension = new Dictionary<string, string>{
@@ -113,47 +80,12 @@ namespace OpenHome.XappForms
             return "application/octet-stream";
         }
 
-        static void ServeFile(ResultDelegate aResult, Dictionary<string, IEnumerable<string>> aHeaders, string aFilename)
-        {
-            string mimeType = GetMimeType(aFilename);
-            try
-            {
-                var pageSource = PageSource.MakeSourceFromFile(mimeType, aFilename);
-                ServePage(aResult, "200 OK", aHeaders, pageSource);
-            }
-            catch (FileNotFoundException)
-            {
-                ServeNotFound(aResult, aHeaders);
-            }
-            catch (DirectoryNotFoundException)
-            {
-                ServeNotFound(aResult, aHeaders);
-
-            }
-            catch (IOException ioe)
-            {
-                Console.WriteLine(ioe);
-                ServePage(aResult, "500 Internal Server Error", aHeaders, PageSource.MakeSourceFromString(StringType.Html, ServerErrorPage));
-            }
-        }
-
-
         const string IndexPageTemplate =
             @"<!DOCTYPE html><html><head>"+
                 @"<script>window.xapp_discrimination_mapping = {0};</script>"+
                 @"<script src=""/scripts/browser.js""></script>" +
             @"</head></html>";
-        const string NotFoundPage =
-            @"<!DOCTYPE html><html><body><h1>404 Not found</h1>"+
-            @"<p>Listen, sit yourself down. There's no easy way to tell you this. "+
-            @"Please imagine a crying robot or cute and bewildered animal delivering "+
-            @"this message to you, because otherwise this information could crush your "+
-            @"fragile psyche.</p>"+
-            @"<p>The page you are looking for does not exist. Perhaps it never did. "+
-            @"Perhaps it was only ever a figment of your fractured imagination. You "+
-            @"need to stop looking for the page. It doesn't exist. Let it go. Chasing "+
-            @"this non-existent page is only hurting you and those close to you. Please "+
-            @"get yourself the help you badly need.</p></body></html>";
+
         const string ServerErrorPage =
             @"<!DOCTYPE html><html><body><h1>500 Internal Server Error</h1>"+
             @"<p>Ummmm... errr... Did you...</p>"+
@@ -164,41 +96,15 @@ namespace OpenHome.XappForms
             @"O<sup>ka</sup>y. Rel<sub>A</sub>X. No<sub>THING</sub> to s333333 h^</p>"+
             @"<p>E&lt;/p&gt;</p></body></html>";
 
-        //static System.Security.Cryptography.RNGCryptoServiceProvider _rng = new RNGCryptoServiceProvider();
-
-        static void ServeNotFound(ResultDelegate aResult, Dictionary<string, IEnumerable<string>> aHeaders)
-        {
-            ServePage(aResult, "404 Not found", aHeaders, PageSource.MakeSourceFromString(StringType.Html, NotFoundPage));
-        }
-
         AppsState iAppsState;
         ServerUrlDispatcher iUrlDispatcher;
 
-        static bool ValidatePath(IEnumerable<string> aPath)
+        static string GetSessionFromCookie(RequestCookies aCookies)
         {
-            return aPath.All(aSeg =>
-                aSeg.IndexOfAny(Path.GetInvalidFileNameChars()) == -1
-                    && aSeg != ".."
-                        && aSeg != ".");
+            return aCookies["XappSession"].FirstOrDefault();
         }
 
-        string GetSessionFromCookie(IEnumerable<string> aCookies)
-        {
-            foreach (string cookieString in aCookies)
-            {
-                foreach (string subCookieString in cookieString.Split(';'))
-                {
-                    string[] parts = subCookieString.Trim().Split(new[] { '=' }, 2);
-                    if (parts.Length == 2 && parts[0] == "XappSession")
-                    {
-                        return parts[1];
-                    }
-                }
-            }
-            return null;
-        }
-
-        Task<SessionRecord> GetOrCreateSession(IEnumerable<string> aCookies)
+        Task<SessionRecord> GetOrCreateSession(RequestCookies aCookies)
         {
             lock (iAppsState)
             {
@@ -212,14 +118,20 @@ namespace OpenHome.XappForms
             Dictionary<string, IEnumerable<string>> respHeaders = new Dictionary<string, IEnumerable<string>>();
             try
             {
-                IDictionary<string,IEnumerable<string>> headers = (IDictionary<string, IEnumerable<string>>) aEnv["owin.RequestHeaders"];
+                var headers = (IDictionary<string, IEnumerable<string>>) aEnv["owin.RequestHeaders"];
+                RequestData requestData = new RequestData(
+                    (string)aEnv["owin.RequestMethod"],
+                    new RequestPath((string)aEnv["owin.RequestPath"], (string)aEnv["owin.RequestQueryString"]),
+                    headers);
+
+
                 List<string> cookies = headers.ContainsKey("Cookie") ?
                     headers["Cookie"].ToList() :
                     new List<string>();
 
                 //foreach (var c in cookies) Console.WriteLine(c);
 
-                GetOrCreateSession(cookies).ContinueWith(
+                GetOrCreateSession(requestData.Cookies).ContinueWith(
                     task =>
                     {
                         var session = task.Result;
@@ -229,14 +141,12 @@ namespace OpenHome.XappForms
                         RequestPath path = new RequestPath((string)aEnv["owin.RequestPath"] + "?" + (string)aEnv["owin.RequestQueryString"]);
 
                         AppWebRequest request = new AppWebRequest(
-                            (string)aEnv["owin.RequestMethod"],
-                            path.PathSegments.ToArray(),
+                            requestData,
                             respHeaders,
                             aResult,
-                            path.Query,
                             (BodyDelegate)aEnv["owin.RequestBody"]);
 
-                        iUrlDispatcher.ServeRequest(request);
+                        iUrlDispatcher.ServeRequest(requestData, request);
                     });
 
             }
@@ -286,12 +196,12 @@ namespace OpenHome.XappForms
             iUrlDispatcher = dispatcher;
         }
 
-        void HandleAppQuery(IServerWebRequest aRequest)
+        void HandleAppQuery(RequestData aRequest, IServerWebRequestResponder aResponder)
         {
-            string[] path = aRequest.RelativePath;
-            if (path.Length != 1)
+            var path = aRequest.Path.PathSegments;
+            if (path.Count != 1)
             {
-                aRequest.Responder.Send404NotFound();
+                aResponder.Send404NotFound();
             }
             string appname = path[0].TrimEnd('/');
             iAppsState.GetApp(appname).ContinueWith(
@@ -299,7 +209,7 @@ namespace OpenHome.XappForms
                 {
                     if (task.Result == null)
                     {
-                        aRequest.Responder.Send404NotFound();
+                        aResponder.Send404NotFound();
                         return;
                     }
                     var mappings = task.Result.App.GetBrowserDiscriminationMappings();
@@ -308,7 +218,7 @@ namespace OpenHome.XappForms
                         {"appid", appname},
                         {"browserTypes", mappingObj}
                     };
-                    aRequest.Responder.SendPage("200 OK", PageSource.MakeSourceFromString(StringType.Json, appObject.ToString()));
+                    aResponder.SendPage("200 OK", PageSource.MakeSourceFromString(StringType.Json, appObject.ToString()));
                 });
         }
 
@@ -322,63 +232,62 @@ namespace OpenHome.XappForms
             return mappingObj;
         }
 
-        void HandleOther(IServerWebRequest aRequest)
+        void HandleOther(RequestData aRequest, IServerWebRequestResponder aResponder)
         {
-            string[] path = aRequest.RelativePath;
-            if (path.Length == 0)
+            var path = aRequest.Path.PathSegments;
+            if (path.Count == 0)
             {
-                aRequest.Responder.SendPage("200 OK", PageSource.MakeSourceFromString(StringType.Html, String.Format(IndexPageTemplate, "")));
+                aResponder.SendPage("200 OK", PageSource.MakeSourceFromString(StringType.Html, String.Format(IndexPageTemplate, "")));
             }
             else
             {
-                //AppRecord app = ;
                 iAppsState.GetApp(path[0].TrimEnd('/')).ContinueWith(
                     task =>
                     {
                         var app = task.Result;
                         if (app != null)
                         {
-                            if (path.Length == 1)
+                            if (path.Count == 1)
                             {
                                 Dictionary<string, string> mappings = app.App.GetBrowserDiscriminationMappings();
                                 var mappingObj = DiscriminationMappingsToJson(mappings);
-                                aRequest.Responder.SendPage("200 OK", PageSource.MakeSourceFromString(StringType.Html, String.Format(IndexPageTemplate, mappingObj.ToString())));
+                                aResponder.SendPage("200 OK", PageSource.MakeSourceFromString(StringType.Html, String.Format(IndexPageTemplate, mappingObj.ToString())));
                             }
                             else
                             {
-                                aRequest.RelativePath = aRequest.RelativePath.Skip(1).ToArray();
-                                app.App.ServeWebRequest(aRequest);
+                                app.App.ServeWebRequest(aRequest.SkipPathSegments(1), aResponder);
                             }
                         }
                         else
                         {
-                            aRequest.Responder.Send404NotFound();
+                            aResponder.Send404NotFound();
                         }
                     });
             }
         }
 
-        void HandlePoll(IServerWebRequest aRequest)
+        void HandlePoll(RequestData aRequest, IServerWebRequestResponder aResponder)
         {
-            string[] path = aRequest.RelativePath;
-            aRequest.DefaultResponseHeaders["Cache-Control"] = aRequest.DefaultResponseHeaders.GetDefault("Cache-Control",new string[]{}).Concat(new[] { "no-cache" });
-            if (path.Length == 1)
+            var path = aRequest.Path.PathSegments;
+            aResponder.DefaultResponseHeaders["Cache-Control"] = aResponder.DefaultResponseHeaders.GetDefault("Cache-Control",new string[]{}).Concat(new[] { "no-cache" });
+            if (path.Count == 1)
             {
                 string sessionId = path[0].TrimEnd('/');
-                string appname = aRequest.Query.Get("appname");
-                //Console.WriteLine(string.Join(", ", aRequest.Query.Keys.Cast<string>()));
+                string appname = aRequest.Path.Query["appname"].FirstOrDefault();
+                if (appname == null)
+                {
+                    aResponder.Send404NotFound();
+                    return;
+                }
                 if (aRequest.Method == "POST")
                 {
-                    //AppRecord app;
-                    //SessionRecord requestSession;
-                    
                     iAppsState.GetApp(appname).ContinueWith(
                         task =>
                         {
                             var app = task.Result;
                             if (app == null)
                             {
-                                aRequest.Responder.Send404NotFound();
+                                aResponder.Send404NotFound();
                                 return;
                             }
                             iAppsState.GetSession(sessionId).ContinueWith(
@@ -387,7 +296,7 @@ namespace OpenHome.XappForms
                                     var requestSession = task2.Result;
                                     if (requestSession == null)
                                     {
-                                        aRequest.Responder.Send404NotFound();
+                                        aResponder.Send404NotFound();
                                         return;
                                     }
                                     requestSession.CreateTab(app).ContinueWith(
@@ -395,7 +304,7 @@ namespace OpenHome.XappForms
                                         {
                                             var serverTab = task3.Result;
                                             //Console.WriteLine("CREATING TAB FOR APP. Session {0}   App {1}   Tab {2}", requestSession.Key, app.Id, tab.TabKey);
-                                            aRequest.Responder.SendPage("200 OK", PageSource.MakeSourceFromString(StringType.Json,
+                                            aResponder.SendPage("200 OK", PageSource.MakeSourceFromString(StringType.Json,
                                                 new JsonObject{
                                                     {"tabUrl", new JsonString(String.Format("/poll/{0}/{1}", requestSession.Key, serverTab.TabKey))},
                                                     {"tabId", new JsonString(serverTab.TabKey)}}.ToString()));
@@ -405,7 +314,7 @@ namespace OpenHome.XappForms
                     return;
                 }
             }
-            else if (path.Length == 2)
+            else if (path.Count == 2)
             {
                 string sessionId = path[0].TrimEnd('/');
                 string tabId = path[1].TrimEnd('/');
@@ -416,24 +325,23 @@ namespace OpenHome.XappForms
                         var serverTab = task.Result;
                         if (serverTab == null)
                         {
-                            aRequest.Responder.Send404NotFound();
+                            aResponder.Send404NotFound();
                             return;
                         }
-                        aRequest.ServeLongPoll("200 OK", aRequest.DefaultResponseHeaders, "application/json", serverTab.Serve());
+                        aResponder.ServeLongPoll("200 OK", aResponder.DefaultResponseHeaders, "application/json", serverTab.Serve());
                     });
                 return;
             }
-            aRequest.Responder.Send404NotFound();
+            aResponder.Send404NotFound();
         }
 
-        void HandleSend(IServerWebRequest aRequest)
+        void HandleSend(RequestData aRequest, IServerWebRequestResponder aResponder)
         {
-            string[] path = aRequest.RelativePath;
-            if (path.Length == 2)
+            IList<string> path = aRequest.Path.PathSegments;
+            if (path.Count == 2)
             {
                 string sessionId = path[0].TrimEnd('/');
                 string tabId = path[1].TrimEnd('/');
-                //Console.WriteLine("HandleSend({0}, {1})", sessionId, tabId);
 
                 iAppsState.GetTab(sessionId, tabId).ContinueWith(
                     task =>
@@ -441,28 +349,28 @@ namespace OpenHome.XappForms
                         ServerTab serverTab = task.Result;
                         if (serverTab == null)
                         {
-                            aRequest.Responder.Send404NotFound();
+                            aResponder.Send404NotFound();
                             return;
                         }
-                        SendHandler handler = new SendHandler(serverTab.AppTab, aRequest);
-                        aRequest.Body(handler.Write, handler.Flush, handler.End, handler.CancellationToken);
+                        SendHandler handler = new SendHandler(serverTab.AppTab, aResponder);
+                        aResponder.ReadBody(handler.Write, handler.Flush, handler.End, handler.CancellationToken);
                     });
                 return;
             }
-            aRequest.Responder.Send404NotFound();
+            aResponder.Send404NotFound();
         }
 
         private class SendHandler
         {
             readonly IAppTab iAppTab;
-            readonly IServerWebRequest iRequest;
+            readonly IServerWebRequestResponder iResponder;
             public CancellationToken CancellationToken { get; private set; }
             List<byte> content = new List<byte>();
 
-            public SendHandler(IAppTab aAppTab, IServerWebRequest aRequest)
+            public SendHandler(IAppTab aAppTab, IServerWebRequestResponder aResponder)
             {
                 iAppTab = aAppTab;
-                iRequest = aRequest;
+                iResponder = aResponder;
                 CancellationToken = new CancellationToken();
             }
 
@@ -494,16 +402,16 @@ namespace OpenHome.XappForms
                     catch (ArgumentException ae)
                     {
                         Console.WriteLine("Parse error: {0}", ae);
-                        iRequest.Responder.Send400BadRequest();
+                        iResponder.Send400BadRequest();
                         return;
                     }
-                    iRequest.Responder.Send202Accepted();
+                    iResponder.Send202Accepted();
                     iAppTab.Receive(json);
                     return;
                 }
                 else
                 {
-                    iRequest.Responder.Send400BadRequest();
+                    iResponder.Send400BadRequest();
                 }
             }
         }
