@@ -46,8 +46,11 @@ nunitframeworkdir.add_assemblies(
 systemxmllinq = csharp_dependencies.add_package('systemxmllinq')
 systemxmllinq.add_system_assembly('System.Xml.Linq.dll')
 
-systemxmllinq = csharp_dependencies.add_package('mef')
-systemxmllinq.add_system_assembly('System.ComponentModel.Composition.dll')
+mef = csharp_dependencies.add_package('mef')
+mef.add_system_assembly('System.ComponentModel.Composition.dll')
+
+systemweb = csharp_dependencies.add_package('systemweb')
+systemweb.add_system_assembly('System.Web')
 
 ohnet = csharp_dependencies.add_package('ohnet')
 ohnetdir = ohnet.add_directory(
@@ -343,7 +346,7 @@ def create_zip_task(bld, zipfile, sourceroot, ziproot, sourcefiles):
 
 def get_active_dependencies(env):
     active_dependency_names = set([
-        'ohnet', 'yui-compressor', 'sharpziplib', 'log4net', 'systemxmllinq', 'mef', 'sshnet',
+        'ohnet', 'yui-compressor', 'sharpziplib', 'log4net', 'systemxmllinq', 'mef', 'sshnet', 'systemweb',
         'nuget-Gate', 'nuget-Owin', 'nuget-Gate.Hosts.Firefly', 'nuget-Firefly', 'nuget-Kayak', 'nuget-Moq', 'nuget-NUnit'])
     if env.BUILDTESTS:
         active_dependency_names |= set(['nunit', 'ndeskoptions', 'moq'])
@@ -458,7 +461,7 @@ csharp_projects = [
         CSharpProject(
             name="ohOs.TestApp1.App", dir="TestApp1", type="library",
             categories=["core"],
-            packages=['ohnet', 'mef'],
+            packages=['ohnet', 'mef', 'systemxmllinq'],
             references=[
                 'ohOs.Platform',
             ]),
@@ -527,7 +530,7 @@ csharp_projects = [
         CSharpProject(
             name="OpenHome.XappForms", dir="XappForms", type="exe",
             categories=["xappforms"],
-            packages=['nuget-Owin', 'nuget-Gate', 'nuget-Firefly', 'nuget-Gate.Hosts.Firefly', 'nuget-Kayak'],
+            packages=['nuget-Owin', 'nuget-Gate', 'nuget-Firefly', 'nuget-Gate.Hosts.Firefly', 'nuget-Kayak', 'systemweb'],
             references=[]),
         CSharpProject(
             name="OpenHome.XappForms.Tests", dir="XappForms.Tests", type="library",

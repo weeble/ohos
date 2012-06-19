@@ -216,15 +216,15 @@ namespace UnitTests
         public void TestRemovingMiddleValuePreservesOrder()
         {
             var heap = new BinaryHeap<int>(Comparer<int>.Default);
-            var node33 = heap.Insert(33);
-            var node12 = heap.Insert(12);
-            var node44 = heap.Insert(44);
-            var node50 = heap.Insert(50);
-            var node49 = heap.Insert(49);
-            var node17 = heap.Insert(17);
-            var node99 = heap.Insert(99);
-            var node88 = heap.Insert(88);
-            var node75 = heap.Insert(75);
+            /* var node33 = */ heap.Insert(33);
+            /* var node12 = */ heap.Insert(12);
+            var node44 =       heap.Insert(44);
+            /* var node50 = */ heap.Insert(50);
+            /* var node49 = */ heap.Insert(49);
+            /* var node17 = */ heap.Insert(17);
+            /* var node99 = */ heap.Insert(99);
+            /* var node88 = */ heap.Insert(88);
+            /* var node75 = */ heap.Insert(75);
             node44.Remove();
             List<int> results = new List<int>();
             while (heap.Count > 0) { results.Add(heap.Pop()); }

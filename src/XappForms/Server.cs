@@ -156,7 +156,7 @@ namespace OpenHome.XappForms
             @"O<sup>ka</sup>y. Rel<sub>A</sub>X. No<sub>THING</sub> to s333333 h^</p>"+
             @"<p>E&lt;/p&gt;</p></body></html>";
 
-        static System.Security.Cryptography.RNGCryptoServiceProvider _rng = new RNGCryptoServiceProvider();
+        //static System.Security.Cryptography.RNGCryptoServiceProvider _rng = new RNGCryptoServiceProvider();
 
         static void ServeNotFound(ResultDelegate aResult, Dictionary<string, IEnumerable<string>> aHeaders)
         {
@@ -204,7 +204,6 @@ namespace OpenHome.XappForms
             Dictionary<string, IEnumerable<string>> respHeaders = new Dictionary<string, IEnumerable<string>>();
             try
             {
-                string assemblyPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
                 IDictionary<string,IEnumerable<string>> headers = (IDictionary<string, IEnumerable<string>>) aEnv["owin.RequestHeaders"];
                 List<string> cookies = headers.ContainsKey("Cookie") ?
                     headers["Cookie"].ToList() :
