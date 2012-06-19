@@ -1,7 +1,7 @@
 ;(function($) {
     ohjui['ohjlazylist'] = function(element, options) {
         var LOADTEXTFOOTERSPEED = 200;
-        var lazyloadInProgress = false,viewPortverticalItems = 0,viewPortHorizontalItems = 0,listitemHeight = 0,resizeThrottle =null, noData = false,loadTextHeight = 0;
+        var list = null,lazyloadInProgress = false,viewPortverticalItems = 0,viewPortHorizontalItems = 0,listitemHeight = 0,resizeThrottle =null, noData = false,loadTextHeight = 0,loadTextTimer = null,  loadTextInProgress = false;
         var elem = $(element);
         var _this = this;
         var currentStartIndex = 0;
@@ -10,9 +10,9 @@
             onrendersegment: null,
             ongetdata: null,
             threshold: 5,
-            overflow: 0.5,
+            overflow: 1,
             loadText: 'Loading...',
-            showLoadText: 'footer'
+            showLoadText: 'footer' 
         }, options || {});
 
         // Private Methods
@@ -25,6 +25,7 @@
             viewPortHorizontalItems = Math.max(Math.floor(containerWidth/listitemWidth),1);
             viewPortverticalItems =  Math.max(Math.floor(containerHeight/listitemHeight),1);
             _this.getPageScroller().refreshScroller();
+
         };
 
         
@@ -39,7 +40,7 @@
                 showProgress();
                 var segmentsize = getEndIndex();
                 var endIndex = currentStartIndex+segmentsize;
-                var segment = _this.getData(currentStartIndex,endIndex,function(segment) {
+                var segment = getData(currentStartIndex,endIndex,function(segment) {
                     if(segment.length > 0) {
                         elem.trigger('rendersegment',segment);
                         currentStartIndex = currentStartIndex + segment.length;
@@ -60,6 +61,13 @@
 
         var showProgress = function() {
             if(settings.showLoadText === 'footer') {
+                clearTimeout(loadTextTimer);
+                if(loadTextInProgress) 
+                {
+                     elem.find('.ohjlazylist-loader').remove();  
+                }
+                loadTextInProgress = true;
+
                 var html = '<div class="ohjlazylist-loader">'+settings.loadText+'</div>';
                 elem.append(html);
                 var loadText = elem.find('.ohjlazylist-loader');
@@ -72,8 +80,10 @@
         var hideProgress = function() {
             if(settings.showLoadText) {
                 elem.find('.ohjlazylist-loader').animate({'bottom': '-'+loadTextHeight+'px'},LOADTEXTFOOTERSPEED);
-                setTimeout(function() {
-                    elem.find('.ohjlazylist-loader').remove();
+                loadTextTimer = setTimeout(function() {
+                    elem.find('.ohjlazylist-loader').remove();  
+                    loadTextTimer = null;
+                    loadTextInProgress = false;
                 },LOADTEXTFOOTERSPEED);
             }
         };
@@ -81,9 +91,9 @@
         var render = function() {
             elem.initPlugin('ohjlazylist');
             elem.hookPlugin(settings);
-            elem.css({'position':'relative'});
+            elem.css({'position':'relative','overflow' : 'hidden'});
 
-            elem.find('ul').html('<li style="float:left;">&nbsp;</li>'); // Dummy to work out height of list item
+            elem.find('ul').html('<li>&nbsp;</li>'); // Dummy to work out height of list item
             elem.find('.ohjpagescroller').on('scroll',function() {
                 var overflowheight = elem.find('.content')[0].scrollHeight- $.fn.getOuterHeight(elem);
                 if(!lazyloadInProgress && 
@@ -95,7 +105,7 @@
             refresh();
 
             elem.find('ul').html(''); // Remove dummy to calculate space available
-            _this.getData(currentStartIndex,getEndIndex(),function(segment) {
+            getData(currentStartIndex,getEndIndex(),function(segment) {
                 currentStartIndex = segment.length;
                 elem.trigger('rendersegment',segment);
             }); 
@@ -107,21 +117,28 @@
                     refresh(); 
                 },'onorientationchange' in window ? 500 : 0);
             });
+
+            list =  elem.find('.ohjlist').data('ohjlist');
         };
+
+        var getData = function(startIndex, endIndex,onSuccess)
+        {
+            elem.trigger('getdata',[startIndex,endIndex,onSuccess]);
+        }
+
 
         this.getPageScroller = function() {
             return elem.find('.ohjpagescroller').data('ohjpagescroller');
         }
         
         this.destroy = function() {
+            var pagescroller = _this.getPageScroller();
+            if(pagescroller!=null) { pagescroller.destroy(); }
+            if(list!=null) { list.destroy(); }
             elem.destroyPlugin();
         };
 
-        this.getData = function(startIndex, endIndex,onSuccess)
-        {
-            elem.trigger('getdata',[startIndex,endIndex,onSuccess]);
-        }
-
+      
         if(settings.extend)
             settings.extend.call(this,elem,settings);
 
