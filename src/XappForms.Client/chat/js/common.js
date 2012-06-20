@@ -31,7 +31,7 @@ $().ready(function () {
 
     var updateMessagePane = function () {
         $('#pgConversation').data('ohjpage').refreshPage();
-        $('#pgConversation').data('ohjpage').getPageScroller().scrollToBottom();
+        $('#pgConversation').data('ohjpage').getScroller().scrollToBottom();
     };
 
 
