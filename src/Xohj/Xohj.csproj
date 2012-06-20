@@ -76,10 +76,18 @@
     <Content Include="ohj\ohj.util.html" />
     <Content Include="ohj\ohj.util.js" />
     <Content Include="ohj\scroller\index.html" />
-    <Content Include="ohj\scroller\ohj.scroller.js" />
-    <Content Include="ohj\scroller\ohj.scroller.pointer.css" />
-    <Content Include="ohj\scroller\ohj.scroller.pointer.js" />
-    <Content Include="ohj\scroller\ohj.scroller.touch.js" />
+    <Content Include="ohj\scroller\ohj.scroller.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ohj\scroller\ohj.scroller.pointer.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ohj\scroller\ohj.scroller.pointer.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ohj\scroller\ohj.scroller.touch.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="ohj\scroller\scroller-test.html" />
     <Content Include="ohj\pageslider\index.html" />
     <Content Include="ohj\pageslider\ohj.pageslider.js" />
@@ -87,14 +95,13 @@
     <Content Include="ohj\page\index.html" />
     <Content Include="ohj\page\ohj.page.js" />
     <Content Include="ohj\page\page-test.html" />
+    <Content Include="ohj\virtuallist\ohj.virtuallist.js" />
     <Content Include="theme\default\bootstrap.min.css" />
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="ohj\virtuallist\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
