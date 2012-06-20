@@ -38,13 +38,13 @@ namespace OpenHome.XappForms
 
     class RootAppTab : IAppTab
     {
-        readonly RootApp iRootApp;
-        readonly IBrowserTabProxy iBrowserTabProxy;
+        //readonly RootApp iRootApp;
+        //readonly IBrowserTabProxy iBrowserTabProxy;
 
         public RootAppTab(RootApp aRootApp, IBrowserTabProxy aBrowserTabProxy)
         {
-            iRootApp = aRootApp;
-            iBrowserTabProxy = aBrowserTabProxy;
+            //iRootApp = aRootApp;
+            //iBrowserTabProxy = aBrowserTabProxy;
         }
 
         public void ChangeUser(User aUser)

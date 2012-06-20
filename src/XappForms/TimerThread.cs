@@ -181,7 +181,6 @@ namespace OpenHome.XappForms
                 //Console.WriteLine("RefreshTimer: Already scheduled correctly.");
                 return;
             }
-            var oldScheduledTime = iNextTime;
             iNextTime = top.Value;
             if (iNextTime == DateTime.MaxValue)
             {

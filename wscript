@@ -46,8 +46,11 @@ nunitframeworkdir.add_assemblies(
 systemxmllinq = csharp_dependencies.add_package('systemxmllinq')
 systemxmllinq.add_system_assembly('System.Xml.Linq.dll')
 
-systemxmllinq = csharp_dependencies.add_package('mef')
-systemxmllinq.add_system_assembly('System.ComponentModel.Composition.dll')
+mef = csharp_dependencies.add_package('mef')
+mef.add_system_assembly('System.ComponentModel.Composition.dll')
+
+#systemweb = csharp_dependencies.add_package('systemweb')
+#systemweb.add_system_assembly('System.Web')
 
 ohnet = csharp_dependencies.add_package('ohnet')
 ohnetdir = ohnet.add_directory(
@@ -181,7 +184,7 @@ add_nuget_package("Gate")
 add_nuget_package("Gate.Hosts.Firefly")
 add_nuget_package("Kayak", subdir='lib')
 add_nuget_package("Owin")
-add_nuget_package("Moq")
+add_nuget_package("Moq", subdir='lib/NET40')
 add_nuget_package("NUnit", assembly='nunit.framework.dll', subdir='lib')
 
 
@@ -458,7 +461,7 @@ csharp_projects = [
         CSharpProject(
             name="ohOs.TestApp1.App", dir="TestApp1", type="library",
             categories=["core"],
-            packages=['ohnet', 'mef'],
+            packages=['ohnet', 'mef', 'systemxmllinq'],
             references=[
                 'ohOs.Platform',
             ]),

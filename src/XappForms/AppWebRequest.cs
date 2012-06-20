@@ -12,6 +12,11 @@ namespace OpenHome.XappForms
         NameValueCollection Query { get; }
         string[] RelativePath { get; set; }
         string Method { get; }
+        IWebRequestResponder Responder { get; }
+    }
+
+    public interface IWebRequestResponder
+    {
         void SendResult(string aStatus, IDictionary<string, IEnumerable<string>> aHeaders, BodyDelegate aBody);
         void SendFile(string aContentType, string aFilepath);
         void Send404NotFound();
@@ -27,7 +32,7 @@ namespace OpenHome.XappForms
         BodyDelegate Body { get; }
     }
 
-    public class AppWebRequest : IServerWebRequest
+    public class AppWebRequest : IServerWebRequest, IWebRequestResponder
     {
         public string Method { get; private set; }
         public string[] RelativePath { get; set; }
@@ -35,6 +40,7 @@ namespace OpenHome.XappForms
         ResultDelegate iResult;
         public NameValueCollection Query { get; private set; }
         public BodyDelegate Body { get; private set; }
+        public IWebRequestResponder Responder { get { return this; } }
 
         public AppWebRequest(string aMethod, string[] aRelativePath, Dictionary<string, IEnumerable<string>> aDefaultResponseHeaders, ResultDelegate aResult, NameValueCollection aQuery, BodyDelegate aBody)
         {

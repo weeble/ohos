@@ -15,7 +15,7 @@ builder:
          else \
              echo "Using existing GTK-Sharp directory $(GTKS_SRC_DIR) ..."; \
          fi
-	@cd $(GTKS_SRC_DIR) ; ./configure --prefix=$(prefix) ; make
+	@cd $(GTKS_SRC_DIR) ; CSC=/usr/bin/dmcs ./configure --prefix=$(prefix) ; make
 
 install:
 	@cd $(GTKS_SRC_DIR) ; make install-strip DESTDIR=$(DESTDIR)

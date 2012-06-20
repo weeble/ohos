@@ -71,7 +71,7 @@ namespace OpenHome.XappForms
                 binding.Handler(aRequest);
                 return;
             }
-            aRequest.Send404NotFound();
+            aRequest.Responder.Send404NotFound();
         }
 
         public void MapPrefix(string[] aPath, Action<T> aHandlerFunc)
@@ -90,7 +90,7 @@ namespace OpenHome.XappForms
                     string[] path = aAppWebRequest.RelativePath.Select(aSegment => aSegment.TrimEnd('/')).ToArray();
                     if (!ValidatePath(path))
                     {
-                        aAppWebRequest.Send404NotFound();
+                        aAppWebRequest.Responder.Send404NotFound();
                         return;
                     }
                     string filepath = Path.Combine(aLocalDirectory, Path.Combine(path));
@@ -98,11 +98,11 @@ namespace OpenHome.XappForms
                     string contentType;
                     if (Server.MimeTypesByExtension.TryGetValue(extension, out contentType))
                     {
-                        aAppWebRequest.SendFile(contentType, filepath);
+                        aAppWebRequest.Responder.SendFile(contentType, filepath);
                     }
                     else
                     {
-                        aAppWebRequest.Send404NotFound();
+                        aAppWebRequest.Responder.Send404NotFound();
                     }
                 });
         }
@@ -115,11 +115,11 @@ namespace OpenHome.XappForms
                     string contentType;
                     if (Server.MimeTypesByExtension.TryGetValue(extension, out contentType))
                     {
-                        aAppWebRequest.SendFile(contentType, aLocalFile);
+                        aAppWebRequest.Responder.SendFile(contentType, aLocalFile);
                     }
                     else
                     {
-                        aAppWebRequest.Send404NotFound();
+                        aAppWebRequest.Responder.Send404NotFound();
                     }
                 });
         }

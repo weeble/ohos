@@ -15,7 +15,7 @@ namespace OpenHome.Os.Apps
 
         static void ValidateSubdirectoryName(string aAppName)
         {
-            if (aAppName.Split(Path.GetInvalidFileNameChars()).Length > 1)
+            if (aAppName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
             {
                 throw new ArgumentException("Invalid directory name characters.");
             }
