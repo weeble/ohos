@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace OpenHome.XappForms
 {
-    class TestApp : IApp
+    class TestApp : IAppLayer0
     {
         HashSet<TestAppTab> iTabs = new HashSet<TestAppTab>();
         object iLock = new object();
@@ -18,9 +18,9 @@ namespace OpenHome.XappForms
             iUrlDispatcher.MapPrefixToDirectory(new string[] { }, "test");
         }
 
-        public void ServeWebRequest(IAppWebRequest aRequest)
+        public void ServeWebRequest(RequestData aRequest, IWebRequestResponder aResponder)
         {
-            iUrlDispatcher.ServeRequest(aRequest);
+            iUrlDispatcher.ServeRequest(aRequest, aResponder);
         }
 
         public IAppTab CreateTab(IBrowserTabProxy aTabProxy, User aUser)

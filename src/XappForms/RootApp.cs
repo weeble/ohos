@@ -6,7 +6,7 @@ using OpenHome.XappForms.Json;
 
 namespace OpenHome.XappForms
 {
-    class RootApp : IApp
+    class RootApp : IAppLayer0
     {
         readonly AppUrlDispatcher iUrlDispatcher;
 
@@ -16,9 +16,9 @@ namespace OpenHome.XappForms
             iUrlDispatcher.MapPrefixToDirectory(new string[] { }, "chat");
         }
 
-        public void ServeWebRequest(IAppWebRequest aRequest)
+        public void ServeWebRequest(RequestData aRequest, IWebRequestResponder aResponder)
         {
-            iUrlDispatcher.ServeRequest(aRequest);
+            iUrlDispatcher.ServeRequest(aRequest, aResponder);
         }
 
         public IAppTab CreateTab(IBrowserTabProxy aTabProxy, User aUser)
