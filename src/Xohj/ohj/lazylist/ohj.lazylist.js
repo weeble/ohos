@@ -34,7 +34,7 @@
             return (viewPortverticalItems*viewPortHorizontalItems)+(Math.floor(viewPortverticalItems*viewPortHorizontalItems*settings.overflow));
         };
 
-        var getNextDataSegment = function() {
+        this.getNextDataSegment = function() {
             if(!noData) {
                 lazyloadInProgress = true;
                 showProgress();
@@ -91,6 +91,7 @@
         var render = function() {
             elem.initPlugin('ohjlazylist');
             elem.hookPlugin(settings);
+           
             elem.css({'position':'relative','overflow' : 'hidden'});
 
             elem.find('ul').html('<li>&nbsp;</li>'); // Dummy to work out height of list item
@@ -99,12 +100,13 @@
                 if(!lazyloadInProgress && 
                     _this.getPageScroller().getScrollPosition() >= (overflowheight - (settings.threshold * listitemHeight)))
                 {                     
-                    getNextDataSegment();
+                    _this.getNextDataSegment();
                 }
             });
             refresh();
 
             elem.find('ul').html(''); // Remove dummy to calculate space available
+           
             getData(currentStartIndex,getEndIndex(),function(segment) {
                 currentStartIndex = segment.length;
                 elem.trigger('rendersegment',segment);

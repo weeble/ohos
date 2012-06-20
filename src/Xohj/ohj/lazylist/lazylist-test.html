@@ -1,0 +1,153 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../../lib/jquery-1.7.2.min.js"></script>
+    <link rel="stylesheet" href="../../lib/test/qunit.css" type="text/css" media="screen" />
+    <script type="text/javascript" src="../../lib/test/qunit.js"></script>
+    <link rel="stylesheet" href="../ohj.ui.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../list/ohj.list.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../pagescroller/ohj.pagescroller.pointer.css" type="text/css" media="screen" />
+    <script src="../ohj.util.js"></script>
+    <script src="../ohj.ui.js"></script>
+    <script src="../ohj.ui.bridge.js"></script>
+      <script src="../page/ohj.page.js"></script>
+        <script src="../pagescroller/ohj.pagescroller.js"></script>
+        <script src="../pagescroller/ohj.pagescroller.pointer.js"></script>
+        <script src="../pagescroller/ohj.pagescroller.touch.js"></script>
+        <script src="../navbar/ohj.navbar.js"></script>
+        <script src="../list/ohj.list.js"></script>
+        <script src="ohj.lazylist.js"></script>
+     
+    <style>
+        
+        .ohjlazylist li
+        {
+            background-color:#EEE;
+            border-bottom:1px solid #CCC;
+ 
+        }
+        
+        .ohjlazylist h3
+        {
+            margin-top:10px;
+            font-size:15px;
+            line-height:40px;
+        }
+        
+        .ohjlazylist img
+        {
+            height:40px;        
+        }
+            
+            
+        .ohjlazylist-loader
+        {
+            opacity:0.5;
+            background-color:#000;
+            color:#FFF;
+            text-align:center;
+            position:absolute;
+            width:100%;
+            height:20px;
+            font-size:10px;
+        }
+    </style>
+    <script>
+        // Temp
+        var listdata = [];
+        for (var i = 0; i < 10000; i++) {
+            listdata.push('This is listitem ' + i);
+        }
+
+        function renderBasicSegment(e, data) {
+            var html = '';
+            for (var i = 1; i < arguments.length; i++) {
+                html += '<li id="li_' + i + '">  <img src="default.jpg" /><h3>' + arguments[i] + '</h3></li>'; // console.log(arguments[i]);
+            }
+
+            $("#basic ul").data('ohjlist').addListItem(html);
+            $('#basic').data('ohjlazylist').getPageScroller().refreshScroller();
+        }
+        
+        function getData (e, startIndex, endIndex, onSuccess) {
+            // Mock ajax call
+            if (onSuccess != null) {
+                setTimeout(function () {
+                    onSuccess(listdata.slice(startIndex, endIndex));
+                }, 500);
+            }
+        }
+
+        $(document).ready(function () {
+            setTimeout(function () {
+                module("Basic Lazy List");
+
+                test("Basic Lazy List is inline decorated", function () {
+                    ok($('#basic').hasClass('ohjui'), 'We expect the Basic lazy list to contain the class ohjui');
+                    ok($('#basic').hasClass('ohjlazylist'), 'We expect the Basic list to contain the class ohjlazylist');
+                });
+
+
+                test("Basic Lazy List can retreive additional blocks", function () {
+
+                    var count = $('#basic li').length;
+                    $('#basic').data('ohjlazylist').getNextDataSegment();
+                    stop(2);
+
+                    setTimeout(function () {
+                        equal($('#basic li').length, count * 2, 'We expect the Basic list have doubled in size (oveflow of 1)');
+                        start();
+                        $('#basic').data('ohjlazylist').getNextDataSegment();
+                        setTimeout(function () {
+                            equal($('#basic li').length, count * 3, 'We expect the Basic list have tripled in size (oveflow of 1)');
+                            start();
+
+                        }, 1000);
+                    }, 1000);
+
+                });
+
+
+
+                module("Destroy List");
+
+                test("Destroy the list", function () {
+                    $('#destroy').ohjlazylist();
+                    ok($('#destroy').data('ohjlazylist') != undefined, 'Destroy list created');
+                    $('#destroy').data('ohjlazylist').destroy();
+                    equal($('#destroy').data('ohjlazylist'), undefined, 'Destroy list destroyed');
+                });
+            }, 1000);
+        });
+    </script>
+</head>
+<body>
+    <h1 id="qunit-header">
+       Lazy List Tests</h1>
+    <h2 id="qunit-banner">
+    </h2>
+    <div id="qunit-testrunner-toolbar">
+    </div>
+    <h2 id="qunit-userAgent">
+    </h2>
+    <ol id="qunit-tests">
+    </ol>
+    <div id="qunit-fixture">
+        test markup, will be hidden</div>
+    <h2>
+        Basic</h2>
+    <div id="basic" data-use-ohjlazylist="true" style="width:320px;" data-overflow="1" data-onrendersegment="renderBasicSegment" data-ongetdata="getData">
+        <div data-use-ohjpagescroller="true" data-height="200px">
+            <ul data-use-ohjlist="true">
+            </ul>
+        </div>
+    </div>
+
+       <div id="destroy" data-use-ohjlazylist="true" style="width:320px;" >
+        <div data-use-ohjpagescroller="true" data-height="200px">
+            <ul data-use-ohjlist="true">
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

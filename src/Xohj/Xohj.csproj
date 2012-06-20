@@ -59,6 +59,7 @@
     <Content Include="ohj\lazylist\default.jpg" />
     <Content Include="ohj\lazylist\index.html" />
     <Content Include="ohj\lazylist\lazylist.htm" />
+    <Content Include="ohj\lazylist\lazylist-test.html" />
     <Content Include="ohj\lazylist\ohj.lazylist.js" />
     <Content Include="ohj\list\default.jpg" />
     <Content Include="ohj\list\index.html" />

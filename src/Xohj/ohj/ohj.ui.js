@@ -42,7 +42,7 @@ var ohjui = {};
             {
                 var onFunc = $.fn.stringToFunction(settings[i]);
                 
-                if(onFunc!=null) { 
+                if(onFunc!=null) {
                     this.on(i.substring(2),onFunc);
                 }
             }   
