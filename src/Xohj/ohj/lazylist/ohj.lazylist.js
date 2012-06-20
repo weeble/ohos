@@ -24,7 +24,7 @@
             listitemHeight = $.fn.getOuterHeight(elem.find('li').first());
             viewPortHorizontalItems = Math.max(Math.floor(containerWidth/listitemWidth),1);
             viewPortverticalItems =  Math.max(Math.floor(containerHeight/listitemHeight),1);
-            _this.getPageScroller().refreshScroller();
+            _this.getScroller().refreshScroller();
 
         };
 
@@ -95,10 +95,10 @@
             elem.css({'position':'relative','overflow' : 'hidden'});
 
             elem.find('ul').html('<li>&nbsp;</li>'); // Dummy to work out height of list item
-            elem.find('.ohjpagescroller').on('scroll',function() {
+            elem.find('.ohjscroller').on('scroll',function() {
                 var overflowheight = elem.find('.content')[0].scrollHeight- $.fn.getOuterHeight(elem);
                 if(!lazyloadInProgress && 
-                    _this.getPageScroller().getScrollPosition() >= (overflowheight - (settings.threshold * listitemHeight)))
+                    _this.getScroller().getScrollPosition() >= (overflowheight - (settings.threshold * listitemHeight)))
                 {                     
                     _this.getNextDataSegment();
                 }
@@ -129,13 +129,13 @@
         }
 
 
-        this.getPageScroller = function() {
-            return elem.find('.ohjpagescroller').data('ohjpagescroller');
+        this.getScroller = function() {
+            return elem.find('.ohjscroller').data('ohjscroller');
         }
         
         this.destroy = function() {
-            var pagescroller = _this.getPageScroller();
-            if(pagescroller!=null) { pagescroller.destroy(); }
+            var scroller = _this.getScroller();
+            if(scroller!=null) { scroller.destroy(); }
             if(list!=null) { list.destroy(); }
             elem.destroyPlugin();
         };

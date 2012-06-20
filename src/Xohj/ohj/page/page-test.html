@@ -5,14 +5,14 @@
     <link rel="stylesheet" href="../../lib/test/qunit.css" type="text/css" media="screen" />
     <script type="text/javascript" src="../../lib/test/qunit.js"></script>
     <link rel="stylesheet" href="../ohj.ui.css" type="text/css" media="screen" />
-    <link rel="stylesheet" href="../pagescroller/ohj.pagescroller.pointer.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../scroller/ohj.scroller.pointer.css" type="text/css" media="screen" />
     <script src="../ohj.util.js"></script>
     <script src="../ohj.ui.js"></script>
     <script src="ohj.page.js"></script>
     <script src="../navbar/ohj.navbar.js"></script>
-    <script src="../pagescroller/ohj.pagescroller.js"></script>
-    <script src="../pagescroller/ohj.pagescroller.touch.js"></script>
-    <script src="../pagescroller/ohj.pagescroller.pointer.js"></script>
+    <script src="../scroller/ohj.scroller.js"></script>
+    <script src="../scroller/ohj.scroller.touch.js"></script>
+    <script src="../scroller/ohj.scroller.pointer.js"></script>
     <style>
       header
       {
@@ -41,7 +41,7 @@
                 ok($('#basic').hasClass('ohjui'), 'We expect the class ohjui');
                 ok($('#basic').hasClass('ohjpage'), 'We expect the class ohjpage');
                 ok($('#basic header').hasClass('ohjnavbar'), 'We expect the class ohjnavbar on the header element');
-                ok($('#basic article').hasClass('ohjpagescroller'), 'We expect the class ohjpagescroller on the article element');
+                ok($('#basic article').hasClass('ohjscroller'), 'We expect the class ohjscroller on the article element');
             });
 
             module("No Header Page");
@@ -50,7 +50,7 @@
             test("No header page is code decorated with Page", function () {
                 ok($('#nohead').hasClass('ohjui'), 'We expect the class ohjui');
                 ok($('#nohead').hasClass('ohjpage'), 'We expect the class ohjpage');
-                ok($('#nohead article').hasClass('ohjpagescroller'), 'We expect the class ohjpagescroller on the article element');
+                ok($('#nohead article').hasClass('ohjscroller'), 'We expect the class ohjscroller on the article element');
 
             });
 
@@ -59,13 +59,13 @@
             var full = $('#full').ohjpage();
             test("Full page is code decorated with Page", function () {
                 ok($('#full header').hasClass('ohjnavbar'), 'We expect the class ohjnavbar on the header element');
-                ok($('#full article').hasClass('ohjpagescroller'), 'We expect the class ohjpagescroller on the article element');
+                ok($('#full article').hasClass('ohjscroller'), 'We expect the class ohjscroller on the article element');
                 ok($('#full footer').hasClass('ohjnavbar'), 'We expect the class ohjnavbar on the footer element');
 
             });
 
-            test('getPageScroller Method returns correct scroller', function () {
-                equal(full.getPageScroller(), $('#full article').data('ohjpagescroller'), 'getPageScroller return correctly');
+            test('getScroller Method returns correct scroller', function () {
+                equal(full.getScroller(), $('#full article').data('ohjscroller'), 'getScroller return correctly');
             });
 
             test('resizing will refresh the inner controls', function () {
@@ -74,7 +74,7 @@
                 $(window).trigger('resize');
                 stop();
                 setTimeout(function () {
-                    ok($('#full article').height() > currentScrollerHeight, 'We expect the page scroller height to have changed');
+                    ok($('#full article').height() > currentScrollerHeight, 'We expect the scroller height to have changed');
                     start();
 
                 }, 1000);

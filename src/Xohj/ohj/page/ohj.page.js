@@ -1,7 +1,7 @@
 ;(function($) {
     var _that = this;
     ohjui['ohjpage'] = function(element, options) {
-        var elem = $(element),pageHeight = 0,resizeThrottle =null,header = null, pagescroller = null;
+        var elem = $(element),pageHeight = 0,resizeThrottle =null,header = null, scroller = null;
         var _this = this;
         var settings = $.extend({
             extend: null
@@ -13,17 +13,17 @@
             {
                 pageHeight = elem.height();
                 var height = pageHeight - elem.children('header').height() - elem.children('footer').height();
-                if(pagescroller!=null) { pagescroller.setOptions({'height': height}); }
+                if(scroller!=null) { scroller.setOptions({'height': height}); }
                 if(header!=null) { header.refresh(); }
             }
         };
 
-        this.getPageScroller = function() {
-            return elem.children('article').data('ohjpagescroller');
+        this.getScroller = function() {
+            return elem.children('article').data('ohjscroller');
         }
 
         this.destroy = function() {
-            if(pagescroller!=null) { pagescroller.destroy(); }
+            if(scroller!=null) { scroller.destroy(); }
             if(header!=null) { header.destroy(); }
             elem.destroyPlugin();
         };
@@ -41,7 +41,7 @@
         var render = function() {
             elem.initPlugin('ohjpage');
             header = elem.children('header').ohjnavbar();
-            pagescroller = elem.children('article').ohjpagescroller();
+            scroller = elem.children('article').ohjscroller();
             _this.refreshPage();
         };
     

@@ -2,13 +2,13 @@
 <html lang="en">
     <head>
         <meta charset="utf-8">
-        <title>ohj UI - ohj.pagescroller</title>
+        <title>ohj UI - ohj.scroller</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="description" content="">
         <meta name="author" content="">
 
         <!-- Le styles -->
-        <link href="ohj.pagescroller.pointer.css" rel="stylesheet">
+        <link href="ohj.scroller.pointer.css" rel="stylesheet">
         <link href="../../docs/css/bootstrap.min.css" rel="stylesheet">
         <link href="../../docs/css/prettify.css" rel="stylesheet">
         <link href="../../docs/css/docs.css" rel="stylesheet">
@@ -33,7 +33,7 @@
             <div class="navbar-inner">
                 <div class="container">
                     <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse"> <span class="icon-bar"></span> <span class="icon-bar"></span> <span class="icon-bar"></span> </a>
-                    <a class="brand " href="../../docs/index.html"><span class="ohj">ohj</span>.pagescroller</a>
+                    <a class="brand " href="../../docs/index.html"><span class="ohj">ohj</span>.scroller</a>
                     <div class="nav-collapse">
                         <ul class="nav">
                             <li class="active">
@@ -68,7 +68,7 @@
 
         <div class="container">
 
-            <h1>ohj.pagescroller UI control<small> b0.1</small></h1>
+            <h1>ohj.scroller UI control<small> b0.1</small></h1>
             <p class="lead">
                   A container control which allows it's content to be scrolled.
             </p>
@@ -85,7 +85,7 @@
                        
                         <pre class="prettyprint linenums">
     &lt;script&gt;
-        $('#content').ohjpagescroller();
+        $('#content').ohjscroller();
     &lt;/script&gt;
     ...
     &lt;div id="content"&gt;
@@ -96,7 +96,7 @@
                     </div><!-- /.span -->
                     <div class="span6">
       
-                        <div id="pagescroller1" data-use-ohjpagescroller="true" data-height="200px">
+                        <div id="scroller1" data-use-ohjscroller="true" data-height="200px">
                              <ul>
                                 <li>One</li><li>Two</li><li>Three</li><li>Four</li><li>Five</li><li>Six</li><li>Seven</li><li>Eight</li><li>Nine</li><li>Ten</li>
                                 <li>11</li><li>12</li><li>13</li><li>14</li><li>15</li><li>16</li><li>17</li><li>18</li><li>19</li><li>20</li>
@@ -124,7 +124,7 @@
                                 <tr>
                                     <td><code>
                                         height</code></td>
-                                    <td> The height of the page scroller in css format </td>
+                                    <td> The height of the scroller in css format </td>
                                     <td> 450px </td>
                                 </tr>
                                  <tr>
@@ -224,7 +224,7 @@
                             <tbody>
                                 <tr>
                                     <td><code>
-                                        .ohjpagescroller</code></td>
+                                        .ohjscroller</code></td>
                                     <td> Class for the container </td>
                                 </tr>
                             </tbody>
@@ -235,7 +235,7 @@
 
                     <div class="span12">
                         <pre class="prettyprint linenums">
-        &lt;div id="content" class="ohjpagescroller"&gt;
+        &lt;div id="content" class="ohjscroller"&gt;
         &lt;/div&gt;
    </pre>
                     </div><!-- /.span -->
@@ -277,14 +277,14 @@
                                 </tr>
                                 <tr>
                                     <td><code>
-                                        ohj.pagescroller.pointer</code></td>
+                                        ohj.scroller.pointer</code></td>
                                     <td>Desktop</td>
                                     <td> Uses a slim scrollbar to allow content to be scrolled. The mousewheel can also be used to scroll. </td>
          
                                 </tr>
                                 <tr>
                                     <td><code>
-                                        ohj.pagescroller.touch</code></td>
+                                        ohj.scroller.touch</code></td>
                                     <td>Mobile Webkit</td>
                                     <td>Mimics a scrollable panel on touch devices. Not ideal for all Android devices.</td>
                                 </tr>
@@ -321,7 +321,7 @@
                 </div>
                 <ul>
                     <li>
-                        <a href="pagescroller-test.html">Run Tests</a>
+                        <a href="scroller-test.html">Run Tests</a>
                     </li>
                 </ul>
                 <br />
@@ -358,8 +358,8 @@
         <script src="../ohj.util.js"></script>
         <script src="../ohj.ui.js"></script>
         <script src="../ohj.ui.bridge.js"></script>
-        <script src="ohj.pagescroller.js"></script>
-        <script src="ohj.pagescroller.pointer.js"></script>
+        <script src="ohj.scroller.js"></script>
+        <script src="ohj.scroller.pointer.js"></script>
         <script>
             $().ready(function() {
                

@@ -58,7 +58,6 @@
     <Content Include="ohj\grid\ohj.grid.js" />
     <Content Include="ohj\lazylist\default.jpg" />
     <Content Include="ohj\lazylist\index.html" />
-    <Content Include="ohj\lazylist\lazylist.htm" />
     <Content Include="ohj\lazylist\lazylist-test.html" />
     <Content Include="ohj\lazylist\ohj.lazylist.js" />
     <Content Include="ohj\list\default.jpg" />
@@ -76,12 +75,12 @@
     <Content Include="ohj\ohj.ui.js" />
     <Content Include="ohj\ohj.util.html" />
     <Content Include="ohj\ohj.util.js" />
-    <Content Include="ohj\pagescroller\index.html" />
-    <Content Include="ohj\pagescroller\ohj.pagescroller.js" />
-    <Content Include="ohj\pagescroller\ohj.pagescroller.pointer.css" />
-    <Content Include="ohj\pagescroller\ohj.pagescroller.pointer.js" />
-    <Content Include="ohj\pagescroller\ohj.pagescroller.touch.js" />
-    <Content Include="ohj\pagescroller\pagescroller-test.html" />
+    <Content Include="ohj\scroller\index.html" />
+    <Content Include="ohj\scroller\ohj.scroller.js" />
+    <Content Include="ohj\scroller\ohj.scroller.pointer.css" />
+    <Content Include="ohj\scroller\ohj.scroller.pointer.js" />
+    <Content Include="ohj\scroller\ohj.scroller.touch.js" />
+    <Content Include="ohj\scroller\scroller-test.html" />
     <Content Include="ohj\pageslider\index.html" />
     <Content Include="ohj\pageslider\ohj.pageslider.js" />
     <Content Include="ohj\pageslider\pageslider-test.html" />
@@ -92,6 +91,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="ohj\virtuallist\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -12,7 +12,7 @@
         <link href="../../docs/css/prettify.css" rel="stylesheet">
         <link href="../../docs/css/docs.css" rel="stylesheet">
            <link href="../list/ohj.list.css" rel="stylesheet">
-        <link href="../pagescroller/ohj.pagescroller.pointer.css" rel="stylesheet">
+        <link href="../scroller/ohj.scroller.pointer.css" rel="stylesheet">
         <style>
             body {
                 padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
@@ -136,7 +136,7 @@
                 }
 
                 $('#lazylist ul').data('ohjlist').addListItem(html);
-                $('#lazylist').data('ohjlazylist').getPageScroller().refreshScroller();
+                $('#lazylist').data('ohjlazylist').getScroller().refreshScroller();
             },
             ongetdata: function (e, startIndex, endIndex, onSuccess) {
                 // Ajax call
@@ -146,7 +146,7 @@
     &lt;/script&gt;
     ...
     &lt;div id="lazylist"&gt;
-        &lt;div data-use-ohjpagescroller="true"&gt;
+        &lt;div data-use-ohjscroller="true"&gt;
             &lt;ul data-use-ohjlist="true"&gt;
             &lt;/ul&gt;
         &lt;/div&gt;
@@ -158,7 +158,7 @@
                     </div><!-- /.span -->
                     <div class="span4">
                           <div id="lazylist">
-                            <div data-use-ohjpagescroller="true">
+                            <div data-use-ohjscroller="true">
                                 <ul data-use-ohjlist="true">
                                 </ul>
                             </div>
@@ -182,8 +182,8 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                 <tr>
-                                        <td>
+                                <tr>
+                                    <td>
                                         <code>
                                             extend
                                         </code></td>
@@ -204,7 +204,7 @@
                                             null
                                         </code></td>
                                     </tr>
-                                     <tr>
+                                    <tr>
                                         <td>
                                         <code>
                                             ongetdata
@@ -215,7 +215,7 @@
                                             null
                                         </code></td>
                                     </tr>
-                                     <tr>
+                                    <tr>
                                         <td>
                                         <code>
                                             threshold
@@ -280,15 +280,15 @@
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td><code>getPageScroller
+                                    <td><code>getScroller
                                         </code></td>
-                                    <td>Retrieves the page scroller instance for the lazy list</td>
+                                    <td>Retrieves the scroller instance for the lazy list</td>
          
                                 </tr> 
                                  <tr>
                                     <td><code>destroy
                                         </code></td>
-                                    <td>Destroys the lazy list, list and pagescroller.</td>
+                                    <td>Destroys the lazy list, list and scroller.</td>
          
                                 </tr> 
                             </tbody>
@@ -371,7 +371,7 @@
                     <div class="span12">
                         <pre class="prettyprint linenums">
        &lt;div id="lazylist" class="ohjlazylist"&gt;
-            &lt;div class="ohjpagescroller"&gt;
+            &lt;div class="ohjscroller"&gt;
                 &lt;div class="content" style="right: -17px; "&gt;
                     &lt;ul class="ohjlist"&gt;
                         &lt;li id="li_0" class="clearfix"&gt;  
@@ -501,9 +501,9 @@
         <script src="../ohj.ui.js"></script>
         <script src="../ohj.ui.bridge.js"></script>
         <script src="../page/ohj.page.js"></script>
-        <script src="../pagescroller/ohj.pagescroller.js"></script>
-        <script src="../pagescroller/ohj.pagescroller.pointer.js"></script>
-        <script src="../pagescroller/ohj.pagescroller.touch.js"></script>
+        <script src="../scroller/ohj.scroller.js"></script>
+        <script src="../scroller/ohj.scroller.pointer.js"></script>
+        <script src="../scroller/ohj.scroller.touch.js"></script>
         <script src="../navbar/ohj.navbar.js"></script>
         <script src="../list/ohj.list.js"></script>
         <script src="../lazylist/ohj.lazylist.js"></script>
@@ -520,7 +520,7 @@
                         }
 
                         $("#lazylist ul").data('ohjlist').addListItem(html);
-                        $('#lazylist').data('ohjlazylist').getPageScroller().refreshScroller();
+                        $('#lazylist').data('ohjlazylist').getScroller().refreshScroller();
                     },
                     ongetdata: function (e, startIndex, endIndex, onSuccess) {
                         // Mock ajax call

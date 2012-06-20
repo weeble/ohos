@@ -1,5 +1,5 @@
 ;(function($) {
-    ohjui['ohjpagescroller'] = function(element, options) {
+    ohjui['ohjscroller'] = function(element, options) {
         var elem = $(element);
         var _this = this;
         var settings = $.extend({
@@ -9,7 +9,7 @@
 
         // Private Methods   
         var render = function() {
-            elem.initPlugin('ohjpagescroller');
+            elem.initPlugin('ohjscroller');
             elem.css({'height':settings.height});
           
             _this.renderScroller();
@@ -54,7 +54,7 @@
         render();
     };
     
-    $.fn.createPlugin('ohjpagescroller');
+    $.fn.createPlugin('ohjscroller');
     
 })(window.jQuery || window.Zepto);
 
