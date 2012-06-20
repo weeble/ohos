@@ -1,6 +1,6 @@
 
 ;(function($) {
-    ohjui['ohjpageslidertouch'] = function(elem, settings) {
+    ohjui['ohjscrollertouch'] = function(elem, settings) {
 
         var iscroll = null;
         this.renderScroller = function() {
@@ -50,8 +50,8 @@
         };
     };
     
-    $.fn.ohjpageslidertouch = function(element,settings) {
-       return new ohjui.ohjpageslidertouch(element,settings);
+    $.fn.ohjscrollertouch = function(element,settings) {
+       return new ohjui.ohjscrollertouch(element,settings);
     };
 })(window.jQuery || window.Zepto);
 

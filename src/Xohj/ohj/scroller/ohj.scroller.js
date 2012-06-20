@@ -44,10 +44,10 @@
         else {
             if('ontouchstart' in window && window.Zepto)
             {
-                $.extend(this, new $.fn.ohjpageslidertouch(elem, settings));
+                $.extend(this, new $.fn.ohjscrollertouch(elem, settings));
             }
             else {
-                $.extend(this, new $.fn.ohjpagesliderpointer(elem, settings));
+                $.extend(this, new $.fn.ohjscrollerpointer(elem, settings));
             }
         }
             
