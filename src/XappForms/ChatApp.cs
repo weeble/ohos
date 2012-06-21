@@ -17,26 +17,45 @@ namespace OpenHome.XappForms
         object iLock = new object();
         Dictionary<string, ChatUser> iUsers = new Dictionary<string, ChatUser>();
         int counter = 0;
+        readonly IAppLayer0 iLoginApp;
         UserList iUserList;
         AppUrlDispatcher iUrlDispatcher;
 
-        public ChatApp(UserList aUserList)
+        public ChatApp(IAppLayer0 aLoginApp, UserList aUserList)
         {
+            iLoginApp = aLoginApp;
             iUserList = aUserList;
             iUserList.Updated += OnUserListUpdated;
             iUrlDispatcher = new AppUrlDispatcher();
+            iUrlDispatcher.MapPath( new string[] { }, ServeAppHtml);
             iUrlDispatcher.MapPrefixToDirectory(new string[] { }, "chat");
+        }
+
+        void ServeAppHtml(RequestData aRequest, IWebRequestResponder aResponder)
+        {
+            string browser = aRequest.Cookies["xappbrowser"].First();
+            string filename = GetBrowserDiscriminationMappings()[browser];
+            aResponder.SendFile("chat/" + filename);
         }
 
         public void ServeWebRequest(RequestData aRequest, IWebRequestResponder aResponder)
         {
+            if (String.IsNullOrEmpty(aRequest.Cookies["xappuser"].FirstOrDefault()))
+            {
+                // TODO: Handle this *outside* of the app.
+                Console.WriteLine("Serving {0} from login instead. ({1} xappuser cookies)", aRequest.Path.OriginalUri, String.Join(", ", aRequest.Cookies["xappuser"]));
+                iLoginApp.ServeWebRequest(aRequest, aResponder);
+                return;
+            }
+            Console.WriteLine("Serving {0} from chat app.", aRequest.Path.OriginalUri);
             iUrlDispatcher.ServeRequest(aRequest, aResponder);
         }
 
         public IAppTab CreateTab(IBrowserTabProxy aTabProxy, User aUser)
         {
+            Console.WriteLine("Create CHAT tab with User='{0}'", aUser == null ? "ARGH" : aUser.Id);
             int id = counter++;
-            var tab = new ChatAppTab(this, aTabProxy, id, iUserList);
+            var tab = new ChatAppTab(this, aTabProxy, id, iUserList, aUser == null ? null : aUser.Id);
             lock (iLock)
             {
                 iTabs.Add(tab);
@@ -51,11 +70,11 @@ namespace OpenHome.XappForms
                             { "newValue", UserToJson(user.User, user.TabCount > 0 ? "online" : "offline") } });
                 }
             }
-            Broadcast(
+            tab.NewMessage(
                 new JsonObject{
-                    {"type", "connect"},
-                    {"sender", id.ToString()},
-                });
+                    {"type","login"},
+                    {"user", UserToJson(aUser, "online")}});
+            RecountUsers();
             return tab;
         }
 
@@ -198,11 +217,12 @@ namespace OpenHome.XappForms
         object iLock = new object();
         string iUserId;
 
-        public ChatAppTab(ChatApp aChatApp, IBrowserTabProxy aBrowserTabProxy, int aId, UserList aUserList)
+        public ChatAppTab(ChatApp aChatApp, IBrowserTabProxy aBrowserTabProxy, int aId, UserList aUserList, string aUserId)
         {
             iChatApp = aChatApp;
             iBrowserTabProxy = aBrowserTabProxy;
             iId = aId;
+            iUserId = aUserId;
             //iUserList = aUserList;
         }
 
@@ -234,11 +254,17 @@ namespace OpenHome.XappForms
         {
             lock (iLock)
             {
-                if (iUserId == aUser.Id)
+                string id = aUser == null ? null : aUser.Id;
+                if (iUserId == id)
                 {
                     return;
                 }
-                iUserId = aUser.Id;
+                iUserId = id;
+            }
+            if (aUser == null)
+            {
+                iBrowserTabProxy.SetCookie("xappuser", "", new CookieAttributes { Path = "/", Expires = DateTime.UtcNow - TimeSpan.FromDays(1) });
+                iBrowserTabProxy.ReloadPage();
             }
             iChatApp.RecountUsers();
             iBrowserTabProxy.Send(
@@ -267,8 +293,14 @@ namespace OpenHome.XappForms
                         }
                         iChatApp.NewMessage(userid, aJsonValue.Get("content").AsString());
                         break;
+                    case "changeuser":
+                        iBrowserTabProxy.SwitchUser(null);
+                        break;
                     case "user":
                         userid = aJsonValue.Get("id").AsString();
+                        Console.WriteLine("SHOULD NOT GET HERE.");
+                        iBrowserTabProxy.SetCookie("xappuser", userid, null);
+                        iBrowserTabProxy.ReloadPage();
                         iBrowserTabProxy.SwitchUser(userid);
                         /*
                         User user;

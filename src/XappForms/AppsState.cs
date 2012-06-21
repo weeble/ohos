@@ -35,7 +35,7 @@ namespace OpenHome.XappForms
     {
         AppsState CreateAppsState();
         SessionRecord CreateSessionRecord(string aSessionId);
-        ServerTab CreateServerTab(string aSessionId, string aTabId, SessionRecord aSessionRecord);
+        ServerTab CreateServerTab(string aSessionId, string aTabId, SessionRecord aSessionRecord, AppRecord aAppRecord);
     }
 
     class AppsStateFactory : IAppsStateFactory
@@ -66,9 +66,9 @@ namespace OpenHome.XappForms
         {
             return new SessionRecord(aSessionId, iTabStatusQueue, this, iAppsStateThread, iUserList);
         }
-        public ServerTab CreateServerTab(string aSessionId, string aTabId, SessionRecord aSessionRecord)
+        public ServerTab CreateServerTab(string aSessionId, string aTabId, SessionRecord aSessionRecord, AppRecord aAppRecord)
         {
-            return new ServerTab(aSessionId, aTabId, iTabStatusQueue, iClock, iTimeoutPolicy, iTimerThread, iAppsStateThread, aSessionRecord);
+            return new ServerTab(aSessionId, aTabId, iTabStatusQueue, iClock, iTimeoutPolicy, iTimerThread, iAppsStateThread, aSessionRecord, aAppRecord);
         }
     }
 
@@ -94,7 +94,7 @@ namespace OpenHome.XappForms
             return iAppsStateThread.ScheduleExclusive(
                 () =>
                 {
-                    return Apps[aName] = new AppRecord(aApp, aName);
+                    return Apps[aName] = new AppRecord(aApp, aName, new SoftThread());
                 });
         }
 
@@ -210,25 +210,26 @@ namespace OpenHome.XappForms
 
         //public 
 
-        public Task<ServerTab> CreateTab(AppRecord aApp)
+        public Task<ServerTab> CreateTab(AppRecord aApp, string aUserId)
         {
             return iAppsStateThread.ScheduleExclusive(
                 () =>
                 {
+                    SwitchUser(aUserId);
                     ServerTab newServerTab;
 
                     iCounter += 1;
                     string tabKey = iCounter.ToString();
                     iListener.NewTab(Key, tabKey, iUserId, aApp.Id);
                     BrowserTabProxy browserTabProxy = new BrowserTabProxy();
-                    browserTabProxy.ServerTab = newServerTab = Tabs[tabKey] = iAppsStateFactory.CreateServerTab(Key, tabKey, this);
+                    browserTabProxy.ServerTab = newServerTab = Tabs[tabKey] = iAppsStateFactory.CreateServerTab(Key, tabKey, this, aApp);
                     User user;
-                    if (!iUserList.TryGetUserById(iUserId, out user))
+                    if (iUserId==null || !iUserList.TryGetUserById(iUserId, out user))
                     {
                         user = null;
                     }
                     var serverTab = aApp.App.CreateTab(browserTabProxy, user);
-                    newServerTab.AppTab = serverTab;
+                    newServerTab.AppTab = new AppThreadScheduler(serverTab, aApp.SoftThread);
                     return newServerTab;
                 });
         }
@@ -251,8 +252,8 @@ namespace OpenHome.XappForms
 
         public void SwitchUser(string aUserId)
         {
-            User user;
-            if (iUserList.TryGetUserById(aUserId, out user))
+            User user = null;
+            if (aUserId == null || iUserList.TryGetUserById(aUserId, out user))
             {
                 iUserId = aUserId;
                 foreach (var tab in Tabs.Values)
@@ -344,11 +345,44 @@ namespace OpenHome.XappForms
         public ServerTab ServerTab { get; set; }
         public void Send(JsonValue aJsonValue)
         {
-            ServerTab.Send(aJsonValue);
+            ServerTab.Send("event", aJsonValue);
         }
 
         public string SessionId { get { return ServerTab.SessionId; } }
         public string TabId { get { return ServerTab.TabKey; } }
+
+        static string FormatCookie(string aName, string aValue, CookieAttributes aAttributes)
+        {
+            string expires, path, secure, httponly;
+            if (aAttributes != null)
+            {
+                expires = aAttributes.Expires == null ? "" : aAttributes.Expires.Value.ToString(" ddd, d MMM yyyy HH:mm:ss UTC;");
+                path = aAttributes.Path == null ? "" : (" path=" + aAttributes.Path + ";");
+                secure = aAttributes.Secure ? " Secure;" : "";
+                httponly = aAttributes.HttpOnly ? " HttpOnly;" : "";
+            }
+            else
+            {
+                expires = path = secure = httponly = "";
+            }
+            string formatted = String.Format("{0}={1};{2}{3}{4}{5}", aName, aValue, expires, path, secure, httponly);
+            return formatted;
+        }
+
+        public void SetCookie(string aName, string aValue, CookieAttributes aAttributes)
+        {
+            ServerTab.Send(
+                "set-cookie",
+                new JsonString(FormatCookie(aName, aValue, aAttributes)));
+            
+        }
+
+        public void ReloadPage()
+        {
+            ServerTab.Send(
+                "refresh-browser",
+                JsonNull.Instance);
+        }
 
 
         public void SwitchUser(string aUserId)
@@ -361,11 +395,13 @@ namespace OpenHome.XappForms
     {
         public IAppLayer0 App { get; private set; }
         public string Id { get; private set; }
+        public SoftThread SoftThread { get; private set; }
 
-        public AppRecord(IAppLayer0 aApp, string aId)
+        public AppRecord(IAppLayer0 aApp, string aId, SoftThread aSoftThread)
         {
             App = aApp;
             Id = aId;
+            SoftThread = aSoftThread;
         }
     }
 
@@ -386,11 +422,48 @@ namespace OpenHome.XappForms
         Dictionary<string, string> GetBrowserDiscriminationMappings();
     }
 
+    class AppThreadScheduler : IAppTab
+    {
+        readonly IAppTab iAppTab;
+        readonly SoftThread iAppThread;
+
+        public AppThreadScheduler(IAppTab aAppTab, SoftThread aAppThread)
+        {
+            iAppTab = aAppTab;
+            iAppThread = aAppThread;
+        }
+
+        public void ChangeUser(User aUser)
+        {
+            iAppThread.ScheduleExclusive(() => iAppTab.ChangeUser(aUser));
+        }
+
+        public void Receive(JsonValue aJsonValue)
+        {
+            iAppThread.ScheduleExclusive(() => iAppTab.Receive(aJsonValue));
+        }
+
+        public void TabClosed()
+        {
+            iAppThread.ScheduleExclusive(() => iAppTab.TabClosed());
+        }
+    }
+
     public interface IAppTab
     {
         void ChangeUser(User aUser);
         void Receive(JsonValue aJsonValue);
         void TabClosed();
+    }
+
+    public class CookieAttributes
+    {
+        public string Domain { get; set; }
+        public string Path { get; set; }
+        public DateTime? Expires { get; set; }
+        public bool Secure { get; set; }
+        public bool HttpOnly { get; set; }
+//Domain=.foo.com; Path=/; Expires=Wed, 13-Jan-2021 22:23:01 GMT; Secure; HttpOnly
     }
 
     public interface IBrowserTabProxy
@@ -399,6 +472,8 @@ namespace OpenHome.XappForms
         void SwitchUser(string aUserId);
         string SessionId { get; }
         string TabId { get; }
+        void SetCookie(string aName, string aValue, CookieAttributes aAttributes);
+        void ReloadPage();
     }
 
 }

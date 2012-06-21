@@ -179,10 +179,11 @@ namespace OpenHome.XappForms
             var timeoutPolicy = new ServerTabTimeoutPolicy(TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
             var appsStateFactory = new AppsStateFactory(serverHealthApp, () => DateTime.Now, timeoutPolicy, userList);
             iAppsState = appsStateFactory.CreateAppsState();
-            iAppsState.AddApp("chat", new ChatApp(userList));
+            var loginApp = new LoginApp(userList);
+            iAppsState.AddApp("login", loginApp);
+            iAppsState.AddApp("chat", new ChatApp(loginApp, userList));
             iAppsState.AddApp("test", new TestApp());
             iAppsState.AddApp("root", new RootApp());
-            iAppsState.AddApp("login", new LoginApp(userList));
             iAppsState.AddApp("serverhealth", serverHealthApp);
             
             ServerUrlDispatcher dispatcher = new ServerUrlDispatcher();
@@ -249,14 +250,16 @@ namespace OpenHome.XappForms
                         {
                             if (path.Count == 1)
                             {
-                                Dictionary<string, string> mappings = app.App.GetBrowserDiscriminationMappings();
-                                var mappingObj = DiscriminationMappingsToJson(mappings);
-                                aResponder.SendPage("200 OK", PageSource.MakeSourceFromString(StringType.Html, String.Format(IndexPageTemplate, mappingObj.ToString())));
+                                if (String.IsNullOrEmpty(aRequest.Cookies["xappbrowser"].FirstOrDefault()))
+                                {
+                                    Dictionary<string, string> mappings = app.App.GetBrowserDiscriminationMappings();
+                                    var mappingObj = DiscriminationMappingsToJson(mappings);
+                                    aResponder.SendPage("200 OK", PageSource.MakeSourceFromString(StringType.Html, String.Format(IndexPageTemplate, mappingObj.ToString())));
+                                    return;
+                                }
+                                // Fall through.
                             }
-                            else
-                            {
-                                app.App.ServeWebRequest(aRequest.SkipPathSegments(1), aResponder);
-                            }
+                            app.App.ServeWebRequest(aRequest.SkipPathSegments(1), aResponder);
                         }
                         else
                         {
@@ -299,11 +302,12 @@ namespace OpenHome.XappForms
                                         aResponder.Send404NotFound();
                                         return;
                                     }
-                                    requestSession.CreateTab(app).ContinueWith(
+                                    string userid = aRequest.Cookies["xappuser"].FirstOrDefault();
+                                    requestSession.CreateTab(app, userid).ContinueWith(
                                         task3 =>
                                         {
                                             var serverTab = task3.Result;
-                                            //Console.WriteLine("CREATING TAB FOR APP. Session {0}   App {1}   Tab {2}", requestSession.Key, app.Id, tab.TabKey);
+                                            Console.WriteLine("CREATING TAB FOR APP. Session {0}   App {1}   Tab {2}", requestSession.Key, app.Id, serverTab.TabKey);
                                             aResponder.SendPage("200 OK", PageSource.MakeSourceFromString(StringType.Json,
                                                 new JsonObject{
                                                     {"tabUrl", new JsonString(String.Format("/poll/{0}/{1}", requestSession.Key, serverTab.TabKey))},

@@ -60,7 +60,7 @@ namespace UnitTests
             iSoftThread = new ThreadStandin();
             iServerTab = new ServerTab(
                 "session7", "tab9", iMockStatusListener.Object, ()=>iNow,
-                timeoutPolicy, iMockTimerThread.Object, iSoftThread, iMockSession.Object);
+                timeoutPolicy, iMockTimerThread.Object, iSoftThread, iMockSession.Object, null);
         }
         
         [Test]
@@ -73,7 +73,7 @@ namespace UnitTests
             iMockPageWriter.Setup(aX => aX.Write(It.IsAny<ArraySegment<byte>>())).Callback<ArraySegment<byte>>(
                 arraySegment => actualDocument = arraySegment);
             iServerTab.Serve()(PageWriter.Write, PageWriter.Flush, PageWriter.End, CancellationToken.None);
-            iServerTab.Send(jsonPayload);
+            iServerTab.Send("event", jsonPayload);
             iMockPageWriter.Verify(aX => aX.Write(It.IsAny<ArraySegment<byte>>()));
             Assert.That(
                 Encoding.UTF8.GetString(actualDocument.Array, actualDocument.Offset, actualDocument.Count),
@@ -96,7 +96,7 @@ namespace UnitTests
             ArraySegment<byte> actualDocument = new ArraySegment<byte>();
             iMockPageWriter.Setup(aX => aX.Write(It.IsAny<ArraySegment<byte>>())).Callback<ArraySegment<byte>>(
                 arraySegment => actualDocument = arraySegment);
-            iServerTab.Send(jsonPayload);
+            iServerTab.Send("event", jsonPayload);
             iServerTab.Serve()(PageWriter.Write, PageWriter.Flush, PageWriter.End, CancellationToken.None);
             iMockPageWriter.Verify(aX => aX.Write(It.IsAny<ArraySegment<byte>>()));
             Assert.That(
@@ -123,7 +123,7 @@ namespace UnitTests
                 arraySegment => actualDocument = arraySegment);
             foreach (var payload in jsonPayloads)
             {
-                iServerTab.Send(payload);
+                iServerTab.Send("event", payload);
             }
             iServerTab.Serve()(PageWriter.Write, PageWriter.Flush, PageWriter.End, CancellationToken.None);
             iMockPageWriter.Verify(aX => aX.Write(It.IsAny<ArraySegment<byte>>()));
@@ -162,7 +162,7 @@ namespace UnitTests
         public void WhenSendIsInvoked_TheListenerShouldBeNotified()
         {
             iMockSession.Setup(x => x.UserId).Returns("vladimir");
-            iServerTab.Send(new JsonString("test"));
+            iServerTab.Send("event", new JsonString("test"));
             iMockStatusListener.Verify(x => x.UpdateTabStatus("session7", "tab9", "vladimir", 1, iNow, false));
         }
 

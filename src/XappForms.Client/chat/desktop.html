@@ -1,7 +1,7 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-    <script src="../scripts/browser.js"></script>
+    <!--<script src="../scripts/browser.js"></script>-->
     <link href="/ohj/scroller/ohj.scroller.pointer.css" rel="stylesheet">
     <link href="/theme/default/bootstrap.min.css" rel="stylesheet">
     <link href="css/main.css" rel="stylesheet">
@@ -16,10 +16,10 @@
     }
     </style>
 </head>
-<body>
+<body data-appname="chat">
 
     <div id="chatapp" data-use-ohjpageslider="true" data-height="100%" data-onpageload="pageload">
-     <div id="pgLogin" data-use-ohjpage="true" style="height: 100%">
+     <!--<div id="pgLogin" data-use-ohjpage="true" style="height: 100%">
             <header>
                     Chat App
             </header>
@@ -46,7 +46,7 @@
                     </div>
                 </div>
             </article>
-        </div>
+        </div> -->
         <div id="pgChat" data-use-ohjpage="true">
            <div style="float:left; width:25%; height:100%;" >
                         <div id="pgUser" data-use-ohjpage="true" style="height:100%;">
@@ -66,7 +66,7 @@
                           <div style="float:left; width:75%; height:100%;">
             
                         <div id="pgConversation" data-use-ohjpage="true" style="height: 100%;">
-                            <header>
+                            <header data-rightbuttontext="Change user" data-onrightbuttonpress="changeuser">
                                 The chat
                             </header>
 

@@ -16,18 +16,19 @@ namespace OpenHome.XappForms
         string Method { get; }
         IWebRequestResponder Responder { get; }
         IAppWebRequest SkipPathSegments(int aCount);
-
     }
 
     public interface IWebRequestResponder
     {
         void SendResult(string aStatus, IDictionary<string, IEnumerable<string>> aHeaders, BodyDelegate aBody);
         void SendFile(string aContentType, string aFilepath);
+        void SendFile(string aFilepath);
         void Send404NotFound();
         void Send500ServerError();
         void SendPage(string aStatus, IPageSource aPageSource);
         void Send202Accepted();
         void Send400BadRequest();
+        //void Send
     }
 
     public interface IServerWebRequestResponder : IWebRequestResponder
@@ -262,6 +263,11 @@ namespace OpenHome.XappForms
         }
 
         public void SendFile(string aContentType, string aFilepath)
+        {
+            ServeFile(aFilepath);
+        }
+
+        public void SendFile(string aFilepath)
         {
             ServeFile(aFilepath);
         }
