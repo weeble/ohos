@@ -1,7 +1,18 @@
 import time
+import shutil
+import os
+import sys
+from glob import glob
 
-# Fail the build if ohDevTools is too old.
-require_version(6)
+try:
+    from ci import (
+        require_version, add_option, add_bool_option, modify_optional_steps,
+        specify_optional_steps, default_platform, get_dependency_args,
+        build_step, build_condition, userlock, python, rsync, SshSession,
+        fetch_dependencies, get_vsvars_environment, scp, fail, shell, cli)
+except ImportError:
+    print "You need to update ohDevTools."
+    sys.exit(1)
 
 arch_vars = ''
 output = ""
@@ -23,7 +34,8 @@ ALL_DEPENDENCIES = [
     "yui-compressor",
     "sharpziplib",
     "log4net",
-    "sshnet"]
+    "sshnet",
+    "nuget"]
 
 # Unconditional build step. Process options to enable or
 # disable parts of the build.
@@ -84,6 +96,11 @@ def clean_debian(context):
 @build_step("fetch", optional=True)
 def fetch(context):
     fetch_dependencies(ALL_DEPENDENCIES, platform=context.env["OH_PLATFORM"])
+    if os.path.isdir('dependencies/nuget'):
+        shutil.rmtree('dependencies/nuget')
+    os.mkdir('dependencies/nuget')
+    nuget_exe = os.path.normpath(list(glob('dependencies/AnyPlatform/NuGet.[0-9]*/NuGet.exe'))[0])
+    cli(nuget_exe, 'install', 'projectdata/packages.config', '-OutputDirectory', 'dependencies/nuget')
 
 @build_step("configure", optional=True)
 def configure(context):
