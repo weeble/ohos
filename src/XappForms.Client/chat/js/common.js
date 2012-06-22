@@ -3,6 +3,7 @@ $().ready(function () {
 
     var users = {};
 
+
     $('#txtMessage').bind('keypress', function (e) {
         if ((e.which && e.which == 13) || (e.keyCode && e.keyCode == 13)) {
             $('#btnMessage').click();
@@ -86,12 +87,12 @@ $().ready(function () {
     $('body').on('xappevent', function (event, data) {
         var message = '';
         switch (data.type) {
-            //case 'connect':                      
-            //    message = ' connected>';                      
-            //    break;                      
-            //case 'disconnect':                      
-            //    message = ' disconnected>';                      
-            //    break;                      
+            //case 'connect':                            
+            //    message = ' connected>';                            
+            //    break;                            
+            //case 'disconnect':                            
+            //    message = ' disconnected>';                            
+            //    break;                            
             case 'message':
                 userMessage(data.sender, data.content);
                 break;
@@ -105,6 +106,8 @@ $().ready(function () {
                 var userTagId = 'user-' + data.userid;
 
                 users[data.userid] = data.newValue;
+
+                console.log("User event: " + data.userid + " " + (data.oldValue === null ? "new" : (data.newValue === null ? "gone" : "change")));
 
                 if (data.newValue === null && data.oldValue !== null) {
                     $('#' + userTagId).remove();
@@ -130,11 +133,13 @@ $().ready(function () {
                 if (data.oldValue === null) {
                     // New user. We get this on startup.
                     if (data.newValue.status === 'online') {
+                        console.log('User added ' + data.userid);
                         systemMessage(data.newValue.displayName + ' is online. (userid=' + data.newValue.id + ')');
                         updateStatus(data.userid, data.newValue.status);
                     }
                 } else if (data.newValue === null) {
                     // User deleted. (Uncommon.)
+                    console.log('User deleted ' + data.userid);
                     systemMessage(data.oldValue.displayName + ' went offline. (userid=' + data.oldValue.id + ')');
                     updateStatus(data.userid, 'offline');
                 } else {
@@ -170,6 +175,10 @@ $().ready(function () {
 
 });
 
+
+function changeuser(page) {
+        xapp.tx({ 'type': 'changeuser' });
+}
 
 function goback(page) {
     $('#chatapp').data('ohjpageslider').navigateBack();

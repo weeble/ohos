@@ -31,6 +31,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XappForms.Tests", "XappForm
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xohj", "Xohj\Xohj.csproj", "{E5044F68-C565-4EBA-9C34-57DC0B15EF0F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XappForms.Client", "XappForms.Client\XappForms.Client.csproj", "{C355B68C-51C6-48B9-A949-08FE7B224010}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -191,6 +193,16 @@ Global
 		{E5044F68-C565-4EBA-9C34-57DC0B15EF0F}.Release|Mixed Platforms.Build.0 = Release|x86
 		{E5044F68-C565-4EBA-9C34-57DC0B15EF0F}.Release|x86.ActiveCfg = Release|x86
 		{E5044F68-C565-4EBA-9C34-57DC0B15EF0F}.Release|x86.Build.0 = Release|x86
+		{C355B68C-51C6-48B9-A949-08FE7B224010}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C355B68C-51C6-48B9-A949-08FE7B224010}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C355B68C-51C6-48B9-A949-08FE7B224010}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{C355B68C-51C6-48B9-A949-08FE7B224010}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{C355B68C-51C6-48B9-A949-08FE7B224010}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C355B68C-51C6-48B9-A949-08FE7B224010}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{C355B68C-51C6-48B9-A949-08FE7B224010}.Release|Any CPU.Build.0 = Debug|Any CPU
+		{C355B68C-51C6-48B9-A949-08FE7B224010}.Release|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{C355B68C-51C6-48B9-A949-08FE7B224010}.Release|Mixed Platforms.Build.0 = Debug|Any CPU
+		{C355B68C-51C6-48B9-A949-08FE7B224010}.Release|x86.ActiveCfg = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

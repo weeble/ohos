@@ -1,6 +1,7 @@
 ﻿
 // inline callbacks
-function pageload(page) {
+function pageload(e, page) {
+    page = $(page);
     switch (page.attr('id')) {
         case 'pgChat':
             {

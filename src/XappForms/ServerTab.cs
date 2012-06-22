@@ -27,9 +27,9 @@ namespace OpenHome.XappForms
         readonly ITimerThread iTimerThread;
         readonly ISoftThread iAppsStateThread;
         readonly ISession iSession;
-        //public AppRecord App { get; private set; }
         public string SessionId { get; private set; }
         public string TabKey { get; private set; }
+        public AppRecord AppRecord { get; set; }
         readonly IJsonEventQueue iEventQueue;
         readonly ITimerCallback iTimerCallback;
 
@@ -75,6 +75,9 @@ namespace OpenHome.XappForms
         /// Something that wants to know when a tab should expire due to
         /// inactivity.
         /// </param>
+        /// <param name="aAppRecord">
+        /// AppRecord associated with the tab.
+        /// </param>
         public ServerTab(
             string aSessionId,
             string aTabKey,
@@ -83,7 +86,8 @@ namespace OpenHome.XappForms
             ServerTabTimeoutPolicy aTimeoutPolicy,
             ITimerThread aTimerThread,
             ISoftThread aAppsStateThread,
-            ISession aSession)
+            ISession aSession,
+            AppRecord aAppRecord)
         {
             SessionId = aSessionId;
             iListener = aListener;
@@ -93,6 +97,7 @@ namespace OpenHome.XappForms
             iClock = aClock;
             iTimeoutPolicy = aTimeoutPolicy;
             TabKey = aTabKey;
+            AppRecord = aAppRecord;
             iEventQueue = new JsonEventQueue(12000);// aEventQueue;
             iLastRead = iClock();
             iTimerCallback = iTimerThread.RegisterCallback(
@@ -143,12 +148,12 @@ namespace OpenHome.XappForms
             RescheduleMaintenance();
         }
 
-        public void Send(JsonValue aJsonValue)
+        public void Send(string aType, JsonValue aJsonValue)
         {
             iAppsStateThread.ScheduleExclusive(
                 () =>
                 {
-                    iEventQueue.Append(aJsonValue);
+                    iEventQueue.Append(aType, aJsonValue);
                     if (iEventQueue.QueueSize == 0)
                     {
                         iLastRead = iClock();
@@ -204,6 +209,15 @@ namespace OpenHome.XappForms
                     iSession.SwitchUser(aUserId);
                 });
         }
+
+        public void SetCookie(string aName, string aValue, CookieAttributes aAttributes)
+        {
+            iAppsStateThread.ScheduleExclusive(
+                () =>
+                {
+                    iEventQueue.UpdateCookie(aName, aValue, aAttributes);
+                });
+        }
     }
 
     interface IJsonEventQueue
@@ -212,10 +226,17 @@ namespace OpenHome.XappForms
         int QueueSize { get; }
         void CancelRequest(PollRequest aRequest);
         void AddRequest(PollRequest aRequest);
-        void Append(JsonValue aPayload);
+        void Append(string aType, JsonValue aPayload);
         void CompleteNow();
+        void UpdateCookie(string aName, string aValue, CookieAttributes aAttributes);
     }
 
+    class CookieData
+    {
+        string Name { get;  set; }
+        string Value { get; set; }
+        CookieAttributes Attributes { get; set; }
+    }
     class JsonEventQueue : IJsonEventQueue
     {
         readonly Queue<string> iItems;
@@ -223,12 +244,13 @@ namespace OpenHome.XappForms
         int iCurrentSize;
         bool iOverflow;
         PollRequest iRequest;
+        Dictionary<string, CookieData> iCookies = new Dictionary<string, CookieData>();
 
         static readonly JsonValue OverflowEvent = new JsonObject { { "type", "error" }, { "value", "overflow" } };
         static readonly JsonValue ClashEvent = new JsonObject { { "type", "error" }, { "value", "clash" } };
-        static JsonValue CreateSendEvent(JsonValue aPayload)
+        static JsonValue CreateSendEvent(string aType, JsonValue aPayload)
         {
-            return new JsonObject { { "type", "event" }, { "value", aPayload } };
+            return new JsonObject { { "type", aType }, { "value", aPayload } };
         }
         public bool HasListener { get { return iRequest != null; } }
 
@@ -286,13 +308,18 @@ namespace OpenHome.XappForms
 
         public void Append(JsonValue aPayload)
         {
+            Append("event", aPayload);
+        }
+
+        public void Append(string aType, JsonValue aPayload)
+        {
             if (iOverflow)
             {
                 iItems.Enqueue(OverflowEvent.ToString());
             }
             else
             {
-                string jsonPayload = CreateSendEvent(aPayload).ToString();
+                string jsonPayload = CreateSendEvent(aType, aPayload).ToString();
                 if (iCurrentSize + jsonPayload.Length > iSizeLimit)
                 {
                     iOverflow = true;
@@ -327,6 +354,11 @@ namespace OpenHome.XappForms
                     throw;
                 }
             }
+        }
+
+        public void UpdateCookie(string aName, string aValue, CookieAttributes aAttributes)
+        {
+            throw new NotImplementedException();
         }
 
         void Clear()

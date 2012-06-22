@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using OpenHome.XappForms.Json;
 
 namespace OpenHome.XappForms
@@ -24,7 +25,15 @@ namespace OpenHome.XappForms
             iUserList = aUserList;
             iUserList.Updated += OnUserListUpdated;
             iUrlDispatcher = new AppUrlDispatcher();
+            iUrlDispatcher.MapPath( new string[] { }, ServeAppHtml);
             iUrlDispatcher.MapPrefixToDirectory(new string[] { }, "login");
+        }
+
+        void ServeAppHtml(RequestData aRequest, IWebRequestResponder aResponder)
+        {
+            string browser = aRequest.Cookies["xappbrowser"].First();
+            string filename = GetBrowserDiscriminationMappings()[browser];
+            aResponder.SendFile("login/" + filename);
         }
 
         public void ServeWebRequest(RequestData aRequest, IWebRequestResponder aResponder)
@@ -96,12 +105,12 @@ namespace OpenHome.XappForms
                         chatUser = new LoginUser { User = userChange.NewValue };
                         iUsers[userChange.UserId] = chatUser;
                     }
-                    Broadcast(
+                    /*Broadcast(
                         new JsonObject {
                             { "type", "user"},
                             { "userid", userChange.UserId },
                             { "oldValue", UserToJson(userChange.OldValue) },
-                            { "newValue", UserToJson(userChange.NewValue) } });
+                            { "newValue", UserToJson(userChange.NewValue) } });*/
                 }
             }
         }
@@ -146,16 +155,15 @@ namespace OpenHome.XappForms
         {
             lock (iLock)
             {
-                if (iUserId == aUser.Id)
+                string id = aUser == null ? null : aUser.Id;
+                if (iUserId == id)
                 {
                     return;
                 }
-                iUserId = aUser.Id;
+                iUserId = id;
             }
-            iBrowserTabProxy.Send(
-                new JsonObject{
-                    {"type","login"},
-                    {"user", LoginApp.UserToJson(aUser)}});
+            iBrowserTabProxy.SetCookie("xappuser", aUser == null ? null : aUser.Id, new CookieAttributes{Path="/", Expires=DateTime.UtcNow+TimeSpan.FromDays(30)});
+            iBrowserTabProxy.ReloadPage();
         }
 
         public void Receive(JsonValue aJsonValue)

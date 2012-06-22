@@ -1,0 +1,65 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{C355B68C-51C6-48B9-A949-08FE7B224010}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>XappForms.Client</RootNamespace>
+    <AssemblyName>XappForms.Client</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="chat\css\main.css" />
+    <Content Include="chat\desktop.html" />
+    <Content Include="chat\js\common.js" />
+    <Content Include="chat\js\desktop.js" />
+    <Content Include="chat\js\mobile.js" />
+    <Content Include="chat\js\tablet.js" />
+    <Content Include="chat\mobile.html" />
+    <Content Include="chat\tablet.html" />
+    <Content Include="integrationtest\main.js" />
+    <Content Include="login\css\main.css" />
+    <Content Include="login\desktop.html" />
+    <Content Include="login\js\common.js" />
+    <Content Include="login\js\desktop.js" />
+    <Content Include="login\js\mobile.js" />
+    <Content Include="login\js\tablet.js" />
+    <Content Include="login\mobile.html" />
+    <Content Include="login\tablet.html" />
+    <Content Include="scripts\browser.js" />
+    <Content Include="scripts\LAB.min.js" />
+    <Content Include="scripts\lib\jquery-1.7.2.min.js" />
+    <Content Include="scripts\lib\zepto-1.0rc1.min.js" />
+    <Content Include="scripts\require-jquery.js" />
+    <Content Include="scripts\xapp.js" />
+    <Content Include="serverhealth\css\main.css" />
+    <Content Include="serverhealth\desktop.html" />
+    <Content Include="serverhealth\js\common.js" />
+    <Content Include="serverhealth\js\desktop.js" />
+    <Content Include="serverhealth\js\mobile.js" />
+    <Content Include="serverhealth\js\tablet.js" />
+    <Content Include="serverhealth\mobile.html" />
+    <Content Include="serverhealth\tablet.html" />
+    <Content Include="test\js\qunit.js" />
+    <Content Include="test\tablet.html" />
+    <Content Include="test\temp.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="chat\img\" />
+    <Folder Include="login\img\" />
+    <Folder Include="root\" />
+  </ItemGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

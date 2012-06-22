@@ -1,12 +1,18 @@
 ﻿;(function () {
     $().ready(function () {
-        var xapp = window.xapp = {};
-        var pathsegments = location.pathname.split('/').slice(1);
-        var directorysegments = pathsegments.slice(0,-1);
-        var filename = pathsegments[pathsegments.length-1];
-        var appname = directorysegments[directorysegments.length-1];
 
-        var appname = xapp.appname = location.pathname.split('/')[1];
+
+        
+        var xapp = window.xapp = {};
+        //var pathsegments = location.pathname.split('/').slice(1);
+        //var directorysegments = pathsegments.slice(0,-1);
+        //var filename = pathsegments[pathsegments.length-1];
+        //var appname = directorysegments[directorysegments.length-1];
+
+        //var appname = xapp.appname = location.pathname.split('/')[1];
+
+        var appname = $('body').data('appname');
+
         var sessionid = xapp.sessionid = readCookie('XappSession');
 
         var handleLongPoll;
@@ -16,6 +22,7 @@
         var longPollUrl;
         var tabid;
         var stopped = xapp.stopped = false;
+        console.log('xapp start');
         handleLongPoll = function (data) {
             // First check for errors:
             for (var index in data)
@@ -32,8 +39,17 @@
             for (var index in data)
             {
               
-                if (data[index].type == 'event') {
-                    $('body').trigger('xappevent', data[index].value);
+                switch (data[index].type) {
+                    case 'set-cookie':
+                        window.document.cookie = data[index].value;
+                        break;
+                    case 'refresh-browser':
+                        console.log('refresh');
+                        window.location.reload(true);
+                        break;
+                    case 'event':
+                        $('body').trigger('xappevent', data[index].value);
+                        break;
                 }
             }
         };
@@ -43,6 +59,7 @@
             setTimeout(createTab, 5000);
         };
         handleTabCreated = function (data) {
+            console.log('tab created');
             longPollUrl = data.tabUrl;
             tabid = xapp.tabid = data.tabId;
             startLongPoll();
