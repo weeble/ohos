@@ -144,7 +144,7 @@ namespace OpenHome.XappForms
         {
             OriginalUri = aPath;
             var uri = new Uri(new Uri("http://dummy/"), aPath);
-            string[] pathSegments = uri.Segments.Skip(1).Select(seg => HttpUtility.UrlDecode(seg)).ToArray();
+            string[] pathSegments = uri.Segments.Skip(1).Select(Uri.UnescapeDataString).ToArray();
             iPathSegments = new ArraySlice<string>(pathSegments);
             PopulateQuery(uri.Query);
         }
@@ -179,7 +179,7 @@ namespace OpenHome.XappForms
                 string[] fragments = aQueryString.Split('&');
                 foreach (string f in fragments)
                 {
-                    string[] keyAndValue = f.Split(new[]{'='}, 2).Select(x=>HttpUtility.UrlDecode(x)).ToArray();
+                    string[] keyAndValue = f.Split(new[]{'='}, 2).Select(Uri.UnescapeDataString).ToArray();
                     string key, value;
                     if (keyAndValue.Length==1)
                     {
