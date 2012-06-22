@@ -244,7 +244,7 @@ namespace OpenHome.XappForms
         int iCurrentSize;
         bool iOverflow;
         PollRequest iRequest;
-        Dictionary<string, CookieData> iCookies = new Dictionary<string, CookieData>();
+        //Dictionary<string, CookieData> iCookies = new Dictionary<string, CookieData>();
 
         static readonly JsonValue OverflowEvent = new JsonObject { { "type", "error" }, { "value", "overflow" } };
         static readonly JsonValue ClashEvent = new JsonObject { { "type", "error" }, { "value", "clash" } };
