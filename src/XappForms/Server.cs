@@ -124,13 +124,6 @@ namespace OpenHome.XappForms
                     new RequestPath((string)aEnv["owin.RequestPath"], (string)aEnv["owin.RequestQueryString"]),
                     headers);
 
-
-                List<string> cookies = headers.ContainsKey("Cookie") ?
-                    headers["Cookie"].ToList() :
-                    new List<string>();
-
-                //foreach (var c in cookies) Console.WriteLine(c);
-
                 GetOrCreateSession(requestData.Cookies).ContinueWith(
                     task =>
                     {
