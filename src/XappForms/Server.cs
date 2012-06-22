@@ -130,8 +130,7 @@ namespace OpenHome.XappForms
                         var session = task.Result;
                         respHeaders["Set-Cookie"] = new[] { "XappSession=" + session.Key + "; Path=/" };
 
-                        Console.WriteLine("Incoming request for: {0}, {1}", aEnv["owin.RequestPath"], aEnv["owin.RequestMethod"]);
-                        RequestPath path = new RequestPath((string)aEnv["owin.RequestPath"] + "?" + (string)aEnv["owin.RequestQueryString"]);
+                        Console.WriteLine("Incoming request for: {0}", requestData.Path.OriginalUri);
 
                         AppWebRequest request = new AppWebRequest(
                             requestData,
