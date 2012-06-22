@@ -9,6 +9,15 @@ in those files:
     appfiles/ohOs.AppManager/WebUI/js/zepto.min.js
     appfiles/ohOs.AppManager/WebUI/js/zepto.data.js
     appfiles/ohOs.AppManager/WebUI/js/dependencies/zepto.min.js
+    src/XappForms.Client/scripts/lib/zepto-1.0rc1.min.js
+    src/Xohj/lib/zepto-1.0rc1.min.js
+  jQuery
+    src/XappForms.Client/scripts/lib/jquery-1.7.2.min.js
+    src/Xohj/lib/jquery-1.7.2.min.js
+  iScroll 4
+    src\Xohj\ohj\scroller\ohj.scroller.touch.js
+  nanoScroller
+    src\Xohj\ohj\scroller\ohj.scroller.pointer.js
   JSON XML:
     appfiles/ohOs.AppManager/WebUI/js/proxy/jsonxml.js
   Less:
