@@ -130,6 +130,8 @@ def setup_universal(context):
         BUILDDIR='buildhudson',
         WAFLOCK='.lock-wafbuildhudson')
     context.configure_args = get_dependency_args(ALL_DEPENDENCIES)
+    version = context.options.publish_version or context.env.get("RELEASE_VERSION", "UNKNOWN")
+    context.configure_args += ["--ohos-version", version]
 
 # Extra Windows build configuration.
 @build_step()

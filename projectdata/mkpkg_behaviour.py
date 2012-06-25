@@ -87,6 +87,8 @@ def setup_universal(context):
         BUILDDIR='buildhudson',
         WAFLOCK='.lock-wafbuildhudson')
     context.configure_args = get_dependency_args(ALL_DEPENDENCIES)
+    version = context.env["PACKAGE_VERSION"]
+    context.configure_args += ['--ohos-version', version]
 
 # Principal build steps.
 @build_step("clean_debian")
