@@ -90,6 +90,11 @@ namespace OpenHome.Os.Platform
         /// Port the device's web server is running on.
         /// </summary>
         uint DvServerPort { get; }
+
+        /// <summary>
+        /// A version string to identify ohOs.
+        /// </summary>
+        string OhOsVersion { get; }
     }
 
 

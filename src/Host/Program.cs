@@ -88,6 +88,7 @@ namespace OpenHome.Os.Host
         public uint? WebSocketPort { get; set; }
         public bool MultiNodeEnabled { get; set; }
         public uint DvServerPort { get; set; }
+        public string OhOsVersion { get; set; }
     }
 
     class NodeRebooter : INodeRebooter
@@ -402,7 +403,8 @@ namespace OpenHome.Os.Host
                                                        {
                                                            WebSocketPort = wsEnabled ? wsPort : (uint?)null,
                                                            MultiNodeEnabled = sysConfig.GetAttributeAsBoolean(e => e.Elements("multinode").Attributes("enable").FirstOrDefault()) ?? false,
-                                                           DvServerPort = dvServerPort
+                                                           DvServerPort = dvServerPort,
+                                                           OhOsVersion = OpenHome.Os.Platform.OhOsVersion.Version
                                                        },
                                                        CommandRegistry = commandDispatcher,
                                                        CpDeviceListFactory = deviceListFactory,

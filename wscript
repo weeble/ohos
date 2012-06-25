@@ -200,6 +200,7 @@ def options(opt):
     opt.add_option('--notests', action='store_false', default=True, dest='tests', help='Disable compilation of NUnit tests')
     opt.add_option('--ohnet-source-dir', action='store', default=None, help='Location of OhNet source tree, if using OhNet built from source')
     opt.add_option('--nunit-args', action='store', default=None, help='Arguments to pass on to NUnit (only during "test")')
+    opt.add_option('--ohos-version', action='store', default='UNKNOWN', help='Specify the version number to embed in ohOs.')
 
 def configure(conf):
     def set_env(conf, varname, value):
@@ -249,6 +250,8 @@ def configure(conf):
 
     conf.env.append_value('CSFLAGS', '/warnaserror+')
 
+    set_env(conf, 'OHOS_VERSION', conf.options.ohos_version)
+
 
 # == Build support ==
 
@@ -277,13 +280,14 @@ def create_copy_task(build_context, files, target_dir='.', cwd=None, keep_relati
 
 
 class CSharpProject(object):
-    def __init__(self, name, dir, type, categories, packages, references):
+    def __init__(self, name, dir, type, categories, packages, references, extra_sources=[]):
         self.name = name
         self.dir = dir
         self.type = type
         self.categories = categories
         self.packages = packages
         self.references = references
+        self.extra_sources = list(extra_sources)
 
 class GeneratedFile(object):
     def __init__(self, xml, domain, type, version, target):
@@ -310,7 +314,7 @@ def create_csharp_tasks(bld, projects, csharp_dependencies):
         pkg_assemblies = csharp_dependencies.get_assembly_names_for_packages(bld, project.packages)
         bld(
             features='cs',
-            source=bld.path.ant_glob('src/'+project.dir+'/**/*.cs'),
+            source=bld.path.ant_glob('src/'+project.dir+'/**/*.cs') + project.extra_sources,
             type=project.type,
             platform="x86",    # TODO: Only set this where appropriate.
             gen=outputname,
@@ -417,7 +421,8 @@ csharp_projects = [
             name="ohOs.Platform", dir="Platform", type="library",
             categories=["early"],
             packages=['ohnet', 'log4net', 'systemxmllinq'],
-            references=[]
+            references=[],
+            extra_sources=['ohOs.Platform.Version.cs']
             ),
         CSharpProject(
             name="WebCompressor", dir="WebCompressor", type="exe",
@@ -615,6 +620,12 @@ def build(bld):
             find_resource_or_fail(bld, bld.root, path.join(ohnett4dir.absolute_path, 'UpnpServiceXml.dll')),
             find_resource_or_fail(bld, bld.root, path.join(ohnett4dir.absolute_path, 'UpnpServiceTemplate.xsd'))])
 
+    # Version number for ohOs.Platform
+    bld(
+            features='subst',
+            source='src/Platform/Version.cs.in',
+            target='ohOs.Platform.Version.cs',
+            OHOS_VERSION=bld.env.OHOS_VERSION)
 
     early_csharp_projects = [prj for prj in csharp_projects if "early" in prj.categories]
     create_csharp_tasks(bld, early_csharp_projects, csharp_dependencies)
