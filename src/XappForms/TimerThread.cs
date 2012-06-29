@@ -30,15 +30,15 @@ namespace OpenHome.XappForms
     {
         readonly Action iCallback;
         readonly TimerThread iTimerThread;
-        readonly SoftThread iSoftThread;
+        readonly Strand iStrand;
 
         BinaryHeapNode<DateTime> iNode;
 
-        public TimerCallback(Action aCallback, TimerThread aTimerThread, SoftThread aSoftThread)
+        public TimerCallback(Action aCallback, TimerThread aTimerThread, Strand aStrand)
         {
             iCallback = aCallback;
             iTimerThread = aTimerThread;
-            iSoftThread = aSoftThread;
+            iStrand = aStrand;
         }
 
         /// <summary>
@@ -53,7 +53,7 @@ namespace OpenHome.XappForms
         {
             var obj = new object();
             Console.WriteLine("Schedule {0}", obj.GetHashCode());
-            return iSoftThread.ScheduleExclusive(
+            return iStrand.ScheduleExclusive(
                 ()=>
                 {
                     Console.WriteLine("Perform {0}", obj.GetHashCode());
@@ -71,7 +71,7 @@ namespace OpenHome.XappForms
 
         public void Dispose()
         {
-            iSoftThread.ScheduleExclusive(
+            iStrand.ScheduleExclusive(
                 ()=>
                 {
                     iTimerThread.Cancel(iNode);
@@ -96,14 +96,14 @@ namespace OpenHome.XappForms
         ITimerCallback RegisterCallback(Action aCallback);
     }
 
-    // TODO: Perhaps TimerThread behaviour could usefully be folded into SoftThread?
+    // TODO: Perhaps TimerThread behaviour could usefully be folded into Strand?
 
     /// <summary>
     /// Schedules callbacks while making sure only one runs at once.
     /// </summary>
     class TimerThread : ITimerThread
     {
-        readonly SoftThread iTimerThread;
+        readonly Strand iTimerThread;
         readonly Timer iTimer;
         readonly BinaryHeap<DateTime> iHeap;
         readonly Func<DateTime> iClock;
@@ -112,7 +112,7 @@ namespace OpenHome.XappForms
 
         public TimerThread(Func<DateTime> aClock)
         {
-            iTimerThread = new SoftThread();
+            iTimerThread = new Strand();
             iTimer = new Timer(Callback);
             iHeap = new BinaryHeap<DateTime>(Comparer<DateTime>.Default);
             iClock = aClock;

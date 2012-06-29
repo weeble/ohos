@@ -29,6 +29,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\build\ohOs.Platform.Version.cs">
+      <Link>ohOs.Platform.Version.cs</Link>
+    </Compile>
     <Compile Include="Clock\LinuxSystemClock.cs" />
     <Compile Include="Clock\SystemClockProvider.cs" />
     <Compile Include="Clock\TimeZoneSerializer.cs" />

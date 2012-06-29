@@ -93,34 +93,13 @@ namespace OpenHome.XappForms
                         return;
                     }
                     string filepath = Path.Combine(aLocalDirectory, Path.Combine(path));
-                    string extension = Path.GetExtension(filepath) ?? "";
-                    string contentType;
-                    if (Server.MimeTypesByExtension.TryGetValue(extension, out contentType))
-                    {
-                        aResponder.SendFile(contentType, filepath);
-                    }
-                    else
-                    {
-                        aResponder.Send404NotFound();
-                    }
+                    aResponder.SendFile(Server.GetMimeType(filepath), filepath);
                 });
         }
         public void MapPathToFile(string[] aPath, string aLocalFile)
         {
             MapPath(aPath,
-                (aAppWebRequest, aResponder) =>
-                {
-                    string extension = Path.GetExtension(aLocalFile) ?? "";
-                    string contentType;
-                    if (Server.MimeTypesByExtension.TryGetValue(extension, out contentType))
-                    {
-                        aResponder.SendFile(contentType, aLocalFile);
-                    }
-                    else
-                    {
-                        aResponder.Send404NotFound();
-                    }
-                });
+                (aAppWebRequest, aResponder) => aResponder.SendFile(Server.GetMimeType(aLocalFile), aLocalFile));
         }
         public void MapPathToSubMapping(string[] aPath, UrlDispatcher<T> aSubDispatcher)
         {

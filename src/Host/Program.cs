@@ -17,6 +17,7 @@ using OpenHome.Net.Device;
 using log4net;
 using OpenHome.Os.Core;
 using OpenHome.Os.Update;
+using OpenHome.XappForms;
 
 //using Mono.Addins;
 
@@ -391,6 +392,8 @@ namespace OpenHome.Os.Host
                     var clockProvider = new SystemClockProvider(systemClock);
                     var logControlProvider = new LogControlProvider(logSystem.LogReader, logSystem.LogController);
 
+                    using (var appServer = new Server())
+                    using (var webServer = new Gate.Hosts.Firefly.ServerFactory().Create(appServer.HandleRequest, 12921))
                     using (var nodeDevice = new NodeDevice(nodeGuid))
                     using (new ProviderSystemUpdate(nodeDevice.Device.RawDevice, updateService,
                         updateConfigFile, Path.Combine(storeDirectory, "updates", "UpdateService.xml")))
@@ -404,7 +407,7 @@ namespace OpenHome.Os.Host
                                                            WebSocketPort = wsEnabled ? wsPort : (uint?)null,
                                                            MultiNodeEnabled = sysConfig.GetAttributeAsBoolean(e => e.Elements("multinode").Attributes("enable").FirstOrDefault()) ?? false,
                                                            DvServerPort = dvServerPort,
-                                                           OhOsVersion = OpenHome.Os.Platform.OhOsVersion.Version
+                                                           OhOsVersion = OhOsVersion.Version
                                                        },
                                                        CommandRegistry = commandDispatcher,
                                                        CpDeviceListFactory = deviceListFactory,

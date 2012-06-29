@@ -1,14 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
 using OpenHome.XappForms.Json;
 using Owin;
 
@@ -23,27 +19,6 @@ namespace OpenHome.XappForms
 
     public class Server : IDisposable
     {
-        /*class RequestPath
-        {
-            public NameValueCollection Query { get; private set; }
-            public IList<string> PathSegments { get; private set; }
-            public RequestPath(string path)
-            {
-                var uri = new Uri(new Uri("http://dummy/"), path);
-                Query = HttpUtility.ParseQueryString(uri.Query);
-                PathSegments = uri.Segments.Skip(1).Select(seg => HttpUtility.UrlDecode(seg)).ToList<string>().AsReadOnly();
-            }
-            private RequestPath(NameValueCollection query, IEnumerable<string> path)
-            {
-                Query = query;
-                PathSegments = path.ToList();
-            }
-            public RequestPath Skip(int n)
-            {
-                return new RequestPath(Query, PathSegments.Skip(n));
-            }
-        }*/
-
         static void ServePage(ResultDelegate aResult, string aStatus, Dictionary<string, IEnumerable<string>> aHeaders, IPageSource aPageSource)
         {
             Dictionary<string, IEnumerable<string>> headers = new Dictionary<string, IEnumerable<string>>(aHeaders);
@@ -68,7 +43,7 @@ namespace OpenHome.XappForms
             {".ico", "image/vnd.microsoft.icon" },
         };
 
-        static string GetMimeType(string aFilename)
+        static internal string GetMimeType(string aFilename)
         {
             foreach (var kvp in MimeTypesByExtension)
             {
@@ -80,9 +55,9 @@ namespace OpenHome.XappForms
             return "application/octet-stream";
         }
 
-        const string IndexPageTemplate =
+        const string IndexPage =
             @"<!DOCTYPE html><html><head>"+
-                @"<script>window.xapp_discrimination_mapping = {0};</script>"+
+                //@"<script>window.xapp_discrimination_mapping = {0};</script>"+
                 @"<script src=""/scripts/browser.js""></script>" +
             @"</head></html>";
 
@@ -184,45 +159,8 @@ namespace OpenHome.XappForms
             dispatcher.MapPrefixToDirectory(new[] { "theme/" }, "theme");
             dispatcher.MapPrefix(new[] { "poll/" }, HandlePoll);
             dispatcher.MapPrefix(new[] { "send/" }, HandleSend);
-            dispatcher.MapPrefix(new[] { "apps/" }, HandleAppQuery);
             dispatcher.MapPrefix(new string[] { }, HandleOther);
             iUrlDispatcher = dispatcher;
-        }
-
-        void HandleAppQuery(RequestData aRequest, IServerWebRequestResponder aResponder)
-        {
-            var path = aRequest.Path.PathSegments;
-            if (path.Count != 1)
-            {
-                aResponder.Send404NotFound();
-            }
-            string appname = path[0].TrimEnd('/');
-            iAppsState.GetApp(appname).ContinueWith(
-                task =>
-                {
-                    if (task.Result == null)
-                    {
-                        aResponder.Send404NotFound();
-                        return;
-                    }
-                    var mappings = task.Result.App.GetBrowserDiscriminationMappings();
-                    var mappingObj = DiscriminationMappingsToJson(mappings);
-                    var appObject = new JsonObject{
-                        {"appid", appname},
-                        {"browserTypes", mappingObj}
-                    };
-                    aResponder.SendPage("200 OK", PageSource.MakeSourceFromString(StringType.Json, appObject.ToString()));
-                });
-        }
-
-        JsonObject DiscriminationMappingsToJson(Dictionary<string, string> aMappings)
-        {
-            var mappingObj = new JsonObject();
-            foreach (var platformToUrl in aMappings)
-            {
-                mappingObj.Set(platformToUrl.Key, new JsonString(platformToUrl.Value));
-            }
-            return mappingObj;
         }
 
         void HandleOther(RequestData aRequest, IServerWebRequestResponder aResponder)
@@ -230,7 +168,7 @@ namespace OpenHome.XappForms
             var path = aRequest.Path.PathSegments;
             if (path.Count == 0)
             {
-                aResponder.SendPage("200 OK", PageSource.MakeSourceFromString(StringType.Html, String.Format(IndexPageTemplate, "")));
+                aResponder.SendPage("200 OK", PageSource.MakeSourceFromString(StringType.Html, IndexPage));
             }
             else
             {
@@ -244,9 +182,7 @@ namespace OpenHome.XappForms
                             {
                                 if (String.IsNullOrEmpty(aRequest.Cookies["xappbrowser"].FirstOrDefault()))
                                 {
-                                    Dictionary<string, string> mappings = app.App.GetBrowserDiscriminationMappings();
-                                    var mappingObj = DiscriminationMappingsToJson(mappings);
-                                    aResponder.SendPage("200 OK", PageSource.MakeSourceFromString(StringType.Html, String.Format(IndexPageTemplate, mappingObj.ToString())));
+                                    aResponder.SendPage("200 OK", PageSource.MakeSourceFromString(StringType.Html, IndexPage));
                                     return;
                                 }
                                 // Fall through.

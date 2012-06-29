@@ -45,12 +45,12 @@ namespace OpenHome.XappForms
         readonly Func<DateTime> iClock;
         readonly ServerTabTimeoutPolicy iTimeoutPolicy;
         readonly UserList iUserList;
-        readonly SoftThread iAppsStateThread;
+        readonly Strand iAppsStateThread;
         readonly TimerThread iTimerThread;
 
         public AppsStateFactory(ITabStatusListener aTabListener, Func<DateTime> aClock, ServerTabTimeoutPolicy aTimeoutPolicy, UserList aUserList)
         {
-            iAppsStateThread = new SoftThread();
+            iAppsStateThread = new Strand();
             iTabStatusQueue = new TabStatusQueue(aTabListener);
             iTimeoutPolicy = aTimeoutPolicy;
             iUserList = aUserList;
@@ -74,14 +74,14 @@ namespace OpenHome.XappForms
 
     class AppsState
     {
-        readonly SoftThread iAppsStateThread;
+        readonly Strand iAppsStateThread;
         readonly IAppsStateFactory iAppsStateFactory;
         public Dictionary<string, AppRecord> Apps { get; private set; }
         public Dictionary<string, SessionRecord> Sessions { get; private set; }
         //object iLock = new object();
         static System.Security.Cryptography.RNGCryptoServiceProvider _rng = new RNGCryptoServiceProvider();
 
-        public AppsState(IAppsStateFactory aAppsStateFactory, SoftThread aAppsStateThread)
+        public AppsState(IAppsStateFactory aAppsStateFactory, Strand aAppsStateThread)
         {
             iAppsStateFactory = aAppsStateFactory;
             iAppsStateThread = aAppsStateThread;
@@ -94,7 +94,7 @@ namespace OpenHome.XappForms
             return iAppsStateThread.ScheduleExclusive(
                 () =>
                 {
-                    return Apps[aName] = new AppRecord(aApp, aName, new SoftThread());
+                    return Apps[aName] = new AppRecord(aApp, aName, new Strand());
                 });
         }
 
@@ -173,14 +173,14 @@ namespace OpenHome.XappForms
     {
         readonly TabStatusQueue iListener;
         readonly IAppsStateFactory iAppsStateFactory;
-        readonly SoftThread iAppsStateThread;
+        readonly Strand iAppsStateThread;
         public string Key { get; private set; }
         public Dictionary<string, ServerTab> Tabs { get; private set; }
         int iCounter = 0;
         string iUserId = "";
         readonly UserList iUserList;
 
-        public SessionRecord(string aKey, TabStatusQueue aListener, IAppsStateFactory aAppsStateFactory, SoftThread aAppsStateThread, UserList aUserList)
+        public SessionRecord(string aKey, TabStatusQueue aListener, IAppsStateFactory aAppsStateFactory, Strand aAppsStateThread, UserList aUserList)
         {
             iListener = aListener;
             iAppsStateFactory = aAppsStateFactory;
@@ -229,7 +229,7 @@ namespace OpenHome.XappForms
                         user = null;
                     }
                     var serverTab = aApp.App.CreateTab(browserTabProxy, user);
-                    newServerTab.AppTab = new AppThreadScheduler(serverTab, aApp.SoftThread);
+                    newServerTab.AppTab = new AppThreadScheduler(serverTab, aApp.Strand);
                     return newServerTab;
                 });
         }
@@ -395,13 +395,13 @@ namespace OpenHome.XappForms
     {
         public IAppLayer0 App { get; private set; }
         public string Id { get; private set; }
-        public SoftThread SoftThread { get; private set; }
+        public Strand Strand { get; private set; }
 
-        public AppRecord(IAppLayer0 aApp, string aId, SoftThread aSoftThread)
+        public AppRecord(IAppLayer0 aApp, string aId, Strand aStrand)
         {
             App = aApp;
             Id = aId;
-            SoftThread = aSoftThread;
+            Strand = aStrand;
         }
     }
 
@@ -419,15 +419,14 @@ namespace OpenHome.XappForms
     {
         void ServeWebRequest(RequestData aRequest, IWebRequestResponder aResponder);
         IAppTab CreateTab(IBrowserTabProxy aTabProxy, User aUser);
-        Dictionary<string, string> GetBrowserDiscriminationMappings();
     }
 
     class AppThreadScheduler : IAppTab
     {
         readonly IAppTab iAppTab;
-        readonly SoftThread iAppThread;
+        readonly Strand iAppThread;
 
-        public AppThreadScheduler(IAppTab aAppTab, SoftThread aAppThread)
+        public AppThreadScheduler(IAppTab aAppTab, Strand aAppThread)
         {
             iAppTab = aAppTab;
             iAppThread = aAppThread;

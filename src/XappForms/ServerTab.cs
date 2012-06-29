@@ -25,7 +25,7 @@ namespace OpenHome.XappForms
         readonly Func<DateTime> iClock;
         readonly ServerTabTimeoutPolicy iTimeoutPolicy;
         readonly ITimerThread iTimerThread;
-        readonly ISoftThread iAppsStateThread;
+        readonly IStrand iAppsStateThread;
         readonly ISession iSession;
         public string SessionId { get; private set; }
         public string TabKey { get; private set; }
@@ -85,7 +85,7 @@ namespace OpenHome.XappForms
             Func<DateTime> aClock,
             ServerTabTimeoutPolicy aTimeoutPolicy,
             ITimerThread aTimerThread,
-            ISoftThread aAppsStateThread,
+            IStrand aAppsStateThread,
             ISession aSession,
             AppRecord aAppRecord)
         {

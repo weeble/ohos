@@ -482,7 +482,7 @@ csharp_projects = [
         CSharpProject(
             name="ohOs.Host", dir="Host", type="exe",
             categories=["core"],
-            packages=['ohnet', 'log4net', 'systemxmllinq'],
+            packages=['ohnet', 'log4net', 'systemxmllinq', 'nuget-Owin', 'nuget-Gate', 'nuget-Firefly', 'nuget-Gate.Hosts.Firefly'],
             references=[
                 'ohOs.Platform',
                 'ohOs.Core',
@@ -490,6 +490,7 @@ csharp_projects = [
                 'ohOs.Update',
                 'DvOpenhomeOrgSystemUpdate1',
                 'DvOpenhomeOrgNode1',
+                'OpenHome.XappForms',
                 ]
             ),
         CSharpProject(
@@ -533,8 +534,8 @@ csharp_projects = [
                 'ohOs.Platform',
             ]),
         CSharpProject(
-            name="OpenHome.XappForms", dir="XappForms", type="exe",
-            categories=["xappforms"],
+            name="OpenHome.XappForms", dir="XappForms", type="library",
+            categories=["core"],
             packages=['nuget-Owin', 'nuget-Gate', 'nuget-Firefly', 'nuget-Gate.Hosts.Firefly', 'nuget-Kayak'],
             references=[]),
         CSharpProject(

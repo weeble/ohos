@@ -28,6 +28,7 @@ namespace OpenHome.Os.Apps
             iDevice.SetAttribute("Upnp.FriendlyName", "OpenHomeOS Node");
             iDevice.SetAttribute("Upnp.Manufacturer", "N/A");
             iDevice.SetAttribute("Upnp.ModelName", "OpenHomeOS Node");
+            iDevice.SetAttribute("Upnp.presentationURL", ":12921/chat/"); // FIXME: Hard-coded URL.
         }
         public IDvDevice Device { get { return iDevice; } }
         public void Enable()

@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace OpenHome.XappForms
 {
-    interface ISoftThread
+    interface IStrand
     {
         /// <summary>
         /// Schedule an action to occur in series with all other
@@ -25,8 +25,9 @@ namespace OpenHome.XappForms
     /// serial. I.e. actions can be enqueued from any thread, but only
     /// one will ever be invoked at a time. Doesn't create a
     /// System.Threading.Thread, instead relies on System.Threading.Tasks.
+    /// (Named after boost::asio::strand.)
     /// </summary>
-    class SoftThread : ISoftThread
+    class Strand : IStrand
     {
         readonly object iLock = new object();
         Task iLastAction;
