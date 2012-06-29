@@ -421,7 +421,7 @@ csharp_projects = [
             name="ohOs.Platform", dir="Platform", type="library",
             categories=["early"],
             packages=['ohnet', 'log4net', 'systemxmllinq'],
-            references=[],
+            references=['OpenHome.XappForms.Api'],
             extra_sources=['ohOs.Platform.Version.cs']
             ),
         CSharpProject(
@@ -534,15 +534,20 @@ csharp_projects = [
                 'ohOs.Platform',
             ]),
         CSharpProject(
+            name="OpenHome.XappForms.Api", dir="OpenHome.XappForms.Api", type="library",
+            categories=["early"],
+            packages=['nuget-Owin'],
+            references=[]),
+        CSharpProject(
             name="OpenHome.XappForms", dir="XappForms", type="library",
             categories=["core"],
             packages=['nuget-Owin', 'nuget-Gate', 'nuget-Firefly', 'nuget-Gate.Hosts.Firefly', 'nuget-Kayak'],
-            references=[]),
+            references=['OpenHome.XappForms.Api']),
         CSharpProject(
             name="OpenHome.XappForms.Tests", dir="XappForms.Tests", type="library",
             categories=["test"],
             packages=['nuget-Moq', 'nuget-NUnit', 'nuget-Owin'],
-            references=['OpenHome.XappForms']),
+            references=['OpenHome.XappForms.Api', 'OpenHome.XappForms']),
     ]
 
 # Files for minification.

@@ -83,7 +83,7 @@ namespace OpenHome.XappForms.Json
 
 
 
-    class JsonError : JsonValue
+    public class JsonError : JsonValue
     {
         static readonly JsonError StaticInstance = new JsonError();
         static public JsonError Instance { get { return StaticInstance; } }
@@ -95,7 +95,7 @@ namespace OpenHome.XappForms.Json
         }
     }
 
-    class Undefined : JsonValue
+    public class Undefined : JsonValue
     {
         static readonly Undefined StaticInstance = new Undefined();
         static public Undefined Instance { get { return StaticInstance; } }
@@ -258,7 +258,7 @@ namespace OpenHome.XappForms.Json
         }
     }
 
-    class JsonString : JsonValue
+    public class JsonString : JsonValue
     {
         readonly string iValue;
         public JsonString(string aValue) { iValue = aValue; }
@@ -270,7 +270,7 @@ namespace OpenHome.XappForms.Json
         }
     }
 
-    class JsonNumber : JsonValue
+    public class JsonNumber : JsonValue
     {
         readonly string iValue;
         public JsonNumber(string aValue) { iValue = aValue; }
@@ -284,7 +284,7 @@ namespace OpenHome.XappForms.Json
         }
     }
 
-    class JsonBool : JsonValue
+    public class JsonBool : JsonValue
     {
         static readonly JsonBool StaticTrue = new JsonBool(true);
         static readonly JsonBool StaticFalse = new JsonBool(false);
@@ -300,7 +300,7 @@ namespace OpenHome.XappForms.Json
         }
     }
 
-    class JsonNull : JsonValue
+    public class JsonNull : JsonValue
     {
         static readonly JsonNull StaticInstance = new JsonNull();
         static public JsonNull Instance { get { return StaticInstance; } }

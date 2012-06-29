@@ -74,13 +74,6 @@ namespace OpenHome.XappForms
         Javascript
     }
 
-    public interface IPageSource
-    {
-        long ContentLength { get; }
-        string ContentType { get; }
-        BodyDelegate Serve();
-    }
-
     class BytePageSource : IPageSource
     {
         ArraySegment<byte> iByteSegment;

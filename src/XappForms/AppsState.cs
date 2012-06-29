@@ -415,12 +415,6 @@ namespace OpenHome.XappForms
         }
     }
 
-    public interface IXapp
-    {
-        void ServeWebRequest(RequestData aRequest, IWebRequestResponder aResponder);
-        IAppTab CreateTab(IBrowserTabProxy aTabProxy, User aUser);
-    }
-
     class AppThreadScheduler : IAppTab
     {
         readonly IAppTab iAppTab;
@@ -447,32 +441,4 @@ namespace OpenHome.XappForms
             iAppThread.ScheduleExclusive(() => iAppTab.TabClosed());
         }
     }
-
-    public interface IAppTab
-    {
-        void ChangeUser(User aUser);
-        void Receive(JsonValue aJsonValue);
-        void TabClosed();
-    }
-
-    public class CookieAttributes
-    {
-        public string Domain { get; set; }
-        public string Path { get; set; }
-        public DateTime? Expires { get; set; }
-        public bool Secure { get; set; }
-        public bool HttpOnly { get; set; }
-//Domain=.foo.com; Path=/; Expires=Wed, 13-Jan-2021 22:23:01 GMT; Secure; HttpOnly
-    }
-
-    public interface IBrowserTabProxy
-    {
-        void Send(JsonValue aJsonValue);
-        void SwitchUser(string aUserId);
-        string SessionId { get; }
-        string TabId { get; }
-        void SetCookie(string aName, string aValue, CookieAttributes aAttributes);
-        void ReloadPage();
-    }
-
 }

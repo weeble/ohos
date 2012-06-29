@@ -10,6 +10,15 @@ using Owin;
 
 namespace OpenHome.XappForms
 {
+    static class Extensions
+    {
+        public static TValue GetDefault<TKey,TValue>(
+            this Dictionary<TKey,TValue> aDict, TKey aKey, TValue aDefaultValue)
+        {
+            TValue value;
+            return aDict.TryGetValue(aKey, out value) ? value : aDefaultValue;
+        }
+    }
     public interface ITabStatusListener
     {
         void NewTab(string aSessionId, string aTabId, string aUserId, string aId);
