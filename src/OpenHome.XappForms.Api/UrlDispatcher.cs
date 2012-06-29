@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace OpenHome.XappForms
 {
-    interface IUrlDispatcher<T>
+    public interface IUrlDispatcher<T>
     {
         void MapPrefix(string[] aPath, Action<RequestData, T> aHandlerFunc);
         void MapPath(string[] aPath, Action<RequestData, T> aHandlerFunc);
@@ -13,11 +13,38 @@ namespace OpenHome.XappForms
         void MapPathToFile(string[] aPath, string aLocalFile);
     }
 
-    class AppUrlDispatcher : UrlDispatcher<IWebRequestResponder> { }
-    class ServerUrlDispatcher : UrlDispatcher<IServerWebRequestResponder> { }
+    public class AppUrlDispatcher : UrlDispatcher<IWebRequestResponder> { }
+    //class ServerUrlDispatcher : UrlDispatcher<IServerWebRequestResponder> { }
 
-    class UrlDispatcher<T> : IUrlDispatcher<T> where T : IWebRequestResponder
+    public class UrlDispatcher<T> : IUrlDispatcher<T> where T : IWebRequestResponder
     {
+        static readonly internal Dictionary<string, string> MimeTypesByExtension = new Dictionary<string, string>{
+            {".js", "application/javascript; charset=utf-8" },
+            {".css", "text/css; charset=utf-8" },
+            {".json", "application/json; charset=utf-8" },
+            {".html", "text/html; charset=utf-8" },
+            {".htm", "text/html; charset=utf-8" },
+            {".xml", "text/xml; charset=utf-8" },
+            {".txt", "text/plain; charset=utf-8" },
+            {".png", "image/png" },
+            {".gif", "image/gif" },
+            {".jpeg", "image/jpeg" },
+            {".jpg", "image/jpeg" },
+            {".svg", "image/svg+xml; charset=utf-8" },
+            {".ico", "image/vnd.microsoft.icon" },
+        };
+
+        static internal string GetMimeType(string aFilename)
+        {
+            foreach (var kvp in MimeTypesByExtension)
+            {
+                if (aFilename.EndsWith(kvp.Key))
+                {
+                    return kvp.Value;
+                }
+            }
+            return "application/octet-stream";
+        }
         class PathBinding
         {
             readonly string[] iPath;
@@ -93,13 +120,13 @@ namespace OpenHome.XappForms
                         return;
                     }
                     string filepath = Path.Combine(aLocalDirectory, Path.Combine(path));
-                    aResponder.SendFile(Server.GetMimeType(filepath), filepath);
+                    aResponder.SendFile(GetMimeType(filepath), filepath);
                 });
         }
         public void MapPathToFile(string[] aPath, string aLocalFile)
         {
             MapPath(aPath,
-                (aAppWebRequest, aResponder) => aResponder.SendFile(Server.GetMimeType(aLocalFile), aLocalFile));
+                (aAppWebRequest, aResponder) => aResponder.SendFile(GetMimeType(aLocalFile), aLocalFile));
         }
         public void MapPathToSubMapping(string[] aPath, UrlDispatcher<T> aSubDispatcher)
         {

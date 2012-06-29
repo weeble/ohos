@@ -572,6 +572,21 @@ csharp_projects = [
                 'OpenHome.XappForms.Api',
                 'OpenHome.XappForms',
                 ]),
+        CSharpProject(
+            name="OpenHome.XappForms.Chat.App", dir="OpenHome.XappForms.Chat", type="library",
+            categories=["core"],
+            packages=[
+                'nuget-Owin',
+                'ohnet',
+                'mef',
+                'systemxmllinq'
+                ],
+            references=[
+                'OpenHome.XappForms.Api',
+                'ohOs.Platform',
+                'ohOs.Apps.Api',
+                ],
+            ),
     ]
 
 # Files for minification.

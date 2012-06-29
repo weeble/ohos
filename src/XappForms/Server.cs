@@ -36,33 +36,6 @@ namespace OpenHome.XappForms
             aResult(aStatus, headers, aPageSource.Serve());
         }
 
-        static readonly internal Dictionary<string, string> MimeTypesByExtension = new Dictionary<string, string>{
-            {".js", "application/javascript; charset=utf-8" },
-            {".css", "text/css; charset=utf-8" },
-            {".json", "application/json; charset=utf-8" },
-            {".html", "text/html; charset=utf-8" },
-            {".htm", "text/html; charset=utf-8" },
-            {".xml", "text/xml; charset=utf-8" },
-            {".txt", "text/plain; charset=utf-8" },
-            {".png", "image/png" },
-            {".gif", "image/gif" },
-            {".jpeg", "image/jpeg" },
-            {".jpg", "image/jpeg" },
-            {".svg", "image/svg+xml; charset=utf-8" },
-            {".ico", "image/vnd.microsoft.icon" },
-        };
-
-        static internal string GetMimeType(string aFilename)
-        {
-            foreach (var kvp in MimeTypesByExtension)
-            {
-                if (aFilename.EndsWith(kvp.Key))
-                {
-                    return kvp.Value;
-                }
-            }
-            return "application/octet-stream";
-        }
 
         const string IndexPage =
             @"<!DOCTYPE html><html><head>"+
@@ -157,7 +130,7 @@ namespace OpenHome.XappForms
             iAppsState = appsStateFactory.CreateAppsState();
             var loginApp = new LoginApp(userList);
             iAppsState.AddApp("login", loginApp);
-            iAppsState.AddApp("chat", new ChatApp(loginApp, userList));
+            //iAppsState.AddApp("chat", new ChatApp(loginApp, userList));
             iAppsState.AddApp("test", new TestApp());
             iAppsState.AddApp("root", new RootApp());
             iAppsState.AddApp("serverhealth", serverHealthApp);
