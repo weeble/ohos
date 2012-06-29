@@ -5,7 +5,7 @@ using OpenHome.XappForms.Json;
 
 namespace OpenHome.XappForms
 {
-    class LoginApp : IAppLayer0
+    class LoginApp : IXapp
     {
         class LoginUser
         {

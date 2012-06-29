@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace OpenHome.XappForms
 {
-    class TestApp : IAppLayer0
+    class TestApp : IXapp
     {
         HashSet<TestAppTab> iTabs = new HashSet<TestAppTab>();
         object iLock = new object();

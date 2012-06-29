@@ -6,7 +6,7 @@ using OpenHome.XappForms.Json;
 
 namespace OpenHome.XappForms
 {
-    class RootApp : IAppLayer0
+    class RootApp : IXapp
     {
         readonly AppUrlDispatcher iUrlDispatcher;
 

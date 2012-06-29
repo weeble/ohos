@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace OpenHome.XappForms
 {
-    class ChatApp : IAppLayer0
+    class ChatApp : IXapp
     {
         class ChatUser
         {
@@ -17,11 +17,11 @@ namespace OpenHome.XappForms
         object iLock = new object();
         Dictionary<string, ChatUser> iUsers = new Dictionary<string, ChatUser>();
         int counter = 0;
-        readonly IAppLayer0 iLoginApp;
+        readonly IXapp iLoginApp;
         UserList iUserList;
         AppUrlDispatcher iUrlDispatcher;
 
-        public ChatApp(IAppLayer0 aLoginApp, UserList aUserList)
+        public ChatApp(IXapp aLoginApp, UserList aUserList)
         {
             iLoginApp = aLoginApp;
             iUserList = aUserList;

@@ -6,7 +6,7 @@ using OpenHome.XappForms.Json;
 
 namespace OpenHome.XappForms
 {
-    class ServerHealthApp : IAppLayer0, ITabStatusListener
+    class ServerHealthApp : IXapp, ITabStatusListener
     {
         class TabStats
         {
