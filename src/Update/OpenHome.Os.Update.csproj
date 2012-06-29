@@ -36,6 +36,10 @@
     <Compile Include="UpdateService.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Apps.Api\OpenHome.Os.Apps.Api.csproj">
+      <Project>{5FB1F26D-0064-4EA2-91EF-B5609B894E92}</Project>
+      <Name>OpenHome.Os.Apps.Api</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Platform\OpenHome.Os.Platform.csproj">
       <Project>{72A13E61-F6E5-4966-B66D-FB3E23157EE1}</Project>
       <Name>OpenHome.Os.Platform</Name>

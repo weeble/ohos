@@ -31,13 +31,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BinaryHeapTests.cs" />
-    <Compile Include="Json\JsonValueTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TabTests.cs" />
     <Compile Include="UrlDispatcherTests.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\OpenHome.XappForms.Api\OpenHome.XappForms.Api.csproj">
+      <Project>{952680F0-1FD9-49DB-B69C-78D95D5D4F47}</Project>
+      <Name>OpenHome.XappForms.Api</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Platform\OpenHome.Os.Platform.csproj">
+      <Project>{72A13E61-F6E5-4966-B66D-FB3E23157EE1}</Project>
+      <Name>OpenHome.Os.Platform</Name>
+    </ProjectReference>
     <ProjectReference Include="..\XappForms\OpenHome.XappForms.csproj">
       <Project>{FE47990D-5AF0-468B-BDE9-DCF76217A742}</Project>
       <Name>OpenHome.XappForms</Name>

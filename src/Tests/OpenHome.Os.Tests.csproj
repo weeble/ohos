@@ -39,6 +39,7 @@
     <Compile Include="AppManager\PollManagerTests.cs" />
     <Compile Include="Apps\TestAppShell.cs" />
     <Compile Include="Platform\Clock\SystemClockProviderTests.cs" />
+    <Compile Include="Platform\Collections\BinaryHeapTests.cs" />
     <Compile Include="Platform\Collections\IdDictionaryTests.cs" />
     <Compile Include="Platform\Collections\ListUtils.cs" />
     <Compile Include="Platform\DataStores\DummyTimestamp.cs" />
@@ -52,6 +53,7 @@
     <Compile Include="Platform\DataStores\VectorClocksTests.cs" />
     <Compile Include="Platform\IO\XmlDiskStoreTests.cs" />
     <Compile Include="Mocks.cs" />
+    <Compile Include="Platform\Json\JsonValueTests.cs" />
     <Compile Include="Platform\Threading\Channel.cs" />
   </ItemGroup>
   <ItemGroup>

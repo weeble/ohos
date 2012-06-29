@@ -5,11 +5,11 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{E7A375E0-3130-4BEA-8D81-5C7C75CB1CE4}</ProjectGuid>
+    <ProjectGuid>{5FB1F26D-0064-4EA2-91EF-B5609B894E92}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>OpenHome.Os.Core</RootNamespace>
-    <AssemblyName>ohOs.Core</AssemblyName>
+    <RootNamespace>OpenHome.Os.Apps</RootNamespace>
+    <AssemblyName>OpenHome.Os.Apps.Api</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile>Client</TargetFrameworkProfile>
@@ -19,9 +19,10 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DvOpenhomeOrgNode1, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
-    <Reference Include="DvOpenhomeOrgSystemUpdate1, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
-    <Reference Include="log4net, Version=1.2.10.0, Culture=neutral, PublicKeyToken=1b44e1d426115821, processorArchitecture=MSIL" />
+    <Reference Include="log4net, Version=1.2.11.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\dependencies\nuget\log4net.2.0.0\lib\net40-client\log4net.dll</HintPath>
+    </Reference>
     <Reference Include="ohNet.net, Version=0.0.0.0, Culture=neutral, processorArchitecture=x86" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -31,21 +32,25 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Clock\LinuxSystemClock.cs" />
-    <Compile Include="Clock\SystemClockProvider.cs" />
-    <Compile Include="Clock\TimeZoneSerializer.cs" />
-    <Compile Include="LogControlProvider.cs" />
-    <Compile Include="ProviderNode.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Apps.Api\OpenHome.Os.Apps.Api.csproj">
-      <Project>{5FB1F26D-0064-4EA2-91EF-B5609B894E92}</Project>
-      <Name>OpenHome.Os.Apps.Api</Name>
+    <ProjectReference Include="..\OpenHome.XappForms.Api\OpenHome.XappForms.Api.csproj">
+      <Project>{952680F0-1FD9-49DB-B69C-78D95D5D4F47}</Project>
+      <Name>OpenHome.XappForms.Api</Name>
     </ProjectReference>
     <ProjectReference Include="..\Platform\OpenHome.Os.Platform.csproj">
       <Project>{72A13E61-F6E5-4966-B66D-FB3E23157EE1}</Project>
       <Name>OpenHome.Os.Platform</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="IApp.cs" />
+    <Compile Include="INodeRebooter.cs" />
+    <Compile Include="ISystemClock.cs" />
+    <Compile Include="IUpdateService.cs" />
+    <Compile Include="NodeResourceManager.cs" />
+    <Compile Include="Proxies\ProxyList.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

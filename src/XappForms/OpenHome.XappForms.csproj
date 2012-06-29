@@ -42,15 +42,10 @@
   <ItemGroup>
     <Compile Include="AppsState.cs" />
     <Compile Include="AppWebRequest.cs" />
-    <Compile Include="ArraySlice.cs" />
-    <Compile Include="BinaryHeap.cs" />
     <Compile Include="LoginApp.cs" />
     <Compile Include="Config\AssemblyInfo.cs" />
     <Compile Include="ChatApp.cs" />
     <Compile Include="TestApp.cs" />
-    <Compile Include="Json\JsonParser.cs" />
-    <Compile Include="Json\JsonValue.cs" />
-    <Compile Include="Json\Lexer.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="PageSource.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -58,7 +53,7 @@
     <Compile Include="Server.cs" />
     <Compile Include="ServerHealthApp.cs" />
     <Compile Include="ServerTab.cs" />
-    <Compile Include="SoftThread.cs" />
+    <Compile Include="Strand.cs" />
     <Compile Include="TimerThread.cs" />
     <Compile Include="UrlDispatcher.cs" />
     <Compile Include="Users.cs" />
@@ -67,6 +62,16 @@
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\OpenHome.XappForms.Api\OpenHome.XappForms.Api.csproj">
+      <Project>{952680F0-1FD9-49DB-B69C-78D95D5D4F47}</Project>
+      <Name>OpenHome.XappForms.Api</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Platform\OpenHome.Os.Platform.csproj">
+      <Project>{72A13E61-F6E5-4966-B66D-FB3E23157EE1}</Project>
+      <Name>OpenHome.Os.Platform</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

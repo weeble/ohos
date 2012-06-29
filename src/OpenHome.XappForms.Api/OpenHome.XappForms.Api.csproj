@@ -36,11 +36,17 @@
     <Compile Include="IPageSource.cs" />
     <Compile Include="IWebRequestResponder.cs" />
     <Compile Include="IXapp.cs" />
-    <Compile Include="Json\JsonParser.cs" />
-    <Compile Include="Json\JsonValue.cs" />
-    <Compile Include="Json\Lexer.cs" />
     <Compile Include="RequestData.cs" />
     <Compile Include="User.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Platform\OpenHome.Os.Platform.csproj">
+      <Project>{72A13E61-F6E5-4966-B66D-FB3E23157EE1}</Project>
+      <Name>OpenHome.Os.Platform</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -421,7 +421,7 @@ csharp_projects = [
             name="ohOs.Platform", dir="Platform", type="library",
             categories=["early"],
             packages=['ohnet', 'log4net', 'systemxmllinq'],
-            references=['OpenHome.XappForms.Api'],
+            references=[],
             extra_sources=['ohOs.Platform.Version.cs']
             ),
         CSharpProject(
@@ -432,6 +432,12 @@ csharp_projects = [
 
         # Core node libraries:
         CSharpProject(
+            name="ohOs.Apps.Api", dir="Apps.Api", type="library",
+            categories=["core"],
+            packages=['ohnet', 'log4net', 'systemxmllinq'],
+            references=['ohOs.Platform']
+            ),
+        CSharpProject(
             name="ohOs.Apps", dir="Apps", type="library",
             categories=["core"],
             packages=['ohnet', 'sharpziplib', 'log4net', 'systemxmllinq', 'mef'],
@@ -440,6 +446,7 @@ csharp_projects = [
                 'DvOpenhomeOrgAppList1',
                 'DvOpenhomeOrgAppManager1',
                 'ohOs.Platform',
+                'ohOs.Apps.Api',
             ]),
         CSharpProject(
             name="ohOs.IntegrationTests", dir="IntegrationTests", type="exe",
@@ -449,6 +456,7 @@ csharp_projects = [
                 'DvOpenhomeOrgApp1',
                 'ohOs.Apps',
                 'ohOs.Platform',
+                'ohOs.Apps.Api',
                 'ohOs.Host',
             ]),
         CSharpProject(
@@ -461,6 +469,7 @@ csharp_projects = [
                 'CpOpenhomeOrgAppManager1',
                 'ohOs.Apps',
                 'ohOs.Platform',
+                'ohOs.Apps.Api',
                 'ohOs.Host',
             ]),
         CSharpProject(
@@ -469,6 +478,7 @@ csharp_projects = [
             packages=['ohnet', 'mef', 'systemxmllinq'],
             references=[
                 'ohOs.Platform',
+                'ohOs.Apps.Api',
             ]),
         CSharpProject(
             name="ohOs.AppManager.App", dir="AppManager", type="library",
@@ -477,6 +487,7 @@ csharp_projects = [
             references=[
                 'ohOs.Apps',
                 'ohOs.Platform',
+                'ohOs.Apps.Api',
                 'DvOpenhomeOrgAppManager1',
             ]),
         CSharpProject(
@@ -485,6 +496,7 @@ csharp_projects = [
             packages=['ohnet', 'log4net', 'systemxmllinq', 'nuget-Owin', 'nuget-Gate', 'nuget-Firefly', 'nuget-Gate.Hosts.Firefly'],
             references=[
                 'ohOs.Platform',
+                'ohOs.Apps.Api',
                 'ohOs.Core',
                 'ohOs.Apps',
                 'ohOs.Update',
@@ -497,7 +509,9 @@ csharp_projects = [
             name="ohOs.Update", dir="Update", type="library",
             categories=["core"],
             packages=['ohnet', 'log4net', 'systemxmllinq'],
-            references=['DvOpenhomeOrgSystemUpdate1', 'ohOs.Platform']
+            references=['DvOpenhomeOrgSystemUpdate1',
+                'ohOs.Platform',
+                'ohOs.Apps.Api']
             ),
         CSharpProject(
             name="ohOs.Core", dir="Core", type="library",
@@ -505,6 +519,7 @@ csharp_projects = [
             packages=['ohnet', 'log4net', 'systemxmllinq'],
             references=[
                 'ohOs.Platform',
+                'ohOs.Apps.Api',
                 'DvOpenhomeOrgNode1',
                 ]
             ),
@@ -532,22 +547,31 @@ csharp_projects = [
                 'ohOs.Apps',
                 'ohOs.AppManager.App',
                 'ohOs.Platform',
+                'ohOs.Apps.Api',
+                'ohOs.Core',
             ]),
         CSharpProject(
             name="OpenHome.XappForms.Api", dir="OpenHome.XappForms.Api", type="library",
             categories=["early"],
             packages=['nuget-Owin'],
-            references=[]),
+            references=['ohOs.Platform']),
         CSharpProject(
             name="OpenHome.XappForms", dir="XappForms", type="library",
             categories=["core"],
             packages=['nuget-Owin', 'nuget-Gate', 'nuget-Firefly', 'nuget-Gate.Hosts.Firefly', 'nuget-Kayak'],
-            references=['OpenHome.XappForms.Api']),
+            references=[
+                'OpenHome.XappForms.Api',
+                'ohOs.Platform',
+                ]),
         CSharpProject(
             name="OpenHome.XappForms.Tests", dir="XappForms.Tests", type="library",
             categories=["test"],
             packages=['nuget-Moq', 'nuget-NUnit', 'nuget-Owin'],
-            references=['OpenHome.XappForms.Api', 'OpenHome.XappForms']),
+            references=[
+                'ohOs.Platform',
+                'OpenHome.XappForms.Api',
+                'OpenHome.XappForms',
+                ]),
     ]
 
 # Files for minification.
