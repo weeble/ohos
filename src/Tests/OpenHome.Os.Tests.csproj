@@ -22,7 +22,6 @@
     <Reference Include="DvOpenhomeOrgApp1, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
     <Reference Include="DvOpenhomeOrgAppManager1, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
     <Reference Include="ICSharpCode.SharpZipLib, Version=2.84.0.0, Culture=neutral, PublicKeyToken=1b03e6acf1164f73, processorArchitecture=MSIL" />
-    <Reference Include="Mono.Addins, Version=0.6.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL" />
     <Reference Include="Moq, Version=4.0.10827.0, Culture=neutral, PublicKeyToken=69f491c39445e920, processorArchitecture=MSIL" />
     <Reference Include="nunit.framework, Version=2.6.0.12051, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
       <HintPath>..\..\dependencies\nuget\NUnit.2.6.0.12054\lib\nunit.framework.dll</HintPath>
@@ -75,8 +74,14 @@
       <Project>{72A13E61-F6E5-4966-B66D-FB3E23157EE1}</Project>
       <Name>OpenHome.Os.Platform</Name>
     </ProjectReference>
+    <ProjectReference Include="..\XappForms\OpenHome.XappForms.Hosting.csproj">
+      <Project>{FE47990D-5AF0-468B-BDE9-DCF76217A742}</Project>
+      <Name>OpenHome.XappForms.Hosting</Name>
+    </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

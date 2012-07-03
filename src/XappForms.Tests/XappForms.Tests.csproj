@@ -44,9 +44,9 @@
       <Project>{72A13E61-F6E5-4966-B66D-FB3E23157EE1}</Project>
       <Name>OpenHome.Os.Platform</Name>
     </ProjectReference>
-    <ProjectReference Include="..\XappForms\OpenHome.XappForms.csproj">
+    <ProjectReference Include="..\XappForms\OpenHome.XappForms.Hosting.csproj">
       <Project>{FE47990D-5AF0-468B-BDE9-DCF76217A742}</Project>
-      <Name>OpenHome.XappForms</Name>
+      <Name>OpenHome.XappForms.Hosting</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
