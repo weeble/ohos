@@ -62,7 +62,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\OpenHome.XappForms.Api\OpenHome.XappForms.csproj">
+    <ProjectReference Include="..\OpenHome.XappForms\OpenHome.XappForms.csproj">
       <Project>{952680F0-1FD9-49DB-B69C-78D95D5D4F47}</Project>
       <Name>OpenHome.XappForms</Name>
     </ProjectReference>

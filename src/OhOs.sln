@@ -35,7 +35,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XappForms.Client", "XappFor
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenHome.XappForms", "OpenHome.XappForms\OpenHome.XappForms.csproj", "{952680F0-1FD9-49DB-B69C-78D95D5D4F47}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenHome.Os.Apps.Api", "Apps.Api\OpenHome.Os.Apps.Api.csproj", "{5FB1F26D-0064-4EA2-91EF-B5609B894E92}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenHome.Os.Apps", "Apps\OpenHome.Os.Apps.csproj", "{5FB1F26D-0064-4EA2-91EF-B5609B894E92}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenHome.XappForms.Chat", "OpenHome.XappForms.Chat\OpenHome.XappForms.Chat.csproj", "{6F02825C-A3FA-42F1-96F1-5D4E42CC8149}"
 EndProject

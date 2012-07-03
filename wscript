@@ -432,7 +432,7 @@ csharp_projects = [
 
         # Core node libraries:
         CSharpProject(
-            name="ohOs.Apps.Api", dir="Apps.Api", type="library",
+            name="ohOs.Apps", dir="Apps", type="library",
             categories=["core"],
             packages=['ohnet', 'log4net', 'systemxmllinq'],
             references=['ohOs.Platform', 'OpenHome.XappForms', 'OpenHome.XappForms.Hosting']
@@ -446,7 +446,7 @@ csharp_projects = [
                 'DvOpenhomeOrgAppList1',
                 'DvOpenhomeOrgAppManager1',
                 'ohOs.Platform',
-                'ohOs.Apps.Api',
+                'ohOs.Apps',
                 'OpenHome.XappForms',
                 'OpenHome.XappForms.Hosting'
             ]),
@@ -458,7 +458,7 @@ csharp_projects = [
                 'DvOpenhomeOrgApp1',
                 'ohOs.Apps.Hosting',
                 'ohOs.Platform',
-                'ohOs.Apps.Api',
+                'ohOs.Apps',
                 'ohOs.Host',
                 'OpenHome.XappForms.Hosting',
                 'OpenHome.XappForms',
@@ -473,7 +473,7 @@ csharp_projects = [
                 'CpOpenhomeOrgAppManager1',
                 'ohOs.Apps.Hosting',
                 'ohOs.Platform',
-                'ohOs.Apps.Api',
+                'ohOs.Apps',
                 'ohOs.Host',
             ]),
         CSharpProject(
@@ -482,7 +482,7 @@ csharp_projects = [
             packages=['ohnet', 'mef', 'systemxmllinq'],
             references=[
                 'ohOs.Platform',
-                'ohOs.Apps.Api',
+                'ohOs.Apps',
             ]),
         CSharpProject(
             name="ohOs.AppManager.App", dir="AppManager", type="library",
@@ -491,7 +491,7 @@ csharp_projects = [
             references=[
                 'ohOs.Apps.Hosting',
                 'ohOs.Platform',
-                'ohOs.Apps.Api',
+                'ohOs.Apps',
                 'DvOpenhomeOrgAppManager1',
             ]),
         CSharpProject(
@@ -500,7 +500,7 @@ csharp_projects = [
             packages=['ohnet', 'log4net', 'systemxmllinq', 'nuget-Owin', 'nuget-Gate', 'nuget-Firefly', 'nuget-Gate.Hosts.Firefly'],
             references=[
                 'ohOs.Platform',
-                'ohOs.Apps.Api',
+                'ohOs.Apps',
                 'ohOs.Core',
                 'ohOs.Apps.Hosting',
                 'ohOs.Update',
@@ -516,7 +516,7 @@ csharp_projects = [
             packages=['ohnet', 'log4net', 'systemxmllinq'],
             references=['DvOpenhomeOrgSystemUpdate1',
                 'ohOs.Platform',
-                'ohOs.Apps.Api']
+                'ohOs.Apps']
             ),
         CSharpProject(
             name="ohOs.Core", dir="Core", type="library",
@@ -524,7 +524,7 @@ csharp_projects = [
             packages=['ohnet', 'log4net', 'systemxmllinq'],
             references=[
                 'ohOs.Platform',
-                'ohOs.Apps.Api',
+                'ohOs.Apps',
                 'DvOpenhomeOrgNode1',
                 ]
             ),
@@ -552,7 +552,7 @@ csharp_projects = [
                 'ohOs.Apps.Hosting',
                 'ohOs.AppManager.App',
                 'ohOs.Platform',
-                'ohOs.Apps.Api',
+                'ohOs.Apps',
                 'ohOs.Core',
                 'OpenHome.XappForms.Hosting',
                 'OpenHome.XappForms',
@@ -591,7 +591,7 @@ csharp_projects = [
             references=[
                 'OpenHome.XappForms',
                 'ohOs.Platform',
-                'ohOs.Apps.Api',
+                'ohOs.Apps',
                 ],
             ),
     ]
@@ -889,7 +889,7 @@ def build(bld):
                 "ohOs.Update.dll",
                 "ohOs.Platform.dll",
                 "ohOs.Remote.dll",
-                "ohOs.Apps.Api.dll",
+                "ohOs.Apps.dll",
                 "OpenHome.XappForms.Hosting.dll",
                 "OpenHome.XappForms.dll",
                 "WebCompressor.exe",
