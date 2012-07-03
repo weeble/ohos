@@ -438,7 +438,7 @@ csharp_projects = [
             references=['ohOs.Platform', 'OpenHome.XappForms.Api', 'OpenHome.XappForms.Hosting']
             ),
         CSharpProject(
-            name="ohOs.Apps", dir="Apps", type="library",
+            name="ohOs.Apps.Hosting", dir="Apps.Hosting", type="library",
             categories=["core"],
             packages=['ohnet', 'sharpziplib', 'log4net', 'systemxmllinq', 'mef'],
             references=[
@@ -456,7 +456,7 @@ csharp_projects = [
             packages=['ohnet', 'log4net', 'systemxmllinq'],
             references=[
                 'DvOpenhomeOrgApp1',
-                'ohOs.Apps',
+                'ohOs.Apps.Hosting',
                 'ohOs.Platform',
                 'ohOs.Apps.Api',
                 'ohOs.Host',
@@ -471,7 +471,7 @@ csharp_projects = [
                 'CpOpenhomeOrgApp1',
                 'CpOpenhomeOrgAppList1',
                 'CpOpenhomeOrgAppManager1',
-                'ohOs.Apps',
+                'ohOs.Apps.Hosting',
                 'ohOs.Platform',
                 'ohOs.Apps.Api',
                 'ohOs.Host',
@@ -489,7 +489,7 @@ csharp_projects = [
             categories=["core"],
             packages=['ohnet', 'mef', 'systemxmllinq', 'log4net'],
             references=[
-                'ohOs.Apps',
+                'ohOs.Apps.Hosting',
                 'ohOs.Platform',
                 'ohOs.Apps.Api',
                 'DvOpenhomeOrgAppManager1',
@@ -502,7 +502,7 @@ csharp_projects = [
                 'ohOs.Platform',
                 'ohOs.Apps.Api',
                 'ohOs.Core',
-                'ohOs.Apps',
+                'ohOs.Apps.Hosting',
                 'ohOs.Update',
                 'DvOpenhomeOrgSystemUpdate1',
                 'DvOpenhomeOrgNode1',
@@ -549,7 +549,7 @@ csharp_projects = [
             references=[
                 'DvOpenhomeOrgApp1',
                 'DvOpenhomeOrgAppManager1',
-                'ohOs.Apps',
+                'ohOs.Apps.Hosting',
                 'ohOs.AppManager.App',
                 'ohOs.Platform',
                 'ohOs.Apps.Api',
@@ -885,7 +885,7 @@ def build(bld):
             specify_files_bld(bld,
                 "ohOs.Host.exe",
                 "ohOs.Core.dll",
-                "ohOs.Apps.dll",
+                "ohOs.Apps.Hosting.dll",
                 "ohOs.Update.dll",
                 "ohOs.Platform.dll",
                 "ohOs.Remote.dll",
