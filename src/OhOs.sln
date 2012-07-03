@@ -25,7 +25,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ohOs.Core", "Core\ohOs.Core
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenHome.Os.Update", "Update\OpenHome.Os.Update.csproj", "{D481FC2B-1091-4981-B436-BA3D5C19A7AE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenHome.XappForms.Hosting", "XappForms\OpenHome.XappForms.Hosting.csproj", "{FE47990D-5AF0-468B-BDE9-DCF76217A742}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenHome.XappForms.Hosting", "XappForms.Hosting\OpenHome.XappForms.Hosting.csproj", "{FE47990D-5AF0-468B-BDE9-DCF76217A742}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XappForms.Tests", "XappForms.Tests\XappForms.Tests.csproj", "{3AA7CDAF-BB25-46E9-B3B3-D109824175DE}"
 EndProject
