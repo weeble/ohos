@@ -926,6 +926,7 @@ def build(bld):
     xappforms_http_tree = (client_scripts_tree + xohj_tree)
     xappforms_http_tree.targets_prefixed('install/OhOs/http').create_copy_tasks(bld)
     xappforms_http_tree.targets_prefixed('http').create_copy_tasks(bld)
+    xappforms_http_tree.targets_prefixed('${PREFIX}/lib/ohos/http').install_files(bld)
     #xappforms_install_tree.targets_prefixed('install/XappForms').create_copy_tasks(bld)
 
     # Commenting this out in case the debian scripts include it in the wrong package.
