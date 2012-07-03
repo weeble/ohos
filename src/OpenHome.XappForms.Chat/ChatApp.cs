@@ -1,10 +1,61 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
+using System.IO;
+using OpenHome.Net.Device;
+using OpenHome.Os.Platform;
 using OpenHome.XappForms.Json;
 using System.Linq;
 
 namespace OpenHome.XappForms
 {
+
+    [Export(typeof(IApp))]
+    class App : IApp
+    {
+        ChatApp iXapp;
+        public void Dispose()
+        {
+        }
+
+        public bool PublishesNodeServices
+        {
+            get { return false; }
+        }
+
+        public IResourceManager ResourceManager
+        {
+            get { return null; }
+        }
+
+        public AppVersion Version
+        {
+            get { return new AppVersion(0, 0, 0); }
+        }
+
+        public string IconUri
+        {
+            // TODO: Sort out the port here.
+            get { return "/chat/appicon.png"; }
+        }
+
+        public string DescriptionUri
+        {
+            get { return "http://invalid/"; }
+        }
+
+        public void Start(IAppContext aAppContext)
+        {
+            iXapp = new ChatApp(aAppContext.Services.LoginXapp, aAppContext.Services.UserList, Path.Combine(aAppContext.StaticPath, "http"));
+            aAppContext.PublishXapp("chat", iXapp);
+        }
+
+        public void Stop()
+        {
+            // TODO: Stop the app again.
+        }
+    }
+
     class ChatApp : IXapp
     {
         class ChatUser
@@ -19,23 +70,30 @@ namespace OpenHome.XappForms
         int counter = 0;
         readonly IXapp iLoginApp;
         UserList iUserList;
+        readonly string iHttpDirectory;
         AppUrlDispatcher iUrlDispatcher;
 
-        public ChatApp(IXapp aLoginApp, UserList aUserList)
+        public ChatApp(IXapp aLoginApp, UserList aUserList, string aHttpDirectory)
         {
             iLoginApp = aLoginApp;
             iUserList = aUserList;
+            iHttpDirectory = aHttpDirectory;
             iUserList.Updated += OnUserListUpdated;
             iUrlDispatcher = new AppUrlDispatcher();
             iUrlDispatcher.MapPath( new string[] { }, ServeAppHtml);
-            iUrlDispatcher.MapPrefixToDirectory(new string[] { }, "chat");
+            iUrlDispatcher.MapPrefixToDirectory(new string[] { }, aHttpDirectory);
+        }
+
+        string GetPath(string aFilename)
+        {
+            return Path.Combine(iHttpDirectory, aFilename);
         }
 
         void ServeAppHtml(RequestData aRequest, IWebRequestResponder aResponder)
         {
             string browser = aRequest.Cookies["xappbrowser"].First();
             string filename = GetBrowserDiscriminationMappings()[browser];
-            aResponder.SendFile("chat/" + filename);
+            aResponder.SendFile(GetPath(filename));
         }
 
         public void ServeWebRequest(RequestData aRequest, IWebRequestResponder aResponder)

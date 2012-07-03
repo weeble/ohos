@@ -8,7 +8,7 @@ using Owin;
 
 namespace OpenHome.XappForms
 {
-    class ServerTabTimeoutPolicy
+    public class ServerTabTimeoutPolicy
     {
         public TimeSpan MaxAgeWithoutListener { get; private set; }
         public TimeSpan MaxPollDuration { get; private set; }
@@ -19,7 +19,8 @@ namespace OpenHome.XappForms
             MaxPollDuration = aMaxPollDuration;
         }
     }
-    class ServerTab
+
+    public class ServerTab
     {
         readonly ITabStatusListener iListener;
         readonly Func<DateTime> iClock;

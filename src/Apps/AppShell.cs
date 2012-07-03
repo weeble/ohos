@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using OpenHome.Net.Device;
 using OpenHome.Net.Device.Providers;
 using OpenHome.Os.Platform;
+using OpenHome.XappForms;
 
 namespace OpenHome.Os.Apps
 {
@@ -154,6 +155,7 @@ namespace OpenHome.Os.Apps
             IZipReader aZipReader,
             IAppMetadataStore aAppMetadataStore, IZipVerifier aZipVerifier,
             ISystemAppsConfiguration aSystemAppsConfiguration,
+            IXappServer aXappServer,
             bool aAutoStart)
         {
             lock (iLock)
@@ -169,6 +171,7 @@ namespace OpenHome.Os.Apps
                     aAppMetadataStore,
                     aZipVerifier,
                     aSystemAppsConfiguration,
+                    aXappServer,
                     aAutoStart);
                 iImpl.AppStatusChanged += OnAppStatusChanged;
             }

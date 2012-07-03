@@ -7,6 +7,7 @@ using OpenHome.XappForms.Json;
 
 namespace OpenHome.XappForms
 {
+    /*
     public class Program
     {
         public static void Main()
@@ -18,4 +19,5 @@ namespace OpenHome.XappForms
             }
         }
     }
+     * */
 }

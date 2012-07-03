@@ -37,7 +37,9 @@
     <Compile Include="IWebRequestResponder.cs" />
     <Compile Include="IXapp.cs" />
     <Compile Include="RequestData.cs" />
+    <Compile Include="UrlDispatcher.cs" />
     <Compile Include="User.cs" />
+    <Compile Include="Users.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

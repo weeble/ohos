@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using OpenHome.XappForms.Json;
 
 namespace OpenHome.XappForms
 {
-    class LoginApp : IXapp
+    public class LoginApp : IXapp
     {
         class LoginUser
         {
@@ -18,22 +19,29 @@ namespace OpenHome.XappForms
         readonly Dictionary<string, LoginUser> iUsers = new Dictionary<string, LoginUser>();
         int iCounter;
         readonly UserList iUserList;
+        readonly string iHttpDirectory;
         readonly AppUrlDispatcher iUrlDispatcher;
 
-        public LoginApp(UserList aUserList)
+        public LoginApp(UserList aUserList, string aHttpDirectory)
         {
             iUserList = aUserList;
+            iHttpDirectory = aHttpDirectory;
             iUserList.Updated += OnUserListUpdated;
             iUrlDispatcher = new AppUrlDispatcher();
             iUrlDispatcher.MapPath( new string[] { }, ServeAppHtml);
-            iUrlDispatcher.MapPrefixToDirectory(new string[] { }, "login");
+            iUrlDispatcher.MapPrefixToDirectory(new string[] { }, aHttpDirectory);
+        }
+
+        string GetPath(string aFilename)
+        {
+            return Path.Combine(iHttpDirectory, aFilename);
         }
 
         void ServeAppHtml(RequestData aRequest, IWebRequestResponder aResponder)
         {
             string browser = aRequest.Cookies["xappbrowser"].First();
             string filename = GetBrowserDiscriminationMappings()[browser];
-            aResponder.SendFile("login/" + filename);
+            aResponder.SendFile(GetPath(filename));
         }
 
         public void ServeWebRequest(RequestData aRequest, IWebRequestResponder aResponder)

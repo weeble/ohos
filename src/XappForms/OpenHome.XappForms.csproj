@@ -44,7 +44,7 @@
     <Compile Include="AppWebRequest.cs" />
     <Compile Include="LoginApp.cs" />
     <Compile Include="Config\AssemblyInfo.cs" />
-    <Compile Include="ChatApp.cs" />
+    <Compile Include="ServerUrlDispatcher.cs" />
     <Compile Include="TestApp.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="PageSource.cs" />
@@ -55,8 +55,6 @@
     <Compile Include="ServerTab.cs" />
     <Compile Include="Strand.cs" />
     <Compile Include="TimerThread.cs" />
-    <Compile Include="UrlDispatcher.cs" />
-    <Compile Include="Users.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config">

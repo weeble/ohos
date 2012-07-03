@@ -8,6 +8,7 @@ using System.Text;
 using ICSharpCode.SharpZipLib.Zip;
 using OpenHome.Net.Device.Providers;
 using OpenHome.Os.Platform;
+using OpenHome.XappForms;
 
 namespace OpenHome.Os.Apps
 {
@@ -61,6 +62,7 @@ namespace OpenHome.Os.Apps
         public AppShellModule(
             IAppServices aFullPrivilegeAppServices,
             IConfigFileCollection aConfiguration,
+            IXappServer aXappServer,
             string aNodeGuid)
         {
             string storePath = aConfiguration.GetElementValueAsFilepath(e=>e.Element("system-settings").Element("store"));
@@ -105,6 +107,7 @@ namespace OpenHome.Os.Apps
                 appMetadataStore,
                 zipVerifier,
                 new SystemAppsConfiguration(systemAppsConfig),
+                aXappServer,
                 false);
         }
 

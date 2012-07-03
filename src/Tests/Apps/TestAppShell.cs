@@ -130,6 +130,7 @@ namespace OpenHome.Os.Apps
                 iAppMetadataStore,
                 new ZipVerifier(iZipReader),
                 iSystemAppsConfiguration,
+                null,
                 false);
             // When the App AppShell calls AddExtensionNodeHandler, store the
             // handler so that we can call it back later.

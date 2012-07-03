@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace OpenHome.XappForms
 {
-    interface IStrand
+    public interface IStrand
     {
         /// <summary>
         /// Schedule an action to occur in series with all other
@@ -27,7 +27,7 @@ namespace OpenHome.XappForms
     /// System.Threading.Thread, instead relies on System.Threading.Tasks.
     /// (Named after boost::asio::strand.)
     /// </summary>
-    class Strand : IStrand
+    public class Strand : IStrand
     {
         readonly object iLock = new object();
         Task iLastAction;

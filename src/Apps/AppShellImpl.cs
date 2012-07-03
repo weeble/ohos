@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using OpenHome.Net.Device.Providers;
 using OpenHome.Os.Platform;
 using OpenHome.Os.Platform.Collections;
+using OpenHome.XappForms;
 
 // !!!! need IOsContext definition
 // !!!! which may include interface to proxy for InstallManager service
@@ -339,6 +340,7 @@ namespace OpenHome.Os.Apps
         //readonly IZipReader iZipReader;
         readonly IAppMetadataStore iMetadataStore;
         readonly IZipVerifier iZipVerifier;
+        readonly IXappServer iXappServer;
         readonly INodeRebooter iNodeRebooter;
         readonly Bimap<string, string> iUdnsToAppNamesBimap = new Bimap<string, string>();
 
@@ -375,10 +377,12 @@ namespace OpenHome.Os.Apps
             IAppMetadataStore aMetadataStore,
             IZipVerifier aZipVerifier,
             ISystemAppsConfiguration aSystemAppsConfiguration,
+            IXappServer aXappServer,
             bool aAutoStart)
         {
             iFullPrivilegeAppServices = aFullPrivilegeAppServices;
             iZipVerifier = aZipVerifier;
+            iXappServer = aXappServer;
             //iZipReader = aZipReader;
             iMetadataStore = aMetadataStore;
             iConfiguration = aConfiguration;
@@ -701,7 +705,8 @@ namespace OpenHome.Os.Apps
                 iStoreDirectory.GetAbsolutePathForAppDirectory(appDirName), 
                 appConfig,
                 null,
-                appDirName);
+                appDirName,
+                iXappServer);
 
             // Init method removed as we no longer expect apps to provide their own
             // UDN.

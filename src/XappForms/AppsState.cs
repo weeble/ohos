@@ -31,14 +31,14 @@ using Timer = System.Timers.Timer;
 
 namespace OpenHome.XappForms
 {
-    interface IAppsStateFactory
+    public interface IAppsStateFactory
     {
         AppsState CreateAppsState();
         SessionRecord CreateSessionRecord(string aSessionId);
         ServerTab CreateServerTab(string aSessionId, string aTabId, SessionRecord aSessionRecord, AppRecord aAppRecord);
     }
 
-    class AppsStateFactory : IAppsStateFactory
+    public class AppsStateFactory : IAppsStateFactory
     {
         //ITabStatusListener iTabListener;
         readonly TabStatusQueue iTabStatusQueue;
@@ -60,11 +60,11 @@ namespace OpenHome.XappForms
 
         public AppsState CreateAppsState()
         {
-            return new AppsState(this, iAppsStateThread);
+            return new AppsState(this);
         }
         public SessionRecord CreateSessionRecord(string aSessionId)
         {
-            return new SessionRecord(aSessionId, iTabStatusQueue, this, iAppsStateThread, iUserList);
+            return new SessionRecord(aSessionId, iTabStatusQueue, this, iUserList);
         }
         public ServerTab CreateServerTab(string aSessionId, string aTabId, SessionRecord aSessionRecord, AppRecord aAppRecord)
         {
@@ -72,93 +72,71 @@ namespace OpenHome.XappForms
         }
     }
 
-    class AppsState
+    public class AppsState
     {
-        readonly Strand iAppsStateThread;
         readonly IAppsStateFactory iAppsStateFactory;
-        public Dictionary<string, AppRecord> Apps { get; private set; }
-        public Dictionary<string, SessionRecord> Sessions { get; private set; }
+        internal Dictionary<string, AppRecord> Apps { get; private set; }
+        internal Dictionary<string, SessionRecord> Sessions { get; private set; }
         //object iLock = new object();
         static System.Security.Cryptography.RNGCryptoServiceProvider _rng = new RNGCryptoServiceProvider();
 
-        public AppsState(IAppsStateFactory aAppsStateFactory, Strand aAppsStateThread)
+        public AppsState(IAppsStateFactory aAppsStateFactory)
         {
             iAppsStateFactory = aAppsStateFactory;
-            iAppsStateThread = aAppsStateThread;
             Apps = new Dictionary<string, AppRecord>();
             Sessions = new Dictionary<string, SessionRecord>();
         }
 
-        public Task<AppRecord> AddApp(string aName, IXapp aApp)
+        public AppRecord AddApp(string aName, IXapp aApp)
         {
-            return iAppsStateThread.ScheduleExclusive(
-                () =>
-                {
-                    return Apps[aName] = new AppRecord(aApp, aName, new Strand());
-                });
+            return Apps[aName] = new AppRecord(aApp, aName, new Strand());
         }
 
-        public Task<SessionRecord> FindOrCreateSession(string aSessionCookie)
+        public SessionRecord FindOrCreateSession(string aSessionCookie)
         {
-            return iAppsStateThread.ScheduleExclusive(
-                () =>
-                {
-                    SessionRecord session;
-                    if (aSessionCookie != null && Sessions.TryGetValue(aSessionCookie, out session))
-                    {
-                        return session;
-                    }
-                    byte[] bytes = new byte[12];
-                    _rng.GetBytes(bytes);
-                    string id = Convert.ToBase64String(bytes).Replace('+', '-').Replace('/', '_');
-                    if (Sessions.ContainsKey(id))
-                    {
-                        throw new Exception("Session ID collision. (Wow, you have a bad random number generator!)");
-                    }
-                    session = iAppsStateFactory.CreateSessionRecord(id);
-                    Sessions[id] = session;
-                    return session;
-                });
+            SessionRecord session;
+            if (aSessionCookie != null && Sessions.TryGetValue(aSessionCookie, out session))
+            {
+                return session;
+            }
+            byte[] bytes = new byte[12];
+            _rng.GetBytes(bytes);
+            string id = Convert.ToBase64String(bytes).Replace('+', '-').Replace('/', '_');
+            if (Sessions.ContainsKey(id))
+            {
+                throw new Exception("Session ID collision. (Wow, you have a bad random number generator!)");
+            }
+            session = iAppsStateFactory.CreateSessionRecord(id);
+            Sessions[id] = session;
+            return session;
         }
 
-        public Task<SessionRecord> GetSession(string aSessionCookie)
+        public SessionRecord GetSession(string aSessionCookie)
         {
-            return iAppsStateThread.ScheduleExclusive(
-                () =>
-                {
-                    SessionRecord session;
-                    if (aSessionCookie != null && Sessions.TryGetValue(aSessionCookie, out session))
-                    {
-                        return session;
-                    }
-                    return null;
-                });
+            SessionRecord session;
+            if (aSessionCookie != null && Sessions.TryGetValue(aSessionCookie, out session))
+            {
+                return session;
+            }
+            return null;
         }
 
-        public Task<AppRecord> GetApp(string aAppName)
+        public AppRecord GetApp(string aAppName)
         {
-            return iAppsStateThread.ScheduleExclusive(
-                () =>
-                {
-                    AppRecord record;
-                    Apps.TryGetValue(aAppName, out record);
-                    return record;
-                });
+            AppRecord record;
+            Apps.TryGetValue(aAppName, out record);
+            return record;
         }
 
-        public Task<ServerTab> GetTab(string aSessionId, string aTabId)
+        public ServerTab GetTab(string aSessionId, string aTabId)
         {
-            return iAppsStateThread.ScheduleExclusive(
-                () =>
-                {
-                    SessionRecord session;
-                    Sessions.TryGetValue(aSessionId, out session);
-                    if (session != null)
-                    {
-                        return session.GetTab(aTabId);
-                    }
-                    return null;
-                });
+            SessionRecord session;
+            Sessions.TryGetValue(aSessionId, out session);
+            if (session != null)
+            {
+                return session.GetTab(aTabId);
+            }
+            return null;
         }
     }
 
@@ -169,22 +147,20 @@ namespace OpenHome.XappForms
         void SwitchUser(string aUserId);
     }
 
-    class SessionRecord : ISession
+    public class SessionRecord : ISession
     {
         readonly TabStatusQueue iListener;
         readonly IAppsStateFactory iAppsStateFactory;
-        readonly Strand iAppsStateThread;
         public string Key { get; private set; }
         public Dictionary<string, ServerTab> Tabs { get; private set; }
         int iCounter = 0;
         string iUserId = "";
         readonly UserList iUserList;
 
-        public SessionRecord(string aKey, TabStatusQueue aListener, IAppsStateFactory aAppsStateFactory, Strand aAppsStateThread, UserList aUserList)
+        internal SessionRecord(string aKey, TabStatusQueue aListener, IAppsStateFactory aAppsStateFactory, UserList aUserList)
         {
             iListener = aListener;
             iAppsStateFactory = aAppsStateFactory;
-            iAppsStateThread = aAppsStateThread;
             iUserList = aUserList;
             Key = aKey;
             Tabs = new Dictionary<string, ServerTab>();
@@ -192,46 +168,38 @@ namespace OpenHome.XappForms
 
         public string UserId { get { return iUserId; } }
 
-        public Task ChangeUser(string aUserId)
+        public void ChangeUser(string aUserId)
         {
-            return iAppsStateThread.ScheduleExclusive(
-                () =>
-                {
-                    if (aUserId == "")
-                    {
-                        iUserId = aUserId;
-                    }
-                    else
-                    {
-                        Task.Factory.StartNew(() => { }, TaskCreationOptions.AttachedToParent);
-                    }
-                });
+            if (aUserId == "")
+            {
+                iUserId = aUserId;
+            }
+            else
+            {
+                Task.Factory.StartNew(() => { }, TaskCreationOptions.AttachedToParent);
+            }
         }
 
         //public 
 
-        public Task<ServerTab> CreateTab(AppRecord aApp, string aUserId)
+        public ServerTab CreateTab(AppRecord aApp, string aUserId)
         {
-            return iAppsStateThread.ScheduleExclusive(
-                () =>
-                {
-                    SwitchUser(aUserId);
-                    ServerTab newServerTab;
+            SwitchUser(aUserId);
+            ServerTab newServerTab;
 
-                    iCounter += 1;
-                    string tabKey = iCounter.ToString();
-                    iListener.NewTab(Key, tabKey, iUserId, aApp.Id);
-                    BrowserTabProxy browserTabProxy = new BrowserTabProxy();
-                    browserTabProxy.ServerTab = newServerTab = Tabs[tabKey] = iAppsStateFactory.CreateServerTab(Key, tabKey, this, aApp);
-                    User user;
-                    if (iUserId==null || !iUserList.TryGetUserById(iUserId, out user))
-                    {
-                        user = null;
-                    }
-                    var serverTab = aApp.App.CreateTab(browserTabProxy, user);
-                    newServerTab.AppTab = new AppThreadScheduler(serverTab, aApp.Strand);
-                    return newServerTab;
-                });
+            iCounter += 1;
+            string tabKey = iCounter.ToString();
+            iListener.NewTab(Key, tabKey, iUserId, aApp.Id);
+            BrowserTabProxy browserTabProxy = new BrowserTabProxy();
+            browserTabProxy.ServerTab = newServerTab = Tabs[tabKey] = iAppsStateFactory.CreateServerTab(Key, tabKey, this, aApp);
+            User user;
+            if (iUserId==null || !iUserList.TryGetUserById(iUserId, out user))
+            {
+                user = null;
+            }
+            var serverTab = aApp.App.CreateTab(browserTabProxy, user);
+            newServerTab.AppTab = new AppThreadScheduler(serverTab, aApp.Strand);
+            return newServerTab;
         }
 
         public ServerTab GetTab(string aTabId)
@@ -264,7 +232,7 @@ namespace OpenHome.XappForms
         }
     }
 
-    class PollRequest
+    public class PollRequest
     {
         Func<ArraySegment<byte>, bool> iWrite;
         //Func<Action, bool> iFlush;
@@ -319,7 +287,7 @@ namespace OpenHome.XappForms
         {
             lock (iAppenderLock)
             {
-                iTask = iTask.ContinueWith(aTask => iListener.NewTab(aSessionId, aTabId, aUserId, aId));
+                iTask = iTask.ContinueWith(aTask => { if (iListener != null) iListener.NewTab(aSessionId, aTabId, aUserId, aId); });
             }
         }
 
@@ -327,7 +295,7 @@ namespace OpenHome.XappForms
         {
             lock (iAppenderLock)
             {
-                iTask = iTask.ContinueWith(aTask => iListener.TabClosed(aSessionId, aTabId));
+                iTask = iTask.ContinueWith(aTask => { if (iListener != null) iListener.TabClosed(aSessionId, aTabId); });
             }
         }
 
@@ -335,7 +303,7 @@ namespace OpenHome.XappForms
         {
             lock (iAppenderLock)
             {
-                iTask = iTask.ContinueWith(aTask => iListener.UpdateTabStatus(aSessionId, aTabId, aUserId, aQueueLength, aLastRead, aHasListener));
+                iTask = iTask.ContinueWith(aTask => { if (iListener != null) iListener.UpdateTabStatus(aSessionId, aTabId, aUserId, aQueueLength, aLastRead, aHasListener); });
             }
         }
     }
@@ -391,7 +359,7 @@ namespace OpenHome.XappForms
         }
     }
 
-    class AppRecord
+    public class AppRecord
     {
         public IXapp App { get; private set; }
         public string Id { get; private set; }

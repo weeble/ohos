@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using OpenHome.XappForms.Json;
@@ -26,7 +28,12 @@ namespace OpenHome.XappForms
         void UpdateTabStatus(string aSessionId, string aTabId, string aUserId, int aQueueLength, DateTime aLastRead, bool aHasListener);
     }
 
-    public class Server : IDisposable
+    public interface IXappServer
+    {
+        void AddXapp(string aXappName, IXapp aXapp);
+    }
+
+    public class Server : IDisposable, IXappServer
     {
         static void ServePage(ResultDelegate aResult, string aStatus, Dictionary<string, IEnumerable<string>> aHeaders, IPageSource aPageSource)
         {
@@ -55,13 +62,14 @@ namespace OpenHome.XappForms
 
         AppsState iAppsState;
         ServerUrlDispatcher iUrlDispatcher;
+        Strand iServerStrand;
 
         static string GetSessionFromCookie(RequestCookies aCookies)
         {
             return aCookies["XappSession"].FirstOrDefault();
         }
 
-        Task<SessionRecord> GetOrCreateSession(RequestCookies aCookies)
+        SessionRecord GetOrCreateSession(RequestCookies aCookies)
         {
             lock (iAppsState)
             {
@@ -72,19 +80,19 @@ namespace OpenHome.XappForms
 
         public void HandleRequest(IDictionary<string, object> aEnv, ResultDelegate aResult, Action<Exception> aFault)
         {
-            Dictionary<string, IEnumerable<string>> respHeaders = new Dictionary<string, IEnumerable<string>>();
-            try
-            {
-                var headers = (IDictionary<string, IEnumerable<string>>) aEnv["owin.RequestHeaders"];
-                RequestData requestData = new RequestData(
-                    (string)aEnv["owin.RequestMethod"],
-                    new RequestPath((string)aEnv["owin.RequestPath"], (string)aEnv["owin.RequestQueryString"]),
-                    headers);
-
-                GetOrCreateSession(requestData.Cookies).ContinueWith(
-                    task =>
+            iServerStrand.ScheduleExclusive(
+                () =>
+                {
+                    Dictionary<string, IEnumerable<string>> respHeaders = new Dictionary<string, IEnumerable<string>>();
+                    try
                     {
-                        var session = task.Result;
+                        var headers = (IDictionary<string, IEnumerable<string>>)aEnv["owin.RequestHeaders"];
+                        RequestData requestData = new RequestData(
+                            (string)aEnv["owin.RequestMethod"],
+                            new RequestPath((string)aEnv["owin.RequestPath"], (string)aEnv["owin.RequestQueryString"]),
+                            headers);
+
+                        var session = GetOrCreateSession(requestData.Cookies);
                         respHeaders["Set-Cookie"] = new[] { "XappSession=" + session.Key + "; Path=/" };
 
                         Console.WriteLine("Incoming request for: {0}", requestData.Path.OriginalUri);
@@ -96,14 +104,14 @@ namespace OpenHome.XappForms
                             (BodyDelegate)aEnv["owin.RequestBody"]);
 
                         iUrlDispatcher.ServeRequest(requestData, request);
-                    });
 
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                ServePage(aResult, "500 Internal Server Error", respHeaders, PageSource.MakeSourceFromString(StringType.Html, ServerErrorPage));
-            }
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                        ServePage(aResult, "500 Internal Server Error", respHeaders, PageSource.MakeSourceFromString(StringType.Html, ServerErrorPage));
+                    }
+                });
         }
 
         static string GravatarUrl(string aEmail)
@@ -116,9 +124,9 @@ namespace OpenHome.XappForms
             return String.Format("http://www.gravatar.com/avatar/{0}?s=60", gravatarHash);
         }
 
-        public Server()
+        public Server(AppsStateFactory aAppsStateFactory, Strand aServerStrand, string aHttpDirectory)
         {
-            var userList = new UserList();
+            /*var userList = new UserList();
             userList.SetUser(new User("chrisc", "Chris Cheung", GravatarUrl("chris.cheung@linn.co.uk")));
             userList.SetUser(new User("andreww", "Andrew Wilson", GravatarUrl("andrew.wilson@linn.co.uk")));
             userList.SetUser(new User("simonc", "Simon Chisholm", GravatarUrl("simon.chisholm@linn.co.uk")));
@@ -126,23 +134,37 @@ namespace OpenHome.XappForms
             userList.SetUser(new User("stathisv", "Stathis Voukelatos", GravatarUrl("stathis.voukelatos@linn.co.uk")));
             var serverHealthApp = new ServerHealthApp();
             var timeoutPolicy = new ServerTabTimeoutPolicy(TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
-            var appsStateFactory = new AppsStateFactory(serverHealthApp, () => DateTime.Now, timeoutPolicy, userList);
-            iAppsState = appsStateFactory.CreateAppsState();
-            var loginApp = new LoginApp(userList);
+            var appsStateFactory = new AppsStateFactory(serverHealthApp, () => DateTime.Now, timeoutPolicy, userList);*/
+            
+            iAppsState = aAppsStateFactory.CreateAppsState();
+            /*var loginApp = new LoginApp(userList);
             iAppsState.AddApp("login", loginApp);
             //iAppsState.AddApp("chat", new ChatApp(loginApp, userList));
             iAppsState.AddApp("test", new TestApp());
             iAppsState.AddApp("root", new RootApp());
-            iAppsState.AddApp("serverhealth", serverHealthApp);
+            iAppsState.AddApp("serverhealth", serverHealthApp);*/
+
+            Func<string, string> path = p => Path.Combine(aHttpDirectory, p);
             
             ServerUrlDispatcher dispatcher = new ServerUrlDispatcher();
-            dispatcher.MapPrefixToDirectory(new[] { "scripts/" }, "scripts");
-            dispatcher.MapPrefixToDirectory(new[] { "ohj/" }, "ohj");
-            dispatcher.MapPrefixToDirectory(new[] { "theme/" }, "theme");
+            Console.WriteLine(path("ohj"));
+            dispatcher.MapPrefixToDirectory(new[] { "scripts/" }, path("scripts"));
+            dispatcher.MapPrefixToDirectory(new[] { "ohj/" }, path("ohj"));
+            dispatcher.MapPrefixToDirectory(new[] { "theme/" }, path("theme"));
             dispatcher.MapPrefix(new[] { "poll/" }, HandlePoll);
             dispatcher.MapPrefix(new[] { "send/" }, HandleSend);
             dispatcher.MapPrefix(new string[] { }, HandleOther);
             iUrlDispatcher = dispatcher;
+            iServerStrand = aServerStrand;
+        }
+
+        public void AddXapp(string aXappName, IXapp aXapp)
+        {
+            if (!Regex.IsMatch(aXappName, @"^(?:[A-Za-z0-9\-\._])+$"))
+            {
+                throw new ArgumentException("aXappName must consist of ASCII letters, numbers, dash, period or underscore.");
+            }
+            iServerStrand.ScheduleExclusive(()=>iAppsState.AddApp(aXappName, aXapp));
         }
 
         void HandleOther(RequestData aRequest, IServerWebRequestResponder aResponder)
@@ -154,28 +176,24 @@ namespace OpenHome.XappForms
             }
             else
             {
-                iAppsState.GetApp(path[0].TrimEnd('/')).ContinueWith(
-                    task =>
+                var app = iAppsState.GetApp(path[0].TrimEnd('/'));
+                if (app != null)
+                {
+                    if (path.Count == 1)
                     {
-                        var app = task.Result;
-                        if (app != null)
+                        if (String.IsNullOrEmpty(aRequest.Cookies["xappbrowser"].FirstOrDefault()))
                         {
-                            if (path.Count == 1)
-                            {
-                                if (String.IsNullOrEmpty(aRequest.Cookies["xappbrowser"].FirstOrDefault()))
-                                {
-                                    aResponder.SendPage("200 OK", PageSource.MakeSourceFromString(StringType.Html, IndexPage));
-                                    return;
-                                }
-                                // Fall through.
-                            }
-                            app.App.ServeWebRequest(aRequest.SkipPathSegments(1), aResponder);
+                            aResponder.SendPage("200 OK", PageSource.MakeSourceFromString(StringType.Html, IndexPage));
+                            return;
                         }
-                        else
-                        {
-                            aResponder.Send404NotFound();
-                        }
-                    });
+                        // Fall through.
+                    }
+                    app.App.ServeWebRequest(aRequest.SkipPathSegments(1), aResponder);
+                }
+                else
+                {
+                    aResponder.Send404NotFound();
+                }
             }
         }
 
@@ -194,37 +212,25 @@ namespace OpenHome.XappForms
                 }
                 if (aRequest.Method == "POST")
                 {
-                    iAppsState.GetApp(appname).ContinueWith(
-                        task =>
-                        {
-                            var app = task.Result;
-                            if (app == null)
-                            {
-                                aResponder.Send404NotFound();
-                                return;
-                            }
-                            iAppsState.GetSession(sessionId).ContinueWith(
-                                task2 =>
-                                {
-                                    var requestSession = task2.Result;
-                                    if (requestSession == null)
-                                    {
-                                        aResponder.Send404NotFound();
-                                        return;
-                                    }
-                                    string userid = aRequest.Cookies["xappuser"].FirstOrDefault();
-                                    requestSession.CreateTab(app, userid).ContinueWith(
-                                        task3 =>
-                                        {
-                                            var serverTab = task3.Result;
-                                            Console.WriteLine("CREATING TAB FOR APP. Session {0}   App {1}   Tab {2}", requestSession.Key, app.Id, serverTab.TabKey);
-                                            aResponder.SendPage("200 OK", PageSource.MakeSourceFromString(StringType.Json,
-                                                new JsonObject{
-                                                    {"tabUrl", new JsonString(String.Format("/poll/{0}/{1}", requestSession.Key, serverTab.TabKey))},
-                                                    {"tabId", new JsonString(serverTab.TabKey)}}.ToString()));
-                                        });
-                                });
-                        });
+                    var app = iAppsState.GetApp(appname);
+                    if (app == null)
+                    {
+                        aResponder.Send404NotFound();
+                        return;
+                    }
+                    var requestSession = iAppsState.GetSession(sessionId);
+                    if (requestSession == null)
+                    {
+                        aResponder.Send404NotFound();
+                        return;
+                    }
+                    string userid = aRequest.Cookies["xappuser"].FirstOrDefault();
+                    var serverTab = requestSession.CreateTab(app, userid);
+                    Console.WriteLine("CREATING TAB FOR APP. Session {0}   App {1}   Tab {2}", requestSession.Key, app.Id, serverTab.TabKey);
+                    aResponder.SendPage("200 OK", PageSource.MakeSourceFromString(StringType.Json,
+                        new JsonObject{
+                            {"tabUrl", new JsonString(String.Format("/poll/{0}/{1}", requestSession.Key, serverTab.TabKey))},
+                            {"tabId", new JsonString(serverTab.TabKey)}}.ToString()));
                     return;
                 }
             }
@@ -233,17 +239,13 @@ namespace OpenHome.XappForms
                 string sessionId = path[0].TrimEnd('/');
                 string tabId = path[1].TrimEnd('/');
 
-                iAppsState.GetTab(sessionId, tabId).ContinueWith(
-                    task =>
-                    {
-                        var serverTab = task.Result;
-                        if (serverTab == null)
-                        {
-                            aResponder.Send404NotFound();
-                            return;
-                        }
-                        aResponder.ServeLongPoll("200 OK", aResponder.DefaultResponseHeaders, "application/json", serverTab.Serve());
-                    });
+                var serverTab = iAppsState.GetTab(sessionId, tabId);
+                if (serverTab == null)
+                {
+                    aResponder.Send404NotFound();
+                    return;
+                }
+                aResponder.ServeLongPoll("200 OK", aResponder.DefaultResponseHeaders, "application/json", serverTab.Serve());
                 return;
             }
             aResponder.Send404NotFound();
@@ -257,18 +259,14 @@ namespace OpenHome.XappForms
                 string sessionId = path[0].TrimEnd('/');
                 string tabId = path[1].TrimEnd('/');
 
-                iAppsState.GetTab(sessionId, tabId).ContinueWith(
-                    task =>
-                    {
-                        ServerTab serverTab = task.Result;
-                        if (serverTab == null)
-                        {
-                            aResponder.Send404NotFound();
-                            return;
-                        }
-                        SendHandler handler = new SendHandler(serverTab.AppTab, aResponder);
-                        aResponder.ReadBody(handler.Write, handler.Flush, handler.End, handler.CancellationToken);
-                    });
+                var serverTab = iAppsState.GetTab(sessionId, tabId);
+                if (serverTab == null)
+                {
+                    aResponder.Send404NotFound();
+                    return;
+                }
+                SendHandler handler = new SendHandler(serverTab.AppTab, aResponder);
+                aResponder.ReadBody(handler.Write, handler.Flush, handler.End, handler.CancellationToken);
                 return;
             }
             aResponder.Send404NotFound();

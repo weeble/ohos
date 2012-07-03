@@ -2,6 +2,7 @@ using System;
 using OpenHome.Net.ControlPoint;
 using OpenHome.Net.Device;
 using OpenHome.Os.Platform.Logging;
+using OpenHome.XappForms;
 
 namespace OpenHome.Os.Platform
 {
@@ -120,6 +121,8 @@ namespace OpenHome.Os.Platform
         ILogReader LogReader { get; }
         ILogController LogController { get; }
         ISystemClock SystemClock { get; }
+        UserList UserList { get; set; }
+        IXapp LoginXapp { get; set; } // Should remove once Xapp Server handles login automatically.
 
         T ResolveService<T>();
     }
@@ -150,6 +153,11 @@ namespace OpenHome.Os.Platform
         /// The app's name.
         /// </summary>
         string Name { get; }
+        /// <summary>
+        /// Publish a Xapp web UI.
+        /// </summary>
+        /// <param name="aXapp"></param>
+        void PublishXapp(string aXappName, IXapp aXapp);
     }
 
     /// <summary>

@@ -435,7 +435,7 @@ csharp_projects = [
             name="ohOs.Apps.Api", dir="Apps.Api", type="library",
             categories=["core"],
             packages=['ohnet', 'log4net', 'systemxmllinq'],
-            references=['ohOs.Platform']
+            references=['ohOs.Platform', 'OpenHome.XappForms.Api', 'OpenHome.XappForms']
             ),
         CSharpProject(
             name="ohOs.Apps", dir="Apps", type="library",
@@ -447,6 +447,8 @@ csharp_projects = [
                 'DvOpenhomeOrgAppManager1',
                 'ohOs.Platform',
                 'ohOs.Apps.Api',
+                'OpenHome.XappForms.Api',
+                'OpenHome.XappForms'
             ]),
         CSharpProject(
             name="ohOs.IntegrationTests", dir="IntegrationTests", type="exe",
@@ -458,6 +460,8 @@ csharp_projects = [
                 'ohOs.Platform',
                 'ohOs.Apps.Api',
                 'ohOs.Host',
+                'OpenHome.XappForms',
+                'OpenHome.XappForms.Api',
             ]),
         CSharpProject(
             name="ohOs.PackageTests", dir="PackageTests", type="exe",
@@ -503,6 +507,7 @@ csharp_projects = [
                 'DvOpenhomeOrgSystemUpdate1',
                 'DvOpenhomeOrgNode1',
                 'OpenHome.XappForms',
+                'OpenHome.XappForms.Api',
                 ]
             ),
         CSharpProject(
@@ -549,6 +554,8 @@ csharp_projects = [
                 'ohOs.Platform',
                 'ohOs.Apps.Api',
                 'ohOs.Core',
+                'OpenHome.XappForms',
+                'OpenHome.XappForms.Api',
             ]),
         CSharpProject(
             name="OpenHome.XappForms.Api", dir="OpenHome.XappForms.Api", type="library",
@@ -639,6 +646,13 @@ ohos_apps = [
                 'CpOpenhomeOrgRemoteAccess1.js',
                 'CpOpenhomeOrgSystemUpdate1.js',
             ]),
+        OhOsApp(
+            name="OpenHome.XappForms.Chat",
+            files=[
+                'OpenHome.XappForms.Chat.App.dll'
+            ],
+            jsproxies=[]
+            ),
     ]
 
 integration_tests = [
@@ -849,12 +863,22 @@ def build(bld):
 
 
     dependencies_transfer = FileTransfer(
-            specify_files_root(bld, *(
-                yuicompressor.get_paths_of_files_to_copy_to_output(bld)+
-                ohnet.get_paths_of_files_to_copy_to_output(bld)+
-                sharpziplib.get_paths_of_files_to_copy_to_output(bld)+
-                log4net.get_paths_of_files_to_copy_to_output(bld)+
-                sshnet.get_paths_of_files_to_copy_to_output(bld)))).targets_flattened()
+            specify_files_root(bld, *
+                sum(
+                    (
+                        csharp_dependencies[dep].get_paths_of_files_to_copy_to_output(bld)
+                        for dep in [
+                            "yui-compressor",
+                            "ohnet",
+                            "sharpziplib",
+                            "log4net",
+                            "sshnet",
+                            "nuget-Owin",
+                            "nuget-Gate",
+                            "nuget-Firefly",
+                            "nuget-Gate.Hosts.Firefly"
+                        ]
+                    ), []))).targets_flattened()
 
     ohos_core_transfer = (
         FileTransfer(
@@ -865,6 +889,9 @@ def build(bld):
                 "ohOs.Update.dll",
                 "ohOs.Platform.dll",
                 "ohOs.Remote.dll",
+                "ohOs.Apps.Api.dll",
+                "OpenHome.XappForms.dll",
+                "OpenHome.XappForms.Api.dll",
                 "WebCompressor.exe",
                 ) +
             specify_files_bld(bld, *
@@ -889,15 +916,17 @@ def build(bld):
     ohos_main_transfer.targets_prefixed('install/OhOs').create_copy_tasks(bld)
 
 
-    xappforms_core_tree = mk_virtual_tree(bld, bld.bldnode.abspath(), [
-            'OpenHome.XappForms.exe',
-            'Firefly.dll',
-            'Gate.dll',
-            'Owin.dll',
-            'Gate.Hosts.Firefly.dll',
-        ])
-    xappforms_install_tree = (client_scripts_tree + xohj_tree + xappforms_core_tree)
-    xappforms_install_tree.targets_prefixed('install/XappForms').create_copy_tasks(bld)
+    #xappforms_core_tree = mk_virtual_tree(bld, bld.bldnode.abspath(), [
+    #        'OpenHome.XappForms.exe',
+    #        'Firefly.dll',
+    #        'Gate.dll',
+    #        'Owin.dll',
+    #        'Gate.Hosts.Firefly.dll',
+    #    ])
+    xappforms_http_tree = (client_scripts_tree + xohj_tree)
+    xappforms_http_tree.targets_prefixed('install/OhOs/http').create_copy_tasks(bld)
+    xappforms_http_tree.targets_prefixed('http').create_copy_tasks(bld)
+    #xappforms_install_tree.targets_prefixed('install/XappForms').create_copy_tasks(bld)
 
     # Commenting this out in case the debian scripts include it in the wrong package.
     # Hopefully they should ignore it, but for now I'm leaving it out.
