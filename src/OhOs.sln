@@ -33,7 +33,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xohj", "Xohj\Xohj.csproj", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XappForms.Client", "XappForms.Client\XappForms.Client.csproj", "{C355B68C-51C6-48B9-A949-08FE7B224010}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenHome.XappForms.Api", "OpenHome.XappForms.Api\OpenHome.XappForms.Api.csproj", "{952680F0-1FD9-49DB-B69C-78D95D5D4F47}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenHome.XappForms", "OpenHome.XappForms\OpenHome.XappForms.csproj", "{952680F0-1FD9-49DB-B69C-78D95D5D4F47}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenHome.Os.Apps.Api", "Apps.Api\OpenHome.Os.Apps.Api.csproj", "{5FB1F26D-0064-4EA2-91EF-B5609B894E92}"
 EndProject

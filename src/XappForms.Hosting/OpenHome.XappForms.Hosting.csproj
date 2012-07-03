@@ -62,9 +62,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\OpenHome.XappForms.Api\OpenHome.XappForms.Api.csproj">
+    <ProjectReference Include="..\OpenHome.XappForms.Api\OpenHome.XappForms.csproj">
       <Project>{952680F0-1FD9-49DB-B69C-78D95D5D4F47}</Project>
-      <Name>OpenHome.XappForms.Api</Name>
+      <Name>OpenHome.XappForms</Name>
     </ProjectReference>
     <ProjectReference Include="..\Platform\OpenHome.Os.Platform.csproj">
       <Project>{72A13E61-F6E5-4966-B66D-FB3E23157EE1}</Project>

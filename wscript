@@ -435,7 +435,7 @@ csharp_projects = [
             name="ohOs.Apps.Api", dir="Apps.Api", type="library",
             categories=["core"],
             packages=['ohnet', 'log4net', 'systemxmllinq'],
-            references=['ohOs.Platform', 'OpenHome.XappForms.Api', 'OpenHome.XappForms.Hosting']
+            references=['ohOs.Platform', 'OpenHome.XappForms', 'OpenHome.XappForms.Hosting']
             ),
         CSharpProject(
             name="ohOs.Apps.Hosting", dir="Apps.Hosting", type="library",
@@ -447,7 +447,7 @@ csharp_projects = [
                 'DvOpenhomeOrgAppManager1',
                 'ohOs.Platform',
                 'ohOs.Apps.Api',
-                'OpenHome.XappForms.Api',
+                'OpenHome.XappForms',
                 'OpenHome.XappForms.Hosting'
             ]),
         CSharpProject(
@@ -461,7 +461,7 @@ csharp_projects = [
                 'ohOs.Apps.Api',
                 'ohOs.Host',
                 'OpenHome.XappForms.Hosting',
-                'OpenHome.XappForms.Api',
+                'OpenHome.XappForms',
             ]),
         CSharpProject(
             name="ohOs.PackageTests", dir="PackageTests", type="exe",
@@ -507,7 +507,7 @@ csharp_projects = [
                 'DvOpenhomeOrgSystemUpdate1',
                 'DvOpenhomeOrgNode1',
                 'OpenHome.XappForms.Hosting',
-                'OpenHome.XappForms.Api',
+                'OpenHome.XappForms',
                 ]
             ),
         CSharpProject(
@@ -555,10 +555,10 @@ csharp_projects = [
                 'ohOs.Apps.Api',
                 'ohOs.Core',
                 'OpenHome.XappForms.Hosting',
-                'OpenHome.XappForms.Api',
+                'OpenHome.XappForms',
             ]),
         CSharpProject(
-            name="OpenHome.XappForms.Api", dir="OpenHome.XappForms.Api", type="library",
+            name="OpenHome.XappForms", dir="OpenHome.XappForms", type="library",
             categories=["early"],
             packages=['nuget-Owin'],
             references=['ohOs.Platform']),
@@ -567,7 +567,7 @@ csharp_projects = [
             categories=["core"],
             packages=['nuget-Owin', 'nuget-Gate', 'nuget-Firefly', 'nuget-Gate.Hosts.Firefly', 'nuget-Kayak'],
             references=[
-                'OpenHome.XappForms.Api',
+                'OpenHome.XappForms',
                 'ohOs.Platform',
                 ]),
         CSharpProject(
@@ -576,7 +576,7 @@ csharp_projects = [
             packages=['nuget-Moq', 'nuget-NUnit', 'nuget-Owin'],
             references=[
                 'ohOs.Platform',
-                'OpenHome.XappForms.Api',
+                'OpenHome.XappForms',
                 'OpenHome.XappForms.Hosting',
                 ]),
         CSharpProject(
@@ -589,7 +589,7 @@ csharp_projects = [
                 'systemxmllinq'
                 ],
             references=[
-                'OpenHome.XappForms.Api',
+                'OpenHome.XappForms',
                 'ohOs.Platform',
                 'ohOs.Apps.Api',
                 ],
@@ -891,7 +891,7 @@ def build(bld):
                 "ohOs.Remote.dll",
                 "ohOs.Apps.Api.dll",
                 "OpenHome.XappForms.Hosting.dll",
-                "OpenHome.XappForms.Api.dll",
+                "OpenHome.XappForms.dll",
                 "WebCompressor.exe",
                 ) +
             specify_files_bld(bld, *

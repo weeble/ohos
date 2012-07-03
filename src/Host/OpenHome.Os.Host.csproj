@@ -49,7 +49,7 @@
       <Project>{5FB1F26D-0064-4EA2-91EF-B5609B894E92}</Project>
       <Name>OpenHome.Os.Apps.Api</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Apps\OpenHome.Os.Apps.Hosting.csproj">
+    <ProjectReference Include="..\Apps.Hosting\OpenHome.Os.Apps.Hosting.csproj">
       <Project>{AB03D699-04CE-48D6-B75C-A13E3AD75C1B}</Project>
       <Name>OpenHome.Os.Apps.Hosting</Name>
     </ProjectReference>
@@ -57,9 +57,9 @@
       <Project>{E7A375E0-3130-4BEA-8D81-5C7C75CB1CE4}</Project>
       <Name>ohOs.Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\OpenHome.XappForms.Api\OpenHome.XappForms.Api.csproj">
+    <ProjectReference Include="..\OpenHome.XappForms.Api\OpenHome.XappForms.csproj">
       <Project>{952680F0-1FD9-49DB-B69C-78D95D5D4F47}</Project>
-      <Name>OpenHome.XappForms.Api</Name>
+      <Name>OpenHome.XappForms</Name>
     </ProjectReference>
     <ProjectReference Include="..\Platform\OpenHome.Os.Platform.csproj">
       <Project>{72A13E61-F6E5-4966-B66D-FB3E23157EE1}</Project>
