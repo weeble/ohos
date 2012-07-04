@@ -86,12 +86,9 @@ add_option("--steps", default="default", help="Steps to run, comma separated. (a
 
 ALL_DEPENDENCIES = [
     "ohnet",
-    "nunit",
     "ndesk-options",
-    "moq",
     "yui-compressor",
     "sharpziplib",
-    "log4net",
     "sshnet",
     "nuget"]
 

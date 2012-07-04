@@ -28,21 +28,6 @@ from waflib.Node import Node
 
 csharp_dependencies = CSharpDependencyCollection()
 
-nunit = csharp_dependencies.add_package('nunit')
-nunitdir = nunit.add_directory(
-    unique_id='nunit-dir',
-    as_option = '--nunit-dir',
-    option_help = 'Location of NUnit install',
-    in_dependencies = 'AnyPlatform/[Nn][Uu]nit*')
-nunitframeworkdir = nunitdir.add_directory(
-    unique_id='nunit-framework-dir',
-    as_option = '--nunit-framework-dir',
-    option_help = 'Location of NUnit framework DLL, defaults to "bin/framework" relative to NUNIT_DIR.',
-    relative_path = 'bin/framework')
-nunitframeworkdir.add_assemblies(
-    'nunit.framework.dll',
-    reference=True, copy=True)
-
 systemxmllinq = csharp_dependencies.add_package('systemxmllinq')
 systemxmllinq.add_system_assembly('System.Xml.Linq.dll')
 
@@ -117,32 +102,6 @@ sharpziplibdir.add_assemblies(
     'ICSharpCode.SharpZipLib.dll',
     reference=True, copy=True)
 
-# Log4Net is a logging library
-log4net = csharp_dependencies.add_package('log4net')
-log4netdir = log4net.add_directory(
-        unique_id = 'log4net-dir',
-        as_option = '--log4net-dir',
-        option_help = 'Location of log4net DLL',
-        in_dependencies = 'AnyPlatform/log4net-*/bin/net/2.0/release')
-log4netdir.add_assemblies(
-        'log4net.dll',
-        reference=True, copy=True)
-
-moq = csharp_dependencies.add_package('moq')
-moqdir = moq.add_directory(
-    unique_id = 'moq-dir',
-    as_option = '--moq-dir',
-    option_help = 'Location of Moq install',
-    in_dependencies = 'AnyPlatform/[Mm]oq*')
-moqdlldir = moqdir.add_directory(
-    unique_id = 'moq-dll-dir',
-    relative_path = {
-        '*':       'NET40',
-        'Linux-*': 'NET35'})
-moqdlldir.add_assemblies(
-    'Moq.dll',
-    reference=True, copy=True)
-
 # SshNet is a ssh client
 sshnet = csharp_dependencies.add_package('sshnet')
 sshnetdir = sshnet.add_directory(
@@ -154,7 +113,9 @@ sshnetdir.add_assemblies(
         'Renci.SshNet.dll',
         reference=True, copy=True)
 
-def add_nuget_package(name, assembly=None, subdir='lib/net40'):
+DEFAULT_ASSEMBLY = object()
+
+def add_nuget_package(name, assembly=DEFAULT_ASSEMBLY, subdir='lib/net40'):
     def to_option(s):
         s = s.lower()
         s = s.replace('.', '-')
@@ -164,7 +125,7 @@ def add_nuget_package(name, assembly=None, subdir='lib/net40'):
         return s
     option = to_option(name)
     pkg = csharp_dependencies.add_package('nuget-' + name)
-    if assembly is None:
+    if assembly is DEFAULT_ASSEMBLY:
         assembly = name + '.dll'
     # Note: the following pattern is designed to accomodate packages
     # whose names are prefixes of each other. For example, "Gate" and
@@ -177,7 +138,10 @@ def add_nuget_package(name, assembly=None, subdir='lib/net40'):
             as_option = option,
             option_help = 'Location of %s package' % name,
             in_dependencies = dependency_path)
-    pkgdir.add_assemblies(assembly, copy=True)
+    # Store the reference on the pkg object itself to query later.
+    pkg.directory = pkgdir
+    if assembly is not None:
+        pkgdir.add_assemblies(assembly, copy=True)
 
 add_nuget_package("Firefly")
 add_nuget_package("Gate")
@@ -186,6 +150,8 @@ add_nuget_package("Kayak", subdir='lib')
 add_nuget_package("Owin")
 add_nuget_package("Moq", subdir='lib/NET40')
 add_nuget_package("NUnit", assembly='nunit.framework.dll', subdir='lib')
+add_nuget_package("NUnit.Runners", assembly=None, subdir='tools')
+add_nuget_package("log4net", subdir='lib/net40-client')
 
 
 
@@ -233,7 +199,7 @@ def configure(conf):
     mono = set_env(conf, 'MONO', [] if plat.startswith('Windows') else ["mono", "--debug", "--runtime=v4.0"])
 
     if conf.env.BUILDTESTS:
-        nunitexedir = path.join(nunitdir.absolute_path, 'bin')
+        nunitexedir = csharp_dependencies['nuget-NUnit.Runners'].directory.absolute_path
         nunitexe = set_env(conf, 'NUNITEXE', path.join(nunitexedir, 'nunit-console-x86.exe' if plat.endswith('x86') else 'nunit-console.exe'))
         # NUnit uses $TMP to shadow copy assemblies. If it's not set it can end up writing
         # to /tmp/nunit20, causing all sorts of problems on a multi-user system. On non-Windows
@@ -350,10 +316,11 @@ def create_zip_task(bld, zipfile, sourceroot, ziproot, sourcefiles):
 
 def get_active_dependencies(env):
     active_dependency_names = set([
-        'ohnet', 'yui-compressor', 'sharpziplib', 'log4net', 'systemxmllinq', 'mef', 'sshnet',
-        'nuget-Gate', 'nuget-Owin', 'nuget-Gate.Hosts.Firefly', 'nuget-Firefly', 'nuget-Kayak', 'nuget-Moq', 'nuget-NUnit'])
+        'ohnet', 'yui-compressor', 'sharpziplib', 'systemxmllinq', 'mef', 'sshnet',
+        'nuget-Gate', 'nuget-Owin', 'nuget-Gate.Hosts.Firefly', 'nuget-Firefly', 'nuget-Kayak',
+        'nuget-Moq', 'nuget-NUnit', 'nuget-NUnit.Runners', 'nuget-log4net'])
     if env.BUILDTESTS:
-        active_dependency_names |= set(['nunit', 'ndeskoptions', 'moq'])
+        active_dependency_names |= set(['ndeskoptions'])
     return csharp_dependencies.get_subset(active_dependency_names)
 
 def get_path_inside_archive(input_path, source_root, target_root):
@@ -420,7 +387,7 @@ csharp_projects = [
         CSharpProject(
             name="ohOs.Platform", dir="Platform", type="library",
             categories=["early"],
-            packages=['ohnet', 'log4net', 'systemxmllinq'],
+            packages=['ohnet', 'nuget-log4net', 'systemxmllinq'],
             references=[],
             extra_sources=['ohOs.Platform.Version.cs']
             ),
@@ -434,13 +401,13 @@ csharp_projects = [
         CSharpProject(
             name="ohOs.Apps", dir="Apps", type="library",
             categories=["core"],
-            packages=['ohnet', 'log4net', 'systemxmllinq'],
+            packages=['ohnet', 'nuget-log4net', 'systemxmllinq'],
             references=['ohOs.Platform', 'OpenHome.XappForms', 'OpenHome.XappForms.Hosting']
             ),
         CSharpProject(
             name="ohOs.Apps.Hosting", dir="Apps.Hosting", type="library",
             categories=["core"],
-            packages=['ohnet', 'sharpziplib', 'log4net', 'systemxmllinq', 'mef'],
+            packages=['ohnet', 'sharpziplib', 'nuget-log4net', 'systemxmllinq', 'mef'],
             references=[
                 'DvOpenhomeOrgApp1',
                 'DvOpenhomeOrgAppList1',
@@ -453,7 +420,7 @@ csharp_projects = [
         CSharpProject(
             name="ohOs.IntegrationTests", dir="IntegrationTests", type="exe",
             categories=["core"],
-            packages=['ohnet', 'log4net', 'systemxmllinq'],
+            packages=['ohnet', 'nuget-log4net', 'systemxmllinq'],
             references=[
                 'DvOpenhomeOrgApp1',
                 'ohOs.Apps.Hosting',
@@ -466,7 +433,7 @@ csharp_projects = [
         CSharpProject(
             name="ohOs.PackageTests", dir="PackageTests", type="exe",
             categories=["core"],
-            packages=['ohnet', 'log4net', 'systemxmllinq'],
+            packages=['ohnet', 'nuget-log4net', 'systemxmllinq'],
             references=[
                 'CpOpenhomeOrgApp1',
                 'CpOpenhomeOrgAppList1',
@@ -487,7 +454,7 @@ csharp_projects = [
         CSharpProject(
             name="ohOs.AppManager.App", dir="AppManager", type="library",
             categories=["core"],
-            packages=['ohnet', 'mef', 'systemxmllinq', 'log4net'],
+            packages=['ohnet', 'mef', 'systemxmllinq', 'nuget-log4net'],
             references=[
                 'ohOs.Apps.Hosting',
                 'ohOs.Platform',
@@ -497,7 +464,7 @@ csharp_projects = [
         CSharpProject(
             name="ohOs.Host", dir="Host", type="exe",
             categories=["core"],
-            packages=['ohnet', 'log4net', 'systemxmllinq', 'nuget-Owin', 'nuget-Gate', 'nuget-Firefly', 'nuget-Gate.Hosts.Firefly'],
+            packages=['ohnet', 'nuget-log4net', 'systemxmllinq', 'nuget-Owin', 'nuget-Gate', 'nuget-Firefly', 'nuget-Gate.Hosts.Firefly'],
             references=[
                 'ohOs.Platform',
                 'ohOs.Apps',
@@ -513,7 +480,7 @@ csharp_projects = [
         CSharpProject(
             name="ohOs.Update", dir="Update", type="library",
             categories=["core"],
-            packages=['ohnet', 'log4net', 'systemxmllinq'],
+            packages=['ohnet', 'nuget-log4net', 'systemxmllinq'],
             references=['DvOpenhomeOrgSystemUpdate1',
                 'ohOs.Platform',
                 'ohOs.Apps']
@@ -521,7 +488,7 @@ csharp_projects = [
         CSharpProject(
             name="ohOs.Core", dir="Core", type="library",
             categories=["core"],
-            packages=['ohnet', 'log4net', 'systemxmllinq'],
+            packages=['ohnet', 'nuget-log4net', 'systemxmllinq'],
             references=[
                 'ohOs.Platform',
                 'ohOs.Apps',
@@ -531,13 +498,13 @@ csharp_projects = [
         CSharpProject(
             name="ohOs.Network", dir="Network", type="library",
             categories=["core"],
-            packages=['log4net', 'systemxmllinq'],
+            packages=['nuget-log4net', 'systemxmllinq'],
             references=[]
             ),
         CSharpProject(
             name="ohOs.Remote", dir="Remote", type="library",
             categories=["core"],
-            packages=['ohnet', 'log4net', 'systemxmllinq', 'sshnet'],
+            packages=['ohnet', 'nuget-log4net', 'systemxmllinq', 'sshnet'],
             references=[
                 'DvOpenhomeOrgRemoteAccess1',
             ]
@@ -545,7 +512,7 @@ csharp_projects = [
         CSharpProject(
             name="ohOs.Tests", dir="Tests", type="library",
             categories=["test"],
-            packages=['ohnet', 'nunit', 'moq', 'sharpziplib', 'log4net', 'systemxmllinq'],
+            packages=['ohnet', 'nuget-NUnit', 'nuget-Moq', 'sharpziplib', 'nuget-log4net', 'systemxmllinq'],
             references=[
                 'DvOpenhomeOrgApp1',
                 'DvOpenhomeOrgAppManager1',
@@ -871,7 +838,7 @@ def build(bld):
                             "yui-compressor",
                             "ohnet",
                             "sharpziplib",
-                            "log4net",
+                            "nuget-log4net",
                             "sshnet",
                             "nuget-Owin",
                             "nuget-Gate",
