@@ -28,12 +28,9 @@ add_bool_option("--no-publish", help="Don't publish the packages.")
 
 ALL_DEPENDENCIES = [
     "ohnet",
-    "nunit",
     "ndesk-options",
-    "moq",
     "yui-compressor",
     "sharpziplib",
-    "log4net",
     "sshnet",
     "nuget"]
 
