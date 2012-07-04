@@ -29,7 +29,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Apps.Api\OpenHome.Os.Apps.csproj">
+    <ProjectReference Include="..\Apps\OpenHome.Os.Apps.csproj">
       <Project>{5FB1F26D-0064-4EA2-91EF-B5609B894E92}</Project>
       <Name>OpenHome.Os.Apps</Name>
     </ProjectReference>
