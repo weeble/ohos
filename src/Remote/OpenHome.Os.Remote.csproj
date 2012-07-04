@@ -23,7 +23,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\build\DvOpenhomeOrgRemoteAccess1.dll</HintPath>
     </Reference>
-    <Reference Include="log4net, Version=1.2.10.0, Culture=neutral, PublicKeyToken=1b44e1d426115821, processorArchitecture=MSIL" />
+    <Reference Include="log4net, Version=1.2.11.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <HintPath>..\..\dependencies\nuget\log4net.2.0.0\lib\net40-client\log4net.dll</HintPath>
+    </Reference>
     <Reference Include="ohNet.net, Version=0.0.0.0, Culture=neutral, processorArchitecture=x86" />
     <Reference Include="Renci.SshNet, Version=0.1.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -40,6 +42,9 @@
     <Compile Include="HttpServer.cs" />
     <Compile Include="ProviderRemoteAccess.cs" />
     <Compile Include="ProxyServer.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
