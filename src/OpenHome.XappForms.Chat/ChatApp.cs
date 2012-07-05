@@ -48,6 +48,7 @@ namespace OpenHome.XappForms
         {
             iXapp = new ChatApp(aAppContext.Services.UserList, Path.Combine(aAppContext.StaticPath, "http"));
             aAppContext.PublishXapp("chat", iXapp);
+            aAppContext.Device.SetAttribute("Upnp.PresentationUrl", ":12921/chat/"); // TODO: Remove need for hard-coded port.
         }
 
         public void Stop()
