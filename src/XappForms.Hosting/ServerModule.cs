@@ -33,7 +33,7 @@ namespace OpenHome.XappForms
             UserList.SetUser(new User("grahamd", "Graham Darnell", GravatarUrl("graham.darnell@linn.co.uk")));
             UserList.SetUser(new User("stathisv", "Stathis Voukelatos", GravatarUrl("stathis.voukelatos@linn.co.uk")));
 
-            var serverHealthApp = new ServerHealthApp();
+            var serverHealthApp = new ServerHealthApp(Path.Combine(aHttpDirectory, "serverhealth"));
             AppsStateFactory appsStateFactory = new AppsStateFactory(
                 serverHealthApp,
                 () => DateTime.UtcNow,

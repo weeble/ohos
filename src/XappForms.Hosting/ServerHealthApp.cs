@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using OpenHome.XappForms.Json;
 
@@ -8,6 +9,8 @@ namespace OpenHome.XappForms
 {
     class ServerHealthApp : IXapp, ITabStatusListener
     {
+        readonly string iHttpDirectory;
+
         class TabStats
         {
             public TabStats(string aAppName, string aUserId)
@@ -30,10 +33,24 @@ namespace OpenHome.XappForms
 
         readonly AppUrlDispatcher iUrlDispatcher;
 
-        public ServerHealthApp()
+        public ServerHealthApp(string aHttpDirectory)
         {
+            iHttpDirectory = aHttpDirectory;
             iUrlDispatcher = new AppUrlDispatcher();
-            iUrlDispatcher.MapPrefixToDirectory(new string[] { }, "serverhealth");
+            iUrlDispatcher.MapPath(new string[] { }, ServeAppHtml);
+            iUrlDispatcher.MapPrefixToDirectory(new string[] { }, aHttpDirectory);
+        }
+
+        string GetPath(string aFilename)
+        {
+            return Path.Combine(iHttpDirectory, aFilename);
+        }
+
+        void ServeAppHtml(RequestData aRequest, IWebRequestResponder aResponder)
+        {
+            string browser = aRequest.Cookies["xappbrowser"].First();
+            string filename = GetBrowserDiscriminationMappings()[browser];
+            aResponder.SendFile(GetPath(filename));
         }
 
         public void NewTab(string aSessionId, string aTabId, string aUserId, string aAppId)
