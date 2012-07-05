@@ -82,7 +82,8 @@ namespace OpenHome.XappForms
                 var tabStats = iTabStats[tabKey];
                 if (!iTabStats.Remove(tabKey))
                 {
-                    Console.WriteLine("serverhealth: Ignored close event for unknown tab {0}/{1}", aSessionId, aTabId);
+                    //TODO: Use logging instead of console.
+                    //Console.WriteLine("serverhealth: Ignored close event for unknown tab {0}/{1}", aSessionId, aTabId);
                     return;
                 }
                 Broadcast(
@@ -104,7 +105,8 @@ namespace OpenHome.XappForms
                 TabStats tabStats;
                 if (!iTabStats.TryGetValue(tabKey, out tabStats))
                 {
-                    Console.WriteLine("serverhealth: Ignored event for unknown tab {0}/{1}", aSessionId, aTabId);
+                    //TODO: Use logging instead of console.
+                    //Console.WriteLine("serverhealth: Ignored event for unknown tab {0}/{1}", aSessionId, aTabId);
                     return;
                 }
                 bool userChanged = tabStats.UserId != aUserId;

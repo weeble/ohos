@@ -96,8 +96,6 @@ namespace OpenHome.XappForms
                         var session = GetOrCreateSession(requestData.Cookies);
                         respHeaders["Set-Cookie"] = new[] { "XappSession=" + session.Key + "; Path=/" };
 
-                        Console.WriteLine("Incoming request for: {0}", requestData.Path.OriginalUri);
-
                         AppWebRequest request = new AppWebRequest(
                             requestData,
                             respHeaders,
@@ -132,7 +130,6 @@ namespace OpenHome.XappForms
             Func<string, string> path = p => Path.Combine(aHttpDirectory, p);
             
             ServerUrlDispatcher dispatcher = new ServerUrlDispatcher();
-            Console.WriteLine(path("ohj"));
             dispatcher.MapPrefixToDirectory(new[] { "scripts/" }, path("scripts"));
             dispatcher.MapPrefixToDirectory(new[] { "ohj/" }, path("ohj"));
             dispatcher.MapPrefixToDirectory(new[] { "theme/" }, path("theme"));
@@ -222,7 +219,6 @@ namespace OpenHome.XappForms
                     }
                     string userid = aRequest.Cookies["xappuser"].FirstOrDefault();
                     var serverTab = requestSession.CreateTab(app, userid);
-                    Console.WriteLine("CREATING TAB FOR APP. Session {0}   App {1}   Tab {2}", requestSession.Key, app.Id, serverTab.TabKey);
                     aResponder.SendPage("200 OK", PageSource.MakeSourceFromString(StringType.Json,
                         new JsonObject{
                             {"tabUrl", new JsonString(String.Format("/poll/{0}/{1}", requestSession.Key, serverTab.TabKey))},
@@ -284,7 +280,6 @@ namespace OpenHome.XappForms
 
             public bool Write(ArraySegment<byte> aArg)
             {
-                //Console.WriteLine("Write ({0})", aArg.Count);
                 content.AddRange(aArg.Array.Skip(aArg.Offset).Take(aArg.Count));
                 return false;
             }
@@ -300,12 +295,10 @@ namespace OpenHome.XappForms
                 {
                     string stringPayload = Encoding.UTF8.GetString(content.ToArray());
                     stringPayload = stringPayload.Trim();
-                    //Console.WriteLine("Received JSON: < {0} >", stringPayload);
                     JsonValue json;
                     try
                     {
                         json = JsonValue.FromString(stringPayload);
-                        //Console.WriteLine("Parsed JSON: < {0} >", json);
                     }
                     catch (ArgumentException ae)
                     {

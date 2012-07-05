@@ -103,7 +103,6 @@ namespace OpenHome.XappForms
 
         public IAppTab CreateTab(IBrowserTabProxy aTabProxy, User aUser)
         {
-            Console.WriteLine("Create CHAT tab with User='{0}'", aUser == null ? "ARGH" : aUser.Id);
             int id = counter++;
             var tab = new ChatAppTab(this, aTabProxy, id, iUserList, aUser == null ? null : aUser.Id);
             lock (iLock)
@@ -201,8 +200,6 @@ namespace OpenHome.XappForms
                     bool isOnline = kvp.Value > 0;
 
                     user.TabCount = kvp.Value;
-                    
-                    Console.WriteLine("USER: {0} TABS: {1} {2}->{3}", kvp.Key, kvp.Value, wasOnline, isOnline);
                     
                     if (isOnline != wasOnline)
                     {
@@ -370,7 +367,6 @@ namespace OpenHome.XappForms
 
         public void NewMessage(JsonValue aMessage)
         {
-            Console.WriteLine("Send {0}", aMessage.ToString());
             iBrowserTabProxy.Send(aMessage);
         }
 

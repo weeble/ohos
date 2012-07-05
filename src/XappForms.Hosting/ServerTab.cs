@@ -257,7 +257,6 @@ namespace OpenHome.XappForms
 
         public void CancelRequest(PollRequest aRequest)
         {
-            Console.WriteLine("TAB CANCEL");
             if (iRequest == aRequest)
             {
                 iRequest = null;

@@ -196,7 +196,6 @@ namespace OpenHome.XappForms
 
         public void NewMessage(JsonValue aMessage)
         {
-            Console.WriteLine("Send {0}", aMessage);
             iBrowserTabProxy.Send(aMessage);
         }
 

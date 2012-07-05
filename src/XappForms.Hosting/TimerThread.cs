@@ -52,11 +52,9 @@ namespace OpenHome.XappForms
         public Task Reschedule(DateTime aDateTime)
         {
             var obj = new object();
-            Console.WriteLine("Schedule {0}", obj.GetHashCode());
             return iStrand.ScheduleExclusive(
                 ()=>
                 {
-                    Console.WriteLine("Perform {0}", obj.GetHashCode());
                     if (iNode == null)
                     {
                         iNode = iTimerThread.CreateNode(aDateTime, this);
