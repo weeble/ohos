@@ -60,7 +60,6 @@ namespace OpenHome.Os.Host
         public ILogController LogController { get; set; }
         public ISystemClock SystemClock { get; set; }
         public UserList UserList{ get; set; }
-        public IXapp LoginXapp{ get; set; } // TODO: Get rid of this.
 
         readonly Dictionary<Type, object> iAdditionalServices = new Dictionary<Type, object>();
         public void RegisterService<T>(T aService)
@@ -255,16 +254,6 @@ namespace OpenHome.Os.Host
             }
         }
 
-        static string GravatarUrl(string aEmail)
-        {
-            var normalizedEmail = aEmail.Trim().ToLowerInvariant();
-            MD5 md5 = MD5.Create();
-            byte[] inputBytes = Encoding.UTF8.GetBytes(normalizedEmail);
-            byte[] hash = md5.ComputeHash(inputBytes);
-            string gravatarHash = String.Join("", hash.Select(b=>b.ToString("x2")));
-            return String.Format("http://www.gravatar.com/avatar/{0}?s=60", gravatarHash);
-        }
-
         static int RunAsMainProcess(Options aOptions)
         {
             int exitCode = 0;
@@ -406,32 +395,15 @@ namespace OpenHome.Os.Host
                     var clockProvider = new SystemClockProvider(systemClock);
                     var logControlProvider = new LogControlProvider(logSystem.LogReader, logSystem.LogController);
 
-                    var userList = new UserList();
-                    userList.SetUser(new User("chrisc", "Chris Cheung", GravatarUrl("chris.cheung@linn.co.uk")));
-                    userList.SetUser(new User("andreww", "Andrew Wilson", GravatarUrl("andrew.wilson@linn.co.uk")));
-                    userList.SetUser(new User("simonc", "Simon Chisholm", GravatarUrl("simon.chisholm@linn.co.uk")));
-                    userList.SetUser(new User("grahamd", "Graham Darnell", GravatarUrl("graham.darnell@linn.co.uk")));
-                    userList.SetUser(new User("stathisv", "Stathis Voukelatos", GravatarUrl("stathis.voukelatos@linn.co.uk")));
-
-                    AppsStateFactory appsStateFactory = new AppsStateFactory(
-                        null,
-                        () => DateTime.UtcNow,
-                        new ServerTabTimeoutPolicy(TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10)),
-                        userList);
-
                     string exeDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
                     string xappFormsHttpDirectory = Path.Combine(exeDirectory, "http");
 
-                    LoginApp loginApp = new LoginApp(userList, Path.Combine(xappFormsHttpDirectory, "login"));
-
-                    using (var xappServer = new Server(appsStateFactory, new Strand(), xappFormsHttpDirectory))
-                    using (new Gate.Hosts.Firefly.ServerFactory().Create(xappServer.HandleRequest, 12921))
+                    using (var xappModule = new ServerModule(xappFormsHttpDirectory))
                     using (var nodeDevice = new NodeDevice(nodeGuid))
                     using (new ProviderSystemUpdate(nodeDevice.Device.RawDevice, updateService,
                         updateConfigFile, Path.Combine(storeDirectory, "updates", "UpdateService.xml")))
                     using (new ProviderNode(nodeDevice.Device.RawDevice, clockProvider, logControlProvider))
                     {
-                        xappServer.AddXapp("login", loginApp);
                         AppServices services = new AppServices
                                                    {
                                                        //StorePath = storeDirectory,
@@ -451,12 +423,11 @@ namespace OpenHome.Os.Host
                                                        UpdateService = null,
                                                        NodeDeviceAccessor = nodeDevice,
                                                        SystemClock = systemClock,
-                                                       UserList = userList,
-                                                       LoginXapp = loginApp
+                                                       UserList = xappModule.UserList
                                                    };
 
                         Console.WriteLine(storeDirectory);
-                        using (var appModule = new AppShellModule(services, config, xappServer, nodeGuid))
+                        using (var appModule = new AppShellModule(services, config, xappModule.XappServer, nodeGuid))
                         {
                             services.RegisterService(appModule.AppShell);
                             var appManager = appModule.AppShell;

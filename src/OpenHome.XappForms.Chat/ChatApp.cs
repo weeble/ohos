@@ -46,7 +46,7 @@ namespace OpenHome.XappForms
 
         public void Start(IAppContext aAppContext)
         {
-            iXapp = new ChatApp(aAppContext.Services.LoginXapp, aAppContext.Services.UserList, Path.Combine(aAppContext.StaticPath, "http"));
+            iXapp = new ChatApp(aAppContext.Services.UserList, Path.Combine(aAppContext.StaticPath, "http"));
             aAppContext.PublishXapp("chat", iXapp);
         }
 
@@ -68,14 +68,12 @@ namespace OpenHome.XappForms
         object iLock = new object();
         Dictionary<string, ChatUser> iUsers = new Dictionary<string, ChatUser>();
         int counter = 0;
-        readonly IXapp iLoginApp;
         UserList iUserList;
         readonly string iHttpDirectory;
         AppUrlDispatcher iUrlDispatcher;
 
-        public ChatApp(IXapp aLoginApp, UserList aUserList, string aHttpDirectory)
+        public ChatApp(UserList aUserList, string aHttpDirectory)
         {
-            iLoginApp = aLoginApp;
             iUserList = aUserList;
             iHttpDirectory = aHttpDirectory;
             iUserList.Updated += OnUserListUpdated;
@@ -98,14 +96,7 @@ namespace OpenHome.XappForms
 
         public void ServeWebRequest(RequestData aRequest, IWebRequestResponder aResponder)
         {
-            if (String.IsNullOrEmpty(aRequest.Cookies["xappuser"].FirstOrDefault()))
-            {
-                // TODO: Handle this *outside* of the app.
-                Console.WriteLine("Serving {0} from login instead. ({1} xappuser cookies)", aRequest.Path.OriginalUri, String.Join(", ", aRequest.Cookies["xappuser"]));
-                iLoginApp.ServeWebRequest(aRequest, aResponder);
-                return;
-            }
-            Console.WriteLine("Serving {0} from chat app.", aRequest.Path.OriginalUri);
+            //Console.WriteLine("Serving {0} from chat app.", aRequest.Path.OriginalUri);
             iUrlDispatcher.ServeRequest(aRequest, aResponder);
         }
 

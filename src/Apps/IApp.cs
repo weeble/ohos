@@ -122,7 +122,6 @@ namespace OpenHome.Os.Platform
         ILogController LogController { get; }
         ISystemClock SystemClock { get; }
         UserList UserList { get; set; }
-        IXapp LoginXapp { get; set; } // Should remove once Xapp Server handles login automatically.
 
         T ResolveService<T>();
     }

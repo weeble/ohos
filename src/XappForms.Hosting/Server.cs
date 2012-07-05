@@ -63,6 +63,7 @@ namespace OpenHome.XappForms
         AppsState iAppsState;
         ServerUrlDispatcher iUrlDispatcher;
         Strand iServerStrand;
+        List<IXappPageFilter> iFilters;
 
         static string GetSessionFromCookie(RequestCookies aCookies)
         {
@@ -124,25 +125,9 @@ namespace OpenHome.XappForms
             return String.Format("http://www.gravatar.com/avatar/{0}?s=60", gravatarHash);
         }
 
-        public Server(AppsStateFactory aAppsStateFactory, Strand aServerStrand, string aHttpDirectory)
+        public Server(AppsState aAppsState, Strand aServerStrand, string aHttpDirectory)
         {
-            /*var userList = new UserList();
-            userList.SetUser(new User("chrisc", "Chris Cheung", GravatarUrl("chris.cheung@linn.co.uk")));
-            userList.SetUser(new User("andreww", "Andrew Wilson", GravatarUrl("andrew.wilson@linn.co.uk")));
-            userList.SetUser(new User("simonc", "Simon Chisholm", GravatarUrl("simon.chisholm@linn.co.uk")));
-            userList.SetUser(new User("grahamd", "Graham Darnell", GravatarUrl("graham.darnell@linn.co.uk")));
-            userList.SetUser(new User("stathisv", "Stathis Voukelatos", GravatarUrl("stathis.voukelatos@linn.co.uk")));
-            var serverHealthApp = new ServerHealthApp();
-            var timeoutPolicy = new ServerTabTimeoutPolicy(TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
-            var appsStateFactory = new AppsStateFactory(serverHealthApp, () => DateTime.Now, timeoutPolicy, userList);*/
-            
-            iAppsState = aAppsStateFactory.CreateAppsState();
-            /*var loginApp = new LoginApp(userList);
-            iAppsState.AddApp("login", loginApp);
-            //iAppsState.AddApp("chat", new ChatApp(loginApp, userList));
-            iAppsState.AddApp("test", new TestApp());
-            iAppsState.AddApp("root", new RootApp());
-            iAppsState.AddApp("serverhealth", serverHealthApp);*/
+            iAppsState = aAppsState;
 
             Func<string, string> path = p => Path.Combine(aHttpDirectory, p);
             
@@ -156,6 +141,7 @@ namespace OpenHome.XappForms
             dispatcher.MapPrefix(new string[] { }, HandleOther);
             iUrlDispatcher = dispatcher;
             iServerStrand = aServerStrand;
+            iFilters = new List<IXappPageFilter>();
         }
 
         public void AddXapp(string aXappName, IXapp aXapp)
@@ -165,6 +151,25 @@ namespace OpenHome.XappForms
                 throw new ArgumentException("aXappName must consist of ASCII letters, numbers, dash, period or underscore.");
             }
             iServerStrand.ScheduleExclusive(()=>iAppsState.AddApp(aXappName, aXapp));
+        }
+
+        public void AddFilter(IXappPageFilter aFilter)
+        {
+            iServerStrand.ScheduleExclusive(() => iFilters.Add(aFilter));
+        }
+
+        void FilterAndServeXappRequest(IXapp aXapp, RequestData aRequest, IServerWebRequestResponder aResponder)
+        {
+            var request = aRequest;
+            foreach (var filter in iFilters)
+            {
+                request = filter.FilterPageRequest(request, aResponder);
+                if (request == null)
+                {
+                    return;
+                }
+            }
+            aXapp.ServeWebRequest(aRequest, aResponder);
         }
 
         void HandleOther(RequestData aRequest, IServerWebRequestResponder aResponder)
@@ -179,16 +184,7 @@ namespace OpenHome.XappForms
                 var app = iAppsState.GetApp(path[0].TrimEnd('/'));
                 if (app != null)
                 {
-                    if (path.Count == 1)
-                    {
-                        if (String.IsNullOrEmpty(aRequest.Cookies["xappbrowser"].FirstOrDefault()))
-                        {
-                            aResponder.SendPage("200 OK", PageSource.MakeSourceFromString(StringType.Html, IndexPage));
-                            return;
-                        }
-                        // Fall through.
-                    }
-                    app.App.ServeWebRequest(aRequest.SkipPathSegments(1), aResponder);
+                    FilterAndServeXappRequest(app.App, aRequest.SkipPathSegments(1), aResponder);
                 }
                 else
                 {
