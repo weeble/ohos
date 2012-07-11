@@ -43,14 +43,15 @@ namespace OpenHome.XappForms
             LoginApp loginApp = new LoginApp(UserList, Path.Combine(aHttpDirectory, "login"));
             var appsState = appsStateFactory.CreateAppsState();
             iCleanupStack.Add(XappServer = new Server(appsState, new Strand(), aHttpDirectory));
+            XappServer.SetXappAdapter(aXapp => new UserAndBrowserFilter(aXapp, loginApp, UserList));
             XappServer.AddXapp("login", loginApp);
             XappServer.AddXapp("serverhealth", serverHealthApp);
 
-            var browserDiscriminationFilter = new BrowserDiscriminationFilter();
-            var loginFilter = new LoginFilter(loginApp);
+            //var browserDiscriminationFilter = new BrowserDiscriminationFilter();
+            //var loginFilter = new LoginFilter(loginApp);
 
-            XappServer.AddFilter(browserDiscriminationFilter);
-            XappServer.AddFilter(loginFilter);
+            //XappServer.AddFilter(browserDiscriminationFilter);
+            //XappServer.AddFilter(loginFilter);
 
             iCleanupStack.Add(new Gate.Hosts.Firefly.ServerFactory().Create(XappServer.HandleRequest, 12921));
         }

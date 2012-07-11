@@ -15,6 +15,10 @@ namespace OpenHome.Os.Apps
         public DvDevice Device { get; set; }
 
         public string Name { get; private set; }
+        public void PublishXapp(string aXappName, IRawXapp aRawXapp)
+        {
+            iXappServer.AddXapp(aXappName, aRawXapp);
+        }
         public void PublishXapp(string aXappName, IXapp aXapp)
         {
             iXappServer.AddXapp(aXappName, aXapp);

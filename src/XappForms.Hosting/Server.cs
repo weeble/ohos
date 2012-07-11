@@ -30,7 +30,8 @@ namespace OpenHome.XappForms
 
     public interface IXappServer
     {
-        void AddXapp(string aXappName, IXapp aXapp);
+        void AddXapp(string aXappName, IRawXapp aRawXapp);
+        void AddXapp(string aXappName, IXapp aRawXapp);
     }
 
     public class Server : IDisposable, IXappServer
@@ -61,9 +62,9 @@ namespace OpenHome.XappForms
             @"<p>E&lt;/p&gt;</p></body></html>";
 
         AppsState iAppsState;
-        ServerUrlDispatcher iUrlDispatcher;
+        ServerPathDispatcher iPathDispatcher;
         Strand iServerStrand;
-        List<IXappPageFilter> iFilters;
+        Func<IXapp, IRawXapp> iXappAdapter;
 
         static string GetSessionFromCookie(RequestCookies aCookies)
         {
@@ -88,21 +89,24 @@ namespace OpenHome.XappForms
                     try
                     {
                         var headers = (IDictionary<string, IEnumerable<string>>)aEnv["owin.RequestHeaders"];
-                        RequestData requestData = new RequestData(
+                        RawRequestData rawRequestData = new RawRequestData(
                             (string)aEnv["owin.RequestMethod"],
                             new RequestPath((string)aEnv["owin.RequestPath"], (string)aEnv["owin.RequestQueryString"]),
                             headers);
 
-                        var session = GetOrCreateSession(requestData.Cookies);
+                        var session = GetOrCreateSession(rawRequestData.Cookies);
                         respHeaders["Set-Cookie"] = new[] { "XappSession=" + session.Key + "; Path=/" };
 
                         AppWebRequest request = new AppWebRequest(
-                            requestData,
+                            rawRequestData,
                             respHeaders,
                             aResult,
                             (BodyDelegate)aEnv["owin.RequestBody"]);
 
-                        iUrlDispatcher.ServeRequest(requestData, request);
+                        if (!iPathDispatcher.ServeRequest(rawRequestData, request))
+                        {
+                            request.Send404NotFound();
+                        }
 
                     }
                     catch (Exception e)
@@ -129,16 +133,24 @@ namespace OpenHome.XappForms
 
             Func<string, string> path = p => Path.Combine(aHttpDirectory, p);
             
-            ServerUrlDispatcher dispatcher = new ServerUrlDispatcher();
+            ServerPathDispatcher dispatcher = new ServerPathDispatcher();
             dispatcher.MapPrefixToDirectory(new[] { "scripts/" }, path("scripts"));
             dispatcher.MapPrefixToDirectory(new[] { "ohj/" }, path("ohj"));
             dispatcher.MapPrefixToDirectory(new[] { "theme/" }, path("theme"));
             dispatcher.MapPrefix(new[] { "poll/" }, HandlePoll);
             dispatcher.MapPrefix(new[] { "send/" }, HandleSend);
             dispatcher.MapPrefix(new string[] { }, HandleOther);
-            iUrlDispatcher = dispatcher;
+            iPathDispatcher = dispatcher;
             iServerStrand = aServerStrand;
-            iFilters = new List<IXappPageFilter>();
+        }
+
+        public void AddXapp(string aXappName, IRawXapp aRawXapp)
+        {
+            if (!Regex.IsMatch(aXappName, @"^(?:[A-Za-z0-9\-\._])+$"))
+            {
+                throw new ArgumentException("aXappName must consist of ASCII letters, numbers, dash, period or underscore.");
+            }
+            iServerStrand.ScheduleExclusive(()=>iAppsState.AddApp(aXappName, aRawXapp));
         }
 
         public void AddXapp(string aXappName, IXapp aXapp)
@@ -147,83 +159,69 @@ namespace OpenHome.XappForms
             {
                 throw new ArgumentException("aXappName must consist of ASCII letters, numbers, dash, period or underscore.");
             }
-            iServerStrand.ScheduleExclusive(()=>iAppsState.AddApp(aXappName, aXapp));
-        }
-
-        public void AddFilter(IXappPageFilter aFilter)
-        {
-            iServerStrand.ScheduleExclusive(() => iFilters.Add(aFilter));
-        }
-
-        void FilterAndServeXappRequest(IXapp aXapp, RequestData aRequest, IServerWebRequestResponder aResponder)
-        {
-            var request = aRequest;
-            foreach (var filter in iFilters)
-            {
-                request = filter.FilterPageRequest(request, aResponder);
-                if (request == null)
+            iServerStrand.ScheduleExclusive(() =>
                 {
-                    return;
-                }
-            }
-            aXapp.ServeWebRequest(aRequest, aResponder);
+                    Console.WriteLine("ADDING... {0}", aXappName);
+                    var xapp = iXappAdapter(aXapp);
+                    Console.WriteLine("ADDING#2... {0}", aXappName);
+                    iAppsState.AddApp(aXappName, iXappAdapter(aXapp));
+                    Console.WriteLine("ADDING#3... {0}", aXappName);
+                });
         }
 
-        void HandleOther(RequestData aRequest, IServerWebRequestResponder aResponder)
+        public void SetXappAdapter(Func<IXapp, IRawXapp> aAdapter)
         {
-            var path = aRequest.Path.PathSegments;
+            iServerStrand.ScheduleExclusive(() => iXappAdapter = aAdapter);
+        }
+
+        bool HandleOther(RawRequestData aRawRequest, IServerWebRequestResponder aResponder)
+        {
+            var path = aRawRequest.Path.PathSegments;
             if (path.Count == 0)
             {
                 aResponder.SendPage("200 OK", PageSource.MakeSourceFromString(StringType.Html, IndexPage));
+                return true;
             }
-            else
+            var app = iAppsState.GetApp(path[0].TrimEnd('/'));
+            if (app != null)
             {
-                var app = iAppsState.GetApp(path[0].TrimEnd('/'));
-                if (app != null)
-                {
-                    FilterAndServeXappRequest(app.App, aRequest.SkipPathSegments(1), aResponder);
-                }
-                else
-                {
-                    aResponder.Send404NotFound();
-                }
+                app.App.ServeWebRequest(aRawRequest.WithPath(aRawRequest.Path.SkipPathSegments(1)), aResponder);
+                return true;
             }
+            return false;
         }
 
-        void HandlePoll(RequestData aRequest, IServerWebRequestResponder aResponder)
+        bool HandlePoll(RawRequestData aRawRequest, IServerWebRequestResponder aResponder)
         {
-            var path = aRequest.Path.PathSegments;
+            var path = aRawRequest.Path.PathSegments;
             aResponder.DefaultResponseHeaders["Cache-Control"] = aResponder.DefaultResponseHeaders.GetDefault("Cache-Control",new string[]{}).Concat(new[] { "no-cache" });
             if (path.Count == 1)
             {
                 string sessionId = path[0].TrimEnd('/');
-                string appname = aRequest.Path.Query["appname"].FirstOrDefault();
+                string appname = aRawRequest.Path.Query["appname"].FirstOrDefault();
                 if (appname == null)
                 {
-                    aResponder.Send404NotFound();
-                    return;
+                    return false;
                 }
-                if (aRequest.Method == "POST")
+                if (aRawRequest.Method == "POST")
                 {
                     var app = iAppsState.GetApp(appname);
                     if (app == null)
                     {
-                        aResponder.Send404NotFound();
-                        return;
+                        return false;
                     }
                     var requestSession = iAppsState.GetSession(sessionId);
                     if (requestSession == null)
                     {
-                        aResponder.Send404NotFound();
-                        return;
+                        return false;
                     }
-                    string userid = aRequest.Cookies["xappuser"].FirstOrDefault();
+                    string userid = aRawRequest.Cookies["xappuser"].FirstOrDefault();
                     var serverTab = requestSession.CreateTab(app, userid);
                     aResponder.SendPage("200 OK", PageSource.MakeSourceFromString(StringType.Json,
                         new JsonObject{
                             {"tabUrl", new JsonString(String.Format("/poll/{0}/{1}", requestSession.Key, serverTab.TabKey))},
                             {"tabId", new JsonString(serverTab.TabKey)}}.ToString()));
-                    return;
+                    return true;
                 }
             }
             else if (path.Count == 2)
@@ -234,18 +232,17 @@ namespace OpenHome.XappForms
                 var serverTab = iAppsState.GetTab(sessionId, tabId);
                 if (serverTab == null)
                 {
-                    aResponder.Send404NotFound();
-                    return;
+                    return false;
                 }
                 aResponder.ServeLongPoll("200 OK", aResponder.DefaultResponseHeaders, "application/json", serverTab.Serve());
-                return;
+                return true;
             }
-            aResponder.Send404NotFound();
+            return false;
         }
 
-        void HandleSend(RequestData aRequest, IServerWebRequestResponder aResponder)
+        bool HandleSend(RawRequestData aRawRequest, IServerWebRequestResponder aResponder)
         {
-            IList<string> path = aRequest.Path.PathSegments;
+            IList<string> path = aRawRequest.Path.PathSegments;
             if (path.Count == 2)
             {
                 string sessionId = path[0].TrimEnd('/');
@@ -254,14 +251,13 @@ namespace OpenHome.XappForms
                 var serverTab = iAppsState.GetTab(sessionId, tabId);
                 if (serverTab == null)
                 {
-                    aResponder.Send404NotFound();
-                    return;
+                    return false;
                 }
                 SendHandler handler = new SendHandler(serverTab.AppTab, aResponder);
                 aResponder.ReadBody(handler.Write, handler.Flush, handler.End, handler.CancellationToken);
-                return;
+                return true;
             }
-            aResponder.Send404NotFound();
+            return false;
         }
 
         private class SendHandler

@@ -51,7 +51,6 @@ namespace OpenHome.XappForms
         /// <param name="aDateTime"></param>
         public Task Reschedule(DateTime aDateTime)
         {
-            var obj = new object();
             return iStrand.ScheduleExclusive(
                 ()=>
                 {
@@ -150,18 +149,27 @@ namespace OpenHome.XappForms
         {
             iNextTime = DateTime.MaxValue;
             int processedEvents = 0;
+            var now = iClock();
+            BinaryHeapNode<DateTime> top = null;
             while (iHeap.Count > 0)
             {
-                var top = iHeap.Peek();
+                top = iHeap.Peek();
                 if (top.Value == DateTime.MaxValue) break;
-                if (top.Value > iClock()) break;
+                if (top.Value > now) break;
                 top.Value = DateTime.MaxValue;
                 iCallbacks[top].Invoke();
                 processedEvents += 1;
             }
             if (processedEvents == 0)
             {
-                Console.WriteLine("Woke up too early!");
+                if (top == null || top.Value == DateTime.MaxValue)
+                {
+                    Console.WriteLine("Woke up too early. (Nothing scheduled.)");
+                }
+                else
+                {
+                    Console.WriteLine("Woke up too early. (Next scheduled event in {0}.)", now - top.Value);
+                }
             }
             RefreshTimer();
         }

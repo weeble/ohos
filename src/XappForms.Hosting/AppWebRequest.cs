@@ -34,23 +34,23 @@ namespace OpenHome.XappForms
     */
     public class AppWebRequest : IAppWebRequest, IServerWebRequestResponder
     {
-        public RequestData RequestData { get; private set; }
+        public RawRequestData RawRequestData { get; private set; }
         public BodyDelegate Body { get; private set; }
         public IWebRequestResponder Responder { get { return this; } }
         public Dictionary<string, IEnumerable<string>> DefaultResponseHeaders { get; private set; }
         readonly ResultDelegate iResult;
 
-        public string Method { get { return RequestData.Method; } }
-        public IList<string> RelativePath { get { return RequestData.Path.PathSegments; } }
-        public IDictionary<string, IEnumerable<string>> Query { get { return RequestData.Path.Query; } }
+        public string Method { get { return RawRequestData.Method; } }
+        public IList<string> RelativePath { get { return RawRequestData.Path.PathSegments; } }
+        public IDictionary<string, IEnumerable<string>> Query { get { return RawRequestData.Path.Query; } }
 
         public AppWebRequest(
-            RequestData aRequestData,
+            RawRequestData aRawRequestData,
             Dictionary<string, IEnumerable<string>> aDefaultResponseHeaders,
             ResultDelegate aResult,
             BodyDelegate aBody)
         {
-            RequestData = aRequestData;
+            RawRequestData = aRawRequestData;
             DefaultResponseHeaders = aDefaultResponseHeaders;
             iResult = aResult;
             Body = aBody;
@@ -59,7 +59,7 @@ namespace OpenHome.XappForms
         public IAppWebRequest SkipPathSegments(int aCount)
         {
             return new AppWebRequest(
-                RequestData.SkipPathSegments(aCount),
+                RawRequestData.WithPath(RawRequestData.Path.SkipPathSegments(aCount)),
                 DefaultResponseHeaders,
                 iResult,
                 Body);

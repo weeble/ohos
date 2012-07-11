@@ -45,29 +45,68 @@ namespace OpenHome.XappForms
         }
     }
 
-    public class RequestData
+    public interface IHasWithPath<T>
+    {
+        T WithPath(RequestPath aNewPath);
+    }
+
+    public interface IRequestData
+    {
+        RequestPath Path { get; }
+        string Method { get; }
+    }
+
+    public interface IRawRequestData : IRequestData
+    {
+        RequestCookies Cookies { get; }
+        IDictionary<string, IEnumerable<string>> Headers { get; }
+        //new IRawRequestData SkipPathSegments(int aCount);
+    }
+
+    public class RawRequestData : IRawRequestData, IHasWithPath<RawRequestData>
     {
         public RequestPath Path { get; private set; }
         public IDictionary<string, IEnumerable<string>> Headers { get; private set; }
         public string Method { get; private set; }
         public RequestCookies Cookies { get; private set; }
-        public RequestData(string aMethod, RequestPath aPath, IDictionary<string, IEnumerable<string>> aHeaders)
+        public RawRequestData(string aMethod, RequestPath aPath, IDictionary<string, IEnumerable<string>> aHeaders)
         {
             Method = aMethod;
             Path = aPath;
             Headers = aHeaders;
             Cookies = new RequestCookies(aHeaders); // TODO: Avoid reparsing cookies on SkipPathSegments.
         }
-        public RequestData(string aMethod, string aPath, IDictionary<string, IEnumerable<string>> aHeaders)
+        public RawRequestData(string aMethod, string aPath, IDictionary<string, IEnumerable<string>> aHeaders)
             : this(aMethod, new RequestPath(aPath), aHeaders)
         {
         }
-        public RequestData SkipPathSegments(int aCount)
+        public RawRequestData WithPath(RequestPath aNewPath)
         {
-            return new RequestData(
+            return new RawRequestData(
                 Method,
-                Path.SkipPathSegments(aCount),
+                aNewPath,
                 Headers);
+        }
+    }
+
+    public class RequestData : IRequestData, IHasWithPath<RequestData>
+    {
+        public RequestPath Path { get; private set; }
+        public string Method { get; private set; }
+        public User User { get; private set; }
+        public string BrowserClass { get; private set; }
+
+        public RequestData(RequestPath aPath, string aMethod, User aUser, string aBrowserClass)
+        {
+            Path = aPath;
+            Method = aMethod;
+            User = aUser;
+            BrowserClass = aBrowserClass;
+        }
+
+        public RequestData WithPath(RequestPath aNewPath)
+        {
+            return new RequestData(aNewPath, Method, User, BrowserClass);
         }
     }
 

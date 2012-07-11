@@ -71,14 +71,14 @@ namespace OpenHome.XappForms
         int counter = 0;
         UserList iUserList;
         readonly string iHttpDirectory;
-        AppUrlDispatcher iUrlDispatcher;
+        AppPathDispatcher iUrlDispatcher;
 
         public ChatApp(UserList aUserList, string aHttpDirectory)
         {
             iUserList = aUserList;
             iHttpDirectory = aHttpDirectory;
             iUserList.Updated += OnUserListUpdated;
-            iUrlDispatcher = new AppUrlDispatcher();
+            iUrlDispatcher = new AppPathDispatcher();
             iUrlDispatcher.MapPath( new string[] { }, ServeAppHtml);
             iUrlDispatcher.MapPrefixToDirectory(new string[] { }, aHttpDirectory);
         }
@@ -88,17 +88,18 @@ namespace OpenHome.XappForms
             return Path.Combine(iHttpDirectory, aFilename);
         }
 
-        void ServeAppHtml(RequestData aRequest, IWebRequestResponder aResponder)
+        bool ServeAppHtml(RequestData aRequest, IWebRequestResponder aResponder)
         {
-            string browser = aRequest.Cookies["xappbrowser"].First();
+            string browser = aRequest.BrowserClass;
             string filename = GetBrowserDiscriminationMappings()[browser];
             aResponder.SendFile(GetPath(filename));
+            return true;
         }
 
-        public void ServeWebRequest(RequestData aRequest, IWebRequestResponder aResponder)
+        public bool ServeWebRequest(RequestData aRequest, IWebRequestResponder aResponder)
         {
             //Console.WriteLine("Serving {0} from chat app.", aRequest.Path.OriginalUri);
-            iUrlDispatcher.ServeRequest(aRequest, aResponder);
+            return iUrlDispatcher.ServeRequest(aRequest, aResponder);
         }
 
         public IAppTab CreateTab(IBrowserTabProxy aTabProxy, User aUser)

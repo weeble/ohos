@@ -35,8 +35,8 @@
     <Compile Include="IBrowserTabProxy.cs" />
     <Compile Include="IPageSource.cs" />
     <Compile Include="IWebRequestResponder.cs" />
-    <Compile Include="IXapp.cs" />
-    <Compile Include="RequestData.cs" />
+    <Compile Include="IRawXapp.cs" />
+    <Compile Include="RawRequestData.cs" />
     <Compile Include="UrlDispatcher.cs" />
     <Compile Include="User.cs" />
     <Compile Include="Users.cs" />

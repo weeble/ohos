@@ -87,7 +87,7 @@ namespace OpenHome.XappForms
             Sessions = new Dictionary<string, SessionRecord>();
         }
 
-        public AppRecord AddApp(string aName, IXapp aApp)
+        public AppRecord AddApp(string aName, IRawXapp aApp)
         {
             return Apps[aName] = new AppRecord(aApp, aName, new Strand());
         }
@@ -361,11 +361,11 @@ namespace OpenHome.XappForms
 
     public class AppRecord
     {
-        public IXapp App { get; private set; }
+        public IRawXapp App { get; private set; }
         public string Id { get; private set; }
         public Strand Strand { get; private set; }
 
-        public AppRecord(IXapp aApp, string aId, Strand aStrand)
+        public AppRecord(IRawXapp aApp, string aId, Strand aStrand)
         {
             App = aApp;
             Id = aId;

@@ -10,17 +10,17 @@ namespace OpenHome.XappForms
         HashSet<TestAppTab> iTabs = new HashSet<TestAppTab>();
         object iLock = new object();
         int counter = 0;
-        AppUrlDispatcher iUrlDispatcher;
+        AppPathDispatcher iPathDispatcher;
 
         public TestApp()
         {
-            iUrlDispatcher = new AppUrlDispatcher();
-            iUrlDispatcher.MapPrefixToDirectory(new string[] { }, "test");
+            iPathDispatcher = new AppPathDispatcher();
+            iPathDispatcher.MapPrefixToDirectory(new string[] { }, "test");
         }
 
-        public void ServeWebRequest(RequestData aRequest, IWebRequestResponder aResponder)
+        public bool ServeWebRequest(RequestData aRequest, IWebRequestResponder aResponder)
         {
-            iUrlDispatcher.ServeRequest(aRequest, aResponder);
+            return iPathDispatcher.ServeRequest(aRequest, aResponder);
         }
 
         public IAppTab CreateTab(IBrowserTabProxy aTabProxy, User aUser)

@@ -5,6 +5,10 @@ using System.Linq;
 
 namespace OpenHome.XappForms
 {
+    /// <summary>
+    /// Read-only view of a contiguous subset of an array.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public struct ArraySlice<T> : IList<T>
     {
         readonly ArraySegment<T> iSegment;
@@ -121,6 +125,21 @@ namespace OpenHome.XappForms
             set { throw new InvalidOperationException(); }
         }
 
+        /// <summary>
+        /// Take a sub-slice. Slicing behaviour is the same as Python, but without an option for stride.
+        /// If aStartIndex matches or exceeds aEndIndex, the new slice will be zero-length.
+        /// If aEndIndex exceeds the end of this slice, the new slice will be truncated to the end of this slice.
+        /// If aStartIndex preceeds the start of this slice, the new slice will be truncated to the start of this slice.
+        /// </summary>
+        /// <param name="aStartIndex">
+        /// If non-negative, index of the first element to include in the new slice.
+        /// If negative, index from the end instead, i.e. -1 means to start with the last element, -2 with the second-last.
+        /// </param>
+        /// <param name="aEndIndex">
+        /// If non-negative, index of the first elementto exclude from the slice.
+        /// If negative, index from the end instead.
+        /// </param>
+        /// <returns></returns>
         public ArraySlice<T> Slice(int aStartIndex, int aEndIndex)
         {
             Validate();

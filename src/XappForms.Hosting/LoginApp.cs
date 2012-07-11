@@ -20,14 +20,14 @@ namespace OpenHome.XappForms
         int iCounter;
         readonly UserList iUserList;
         readonly string iHttpDirectory;
-        readonly AppUrlDispatcher iUrlDispatcher;
+        readonly AppPathDispatcher iUrlDispatcher;
 
         public LoginApp(UserList aUserList, string aHttpDirectory)
         {
             iUserList = aUserList;
             iHttpDirectory = aHttpDirectory;
             iUserList.Updated += OnUserListUpdated;
-            iUrlDispatcher = new AppUrlDispatcher();
+            iUrlDispatcher = new AppPathDispatcher();
             iUrlDispatcher.MapPath( new string[] { }, ServeAppHtml);
             iUrlDispatcher.MapPrefixToDirectory(new string[] { }, aHttpDirectory);
         }
@@ -37,16 +37,18 @@ namespace OpenHome.XappForms
             return Path.Combine(iHttpDirectory, aFilename);
         }
 
-        void ServeAppHtml(RequestData aRequest, IWebRequestResponder aResponder)
+        bool ServeAppHtml(RequestData aRequest, IWebRequestResponder aResponder)
         {
-            string browser = aRequest.Cookies["xappbrowser"].First();
+            string browser = aRequest.BrowserClass;
             string filename = GetBrowserDiscriminationMappings()[browser];
             aResponder.SendFile(GetPath(filename));
+            return true;
         }
 
-        public void ServeWebRequest(RequestData aRequest, IWebRequestResponder aResponder)
+        public bool ServeWebRequest(RequestData aRequest, IWebRequestResponder aResponder)
         {
-            iUrlDispatcher.ServeRequest(aRequest, aResponder);
+            Console.WriteLine("Login app sees: {0} as {1}", aRequest.Path.OriginalUri, String.Join("/", aRequest.Path.PathSegments));
+            return iUrlDispatcher.ServeRequest(aRequest, aResponder);
         }
 
         public IAppTab CreateTab(IBrowserTabProxy aTabProxy, User aUser)

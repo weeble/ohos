@@ -153,8 +153,27 @@ namespace OpenHome.Os.Platform
         /// </summary>
         string Name { get; }
         /// <summary>
+        /// Publish a raw Xapp web UI.
+        /// </summary>
+        /// <remarks>
+        /// A raw Xapp UI can inspect the cookies and headers associated with
+        /// web requests. It receives all web requests to its URI namespace.
+        /// </remarks>
+        /// <param name="aXappName"></param>
+        /// <param name="aRawXapp"></param>
+        void PublishXapp(string aXappName, IRawXapp aRawXapp);
+        /// <summary>
         /// Publish a Xapp web UI.
         /// </summary>
+        /// <remarks>
+        /// A Xapp UI does not have access to cookies or other headers, but
+        /// is notified of the logged in user and the results of browser
+        /// discrimination. In addition, if the cookies for browser
+        /// discrimination or logged in user are absent, instead of the app
+        /// receiving the request the system will serve up a special page
+        /// to check the browser class or to ask the user to log in.
+        /// </remarks>
+        /// <param name="aXappName"></param>
         /// <param name="aXapp"></param>
         void PublishXapp(string aXappName, IXapp aXapp);
     }

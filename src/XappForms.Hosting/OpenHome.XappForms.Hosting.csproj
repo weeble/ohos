@@ -42,8 +42,10 @@
   <ItemGroup>
     <Compile Include="AppsState.cs" />
     <Compile Include="AppWebRequest.cs" />
+    <Compile Include="UserAndBrowserFilter.cs" />
     <Compile Include="LoginApp.cs" />
     <Compile Include="Config\AssemblyInfo.cs" />
+    <Compile Include="ServerModule.cs" />
     <Compile Include="ServerUrlDispatcher.cs" />
     <Compile Include="TestApp.cs" />
     <Compile Include="Program.cs" />

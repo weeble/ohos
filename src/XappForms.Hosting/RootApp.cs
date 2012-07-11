@@ -8,17 +8,17 @@ namespace OpenHome.XappForms
 {
     class RootApp : IXapp
     {
-        readonly AppUrlDispatcher iUrlDispatcher;
+        readonly AppPathDispatcher iUrlDispatcher;
 
         public RootApp()
         {
-            iUrlDispatcher = new AppUrlDispatcher();
-            iUrlDispatcher.MapPrefixToDirectory(new string[] { }, "chat");
+            iUrlDispatcher = new AppPathDispatcher();
+            iUrlDispatcher.MapPrefixToDirectory(new string[] { }, "root");
         }
 
-        public void ServeWebRequest(RequestData aRequest, IWebRequestResponder aResponder)
+        public bool ServeWebRequest(RequestData aRequest, IWebRequestResponder aResponder)
         {
-            iUrlDispatcher.ServeRequest(aRequest, aResponder);
+            return iUrlDispatcher.ServeRequest(aRequest, aResponder);
         }
 
         public IAppTab CreateTab(IBrowserTabProxy aTabProxy, User aUser)

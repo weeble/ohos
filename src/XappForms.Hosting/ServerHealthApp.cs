@@ -31,14 +31,14 @@ namespace OpenHome.XappForms
 
         readonly Dictionary<Tuple<string, string>, ServerHealthAppTab> iServerHealthTabs = new Dictionary<Tuple<string, string>, ServerHealthAppTab>();
 
-        readonly AppUrlDispatcher iUrlDispatcher;
+        readonly AppPathDispatcher iPathDispatcher;
 
         public ServerHealthApp(string aHttpDirectory)
         {
             iHttpDirectory = aHttpDirectory;
-            iUrlDispatcher = new AppUrlDispatcher();
-            iUrlDispatcher.MapPath(new string[] { }, ServeAppHtml);
-            iUrlDispatcher.MapPrefixToDirectory(new string[] { }, aHttpDirectory);
+            iPathDispatcher = new AppPathDispatcher();
+            iPathDispatcher.MapPath(new string[] { }, ServeAppHtml);
+            iPathDispatcher.MapPrefixToDirectory(new string[] { }, aHttpDirectory);
         }
 
         string GetPath(string aFilename)
@@ -46,11 +46,12 @@ namespace OpenHome.XappForms
             return Path.Combine(iHttpDirectory, aFilename);
         }
 
-        void ServeAppHtml(RequestData aRequest, IWebRequestResponder aResponder)
+        bool ServeAppHtml(RequestData aRequest, IWebRequestResponder aResponder)
         {
-            string browser = aRequest.Cookies["xappbrowser"].First();
+            string browser = aRequest.BrowserClass;
             string filename = GetBrowserDiscriminationMappings()[browser];
             aResponder.SendFile(GetPath(filename));
+            return true;
         }
 
         public void NewTab(string aSessionId, string aTabId, string aUserId, string aAppId)
@@ -139,9 +140,9 @@ namespace OpenHome.XappForms
 
         bool iIterating;
 
-        public void ServeWebRequest(RequestData aRequest, IWebRequestResponder aResponder)
+        public bool ServeWebRequest(RequestData aRequest, IWebRequestResponder aResponder)
         {
-            iUrlDispatcher.ServeRequest(aRequest, aResponder);
+            return iPathDispatcher.ServeRequest(aRequest, aResponder);
         }
 
         public IAppTab CreateTab(IBrowserTabProxy aTabProxy, User aUser)
