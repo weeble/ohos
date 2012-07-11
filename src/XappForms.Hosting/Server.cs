@@ -161,11 +161,7 @@ namespace OpenHome.XappForms
             }
             iServerStrand.ScheduleExclusive(() =>
                 {
-                    Console.WriteLine("ADDING... {0}", aXappName);
-                    var xapp = iXappAdapter(aXapp);
-                    Console.WriteLine("ADDING#2... {0}", aXappName);
                     iAppsState.AddApp(aXappName, iXappAdapter(aXapp));
-                    Console.WriteLine("ADDING#3... {0}", aXappName);
                 });
         }
 
