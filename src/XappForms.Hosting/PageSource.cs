@@ -7,7 +7,7 @@ using Owin;
 
 namespace OpenHome.XappForms
 {
-    static class PageSource
+    public static class PageSource
     {
         public static BodyDelegate ServeFile(string filename)
         {
@@ -64,7 +64,8 @@ namespace OpenHome.XappForms
             { StringType.Javascript, "application/javascript; charset=utf-8" },
         };
     }
-    enum StringType
+
+    public enum StringType
     {
         Plain,
         Html,

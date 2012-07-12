@@ -561,6 +561,22 @@ csharp_projects = [
                 'ohOs.Apps',
                 ],
             ),
+        CSharpProject(
+            name="OpenHome.XappForms.Forms.App", dir="OpenHome.XappForms.Forms", type="library",
+            categories=["core"],
+            packages=[
+                'nuget-Owin',
+                'ohnet',
+                'mef',
+                'systemxmllinq'
+                ],
+            references=[
+                'OpenHome.XappForms',
+                'ohOs.Platform',
+                'ohOs.Apps',
+                'OpenHome.XappForms.Hosting',
+                ],
+            ),
     ]
 
 # Files for minification.
@@ -617,6 +633,13 @@ ohos_apps = [
             name="OpenHome.XappForms.Chat",
             files=[
                 'OpenHome.XappForms.Chat.App.dll'
+            ],
+            jsproxies=[]
+            ),
+        OhOsApp(
+            name="OpenHome.XappForms.Forms",
+            files=[
+                'OpenHome.XappForms.Forms.App.dll'
             ],
             jsproxies=[]
             ),
