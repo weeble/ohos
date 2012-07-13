@@ -1,3 +1,7 @@
+/*
+* Example Plugin
+*/ 
+
 ;(function($) {
     ohjui['ohjplugin'] = function(element, options) {
             var elem = $(element);

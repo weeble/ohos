@@ -6,7 +6,7 @@
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{E5044F68-C565-4EBA-9C34-57DC0B15EF0F}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Xohj</RootNamespace>
     <AssemblyName>Xohj</AssemblyName>
@@ -32,6 +32,9 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
   </PropertyGroup>
   <ItemGroup>
     <Content Include="docs\css\bootstrap-responsive.css" />
@@ -95,6 +98,8 @@
     <Content Include="ohj\page\index.html" />
     <Content Include="ohj\page\ohj.page.js" />
     <Content Include="ohj\page\page-test.html" />
+    <Content Include="ohj\virtuallist\default.jpg" />
+    <Content Include="ohj\virtuallist\index.html" />
     <Content Include="ohj\virtuallist\ohj.virtuallist.js" />
     <Content Include="theme\default\bootstrap.min.css" />
   </ItemGroup>

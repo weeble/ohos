@@ -97,6 +97,40 @@
                 font-size:10px;
             }
             
+            .ohjvirtuallist li
+            {
+                background-color:#EEE;
+                border-bottom:1px solid #CCC;
+ 
+            }
+            .ohjvirtuallist h3
+            {
+                margin-top:10px;
+                font-size:15px;
+                line-height:40px;
+            }
+            
+            .ohjvirtuallist img
+            {
+                height:40px;        
+            }
+            
+            .ohjvirtuallist li
+            {
+                background-color:#EEE;
+                border-bottom:1px solid #CCC;
+                height:40px;    
+                width:100%;
+                position:absolute;
+            }
+            
+            .ohjvirtuallist .ohjlist
+            {
+                background:#FFF url('../ohj/virtuallist/background-sm.jpg') repeat-y;
+                
+            }
+            
+            
         </style>
         <link href="css/bootstrap-responsive.min.css" rel="stylesheet">
 
@@ -446,6 +480,28 @@
                         </div>
                     </div><!-- /.span -->
                 </div>
+                 <div class="block row">
+                    <div class="offset1 span3 well">
+                        <div class="demo">
+                            <h3>Virtual List</h3>
+                            <p>
+                               A list control where a large finite set of list items can be scrolled on demand
+                            </p>
+                             <div id="virtuallist" >
+                                <div data-use-ohjscroller="true" data-height="300px" >
+                                    <ul data-use-ohjlist="true">
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="span3"  style="text-align:center">
+                                <br/>
+                                <a class="btn btn-warning btn-large" href="../ohj/virtuallist/index.html"> Learn more </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </section>
             <section id="lib">
                 <div class="page-header">
@@ -476,6 +532,7 @@
     &lt;script src="../ohj/page/ohj.page.js"&gt;&lt;/script&gt;
     &lt;script src="../ohj/list/ohj.list.js"&gt;&lt;/script&gt;
     &lt;script src="../ohj/lazylist/ohj.lazylist.js"&gt;&lt;/script&gt;
+    &lt;script src="../ohj/virtuallist/ohj.virtuallist.js"&gt;&lt;/script&gt;
 
     &lt;!-- css Files --&gt;
     &lt;link href="../ohj/scroller/ohj.scroller.pointer.css" rel="stylesheet"&gt;
@@ -537,6 +594,7 @@
         <script src="../ohj/page/ohj.page.js"></script>
         <script src="../ohj/list/ohj.list.js"></script>
         <script src="../ohj/lazylist/ohj.lazylist.js"></script>
+        <script src="../ohj/virtuallist/ohj.virtuallist.js"></script>
         <script>
             $().ready(function () {
 
@@ -579,6 +637,31 @@
                                 onSuccess(listdata.slice(startIndex, endIndex));
                             }, 500);
                         }
+                    }
+                });
+
+                var virtuallist = $("#virtuallist").ohjvirtuallist({
+                    onrenderitem: function (e, index, data) {
+                        var html = '<li class=" li_' + index + '" style="top:' + $(this).data('ohjvirtuallist').getItemHeight() * index + 'px" ><img src="../ohj/virtuallist/default.jpg" /><h3>' + data + '</h3></li>';
+                        $('#virtuallist ul').data('ohjlist').addListItem(html);
+                    },
+                    onremoveitem: function (e, index) {
+                        $('#virtuallist .li_' + index).remove();
+                    },
+                    ongetdata: function (e, startIndex, endIndex, onSuccess) {
+                        if (onSuccess != null) {
+                            setTimeout(function () {
+                                var results = {};
+                                for (var i = startIndex; i < endIndex; i++) {
+                                    results[i] = listdata[i];
+                                }
+                                onSuccess(results);
+                            }, 500);
+
+                        }
+                    },
+                    ongetitemcount: function () {
+                        $(this).data('ohjvirtuallist').setItemCount(10000);
                     }
                 });
             });
