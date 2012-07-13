@@ -1,6 +1,6 @@
 ;(function($) {
     ohjui['ohjvirtuallist'] = function(element, options) {
-            var listitemHeight = 0,viewPortverticalItems = 0,viewPortHorizontalItems = 0, scrollTimer = null,itemcount = 0, domcacheindex = [], datacache = {}, datacacheindex = [],startIndex = 0 , endIndex = 0;
+            var list = null,listitemHeight = 0,viewPortverticalItems = 0,viewPortHorizontalItems = 0, scrollTimer = null,itemcount = 0, domcacheindex = [], datacache = {}, datacacheindex = [],startIndex = 0 , endIndex = 0;
             var elem = $(element);
             var _this = this;
             var settings = $.extend({
@@ -142,6 +142,8 @@
                 elem.find('.ohjscroller').on('scroll',function() {              
                     getNextDataSegment();
                 });
+
+                list =  elem.find('.ohjlist').data('ohjlist');
             };
 
             var getData = function(sBlock, eBlock,onSuccess)
@@ -180,6 +182,14 @@
             //         onSuccess(cacheddata);
            //     }
             };
+
+            this.destroy = function() {
+                var scroller = _this.getScroller();
+                if(scroller!=null) { scroller.destroy(); }
+                if(list!=null) { list.destroy(); }
+                elem.destroyPlugin();
+            };
+
             
             // Add / override extensions to load
             if(settings.extend)
