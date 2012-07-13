@@ -1,0 +1,153 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../../lib/jquery-1.7.2.min.js"></script>
+    <link rel="stylesheet" href="../../lib/test/qunit.css" type="text/css" media="screen" />
+    <script type="text/javascript" src="../../lib/test/qunit.js"></script>
+    <link rel="stylesheet" href="../ohj.ui.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../list/ohj.list.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="../scroller/ohj.scroller.pointer.css" type="text/css" media="screen" />
+    <script src="../ohj.util.js"></script>
+    <script src="../ohj.ui.js"></script>
+    <script src="../ohj.ui.bridge.js"></script>
+      <script src="../page/ohj.page.js"></script>
+        <script src="../scroller/ohj.scroller.js"></script>
+        <script src="../scroller/ohj.scroller.pointer.js"></script>
+        <script src="../scroller/ohj.scroller.touch.js"></script>
+        <script src="../navbar/ohj.navbar.js"></script>
+        <script src="../list/ohj.list.js"></script>
+        <script src="ohj.virtuallist.js"></script>
+     
+    <style>
+        
+        .ohjvirtuallist li
+        {
+            background-color:#EEE;
+                border-bottom:1px solid #CCC;
+                height:80px;    
+                width:100%;
+                position:absolute;
+
+        }
+        
+        .ohjvirtuallist h3
+        {
+            margin-top:10px;
+            font-size:15px;
+            line-height:80px;
+        }
+        
+        .ohjvirtuallist img
+        {
+            height:80px;        
+        }
+        
+        .ohjvirtuallist
+        {
+
+            overflow:hidden;
+        }
+            
+   
+        .ohjvirtuallist .ohjlist
+        {                           
+            padding-left:0px;
+            background:#FFF url('background.jpg') repeat-y;
+        }
+    </style>
+    <script>
+        // Temp
+        var listdata = [];
+        for (var i = 0; i < 10000; i++) {
+            listdata.push('This is listitem ' + i);
+        }
+
+        function renderBasicItem(e, index,data) {
+            var html = '<li class=" li_' + index + '" style="top:' + $(this).data('ohjvirtuallist').getItemHeight() * index + 'px" ><img src="default.jpg" /><h3>' + data + '</h3></li>'; // console.log(arguments[i]);
+            $('#basic ul').data('ohjlist').addListItem(html);
+        }
+
+        function removeBasicItem(e, index) {
+            $('#basic .li_' + index).remove();
+        }
+
+        function getBasicData(e, startIndex, endIndex, onSuccess) {
+            if (onSuccess != null) {
+                setTimeout(function () {
+                    var results = {};
+                    for (var i = startIndex; i < endIndex; i++) {
+                        results[i] = listdata[i];
+                    }
+                    onSuccess(results);
+                }, 500);       
+            }
+        }
+
+       function getItemCount() {
+            $(this).data('ohjvirtuallist').setItemCount(10000);
+        }
+
+        $(document).ready(function () {
+            setTimeout(function () {
+                module("Basic Virtual List");
+
+                test("Basic Virtual List is inline decorated", function () {
+                    ok($('#basic').hasClass('ohjui'), 'We expect the Basic virtuallist list to contain the class ohjui');
+                    ok($('#basic').hasClass('ohjvirtuallist'), 'We expect the Basic list to contain the class ohjvirtuallist');
+                });
+
+                test("Basic virtuallist List can retreive additional blocks", function () {
+                    var current = $('#basic li').length;
+                    equal(current, 30, 'We expect the Basic list to start with 30 items (2 blocks of 15)');
+
+                    $('#basic .ohjscroller').data('ohjscroller').scrollToBottom();
+                    stop(1);
+                    setTimeout(function () {
+                        start();
+                        ok($('#basic li').length > current, 'We expect the Basic list to have loaded an additional items after scroller to bottom ');
+                    }, 1000);
+                });
+           
+
+                module("Destroy List");
+
+                test("Destroy the list", function () {
+                    $('#destroy').ohjvirtuallist();
+                    ok($('#destroy').data('ohjvirtuallist') != undefined, 'Destroy list created');
+                    $('#destroy').data('ohjvirtuallist').destroy();
+                    equal($('#destroy').data('ohjvirtuallist'), undefined, 'Destroy list destroyed');
+                });
+            }, 1000);
+        });
+    </script>
+</head>
+<body>
+    <h1 id="qunit-header">
+       virtuallist List Tests</h1>
+    <h2 id="qunit-banner">
+    </h2>
+    <div id="qunit-testrunner-toolbar">
+    </div>
+    <h2 id="qunit-userAgent">
+    </h2>
+    <ol id="qunit-tests">
+    </ol>
+    <div id="qunit-fixture">
+        test markup, will be hidden</div>
+    <h2>
+        Basic</h2>
+    <div id="basic" data-use-ohjvirtuallist="true" style="width:320px;" data-ongetitemcount="getItemCount" data-ongetdata="getBasicData" data-onremoveitem="removeBasicItem"  data-onrenderitem="renderBasicItem">
+        <div data-use-ohjscroller="true" data-height="500px">
+            <ul data-use-ohjlist="true">
+            </ul>
+        </div>
+    </div>
+
+       <div id="destroy"  style="width:320px;" >
+        <div data-use-ohjscroller="true" data-height="200px">
+            <ul data-use-ohjlist="true">
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
