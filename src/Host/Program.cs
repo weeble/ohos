@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography;
+using System.Text;
 using System.Xml.Linq;
 using OpenHome.Os.Apps;
 using OpenHome.Os.Host.Guardians;
@@ -17,6 +19,7 @@ using OpenHome.Net.Device;
 using log4net;
 using OpenHome.Os.Core;
 using OpenHome.Os.Update;
+using OpenHome.XappForms;
 
 //using Mono.Addins;
 
@@ -56,6 +59,7 @@ namespace OpenHome.Os.Host
         public ILogReader LogReader { get; set; }
         public ILogController LogController { get; set; }
         public ISystemClock SystemClock { get; set; }
+        public UserList UserList{ get; set; }
 
         readonly Dictionary<Type, object> iAdditionalServices = new Dictionary<Type, object>();
         public void RegisterService<T>(T aService)
@@ -88,6 +92,7 @@ namespace OpenHome.Os.Host
         public uint? WebSocketPort { get; set; }
         public bool MultiNodeEnabled { get; set; }
         public uint DvServerPort { get; set; }
+        public string OhOsVersion { get; set; }
     }
 
     class NodeRebooter : INodeRebooter
@@ -390,6 +395,10 @@ namespace OpenHome.Os.Host
                     var clockProvider = new SystemClockProvider(systemClock);
                     var logControlProvider = new LogControlProvider(logSystem.LogReader, logSystem.LogController);
 
+                    string exeDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+                    string xappFormsHttpDirectory = Path.Combine(exeDirectory, "http");
+
+                    using (var xappModule = new ServerModule(xappFormsHttpDirectory))
                     using (var nodeDevice = new NodeDevice(nodeGuid))
                     using (new ProviderSystemUpdate(nodeDevice.Device.RawDevice, updateService,
                         updateConfigFile, Path.Combine(storeDirectory, "updates", "UpdateService.xml")))
@@ -402,7 +411,8 @@ namespace OpenHome.Os.Host
                                                        {
                                                            WebSocketPort = wsEnabled ? wsPort : (uint?)null,
                                                            MultiNodeEnabled = sysConfig.GetAttributeAsBoolean(e => e.Elements("multinode").Attributes("enable").FirstOrDefault()) ?? false,
-                                                           DvServerPort = dvServerPort
+                                                           DvServerPort = dvServerPort,
+                                                           OhOsVersion = OhOsVersion.Version
                                                        },
                                                        CommandRegistry = commandDispatcher,
                                                        CpDeviceListFactory = deviceListFactory,
@@ -412,11 +422,12 @@ namespace OpenHome.Os.Host
                                                        NodeRebooter = nodeRebooter,
                                                        UpdateService = null,
                                                        NodeDeviceAccessor = nodeDevice,
-                                                       SystemClock = systemClock
+                                                       SystemClock = systemClock,
+                                                       UserList = xappModule.UserList
                                                    };
 
                         Console.WriteLine(storeDirectory);
-                        using (var appModule = new AppShellModule(services, config, nodeGuid))
+                        using (var appModule = new AppShellModule(services, config, xappModule.XappServer, nodeGuid))
                         {
                             services.RegisterService(appModule.AppShell);
                             var appManager = appModule.AppShell;
@@ -429,6 +440,7 @@ namespace OpenHome.Os.Host
                                 var appManagerConsoleCommands = new AppManagerConsoleCommands(appManager);
                                 appManagerConsoleCommands.Register(commandDispatcher);
                                 appManager.Start();
+                                
                                 using (new AppListService(nodeDevice.Device.RawDevice, appManager))
                                 {
                                     //commandDispatcher.AddCommand("bump", aArguments => appController.BumpDummySequenceNumber(), "Bump the sequence number for the dummy app, for testing.");

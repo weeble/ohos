@@ -16,14 +16,11 @@
 # ${OH_PLATFORM} expands to the name of the target platform, e.g. "Windows-x86" or "Linux-ARM".
 
 # Platform-dependent dependencies
-"ohnet" "${OHNET_ARTIFACTS}/ohNet/ohNet-1.0~193-${OH_PLATFORM}-dev-release.tar.gz" "dependencies/${OH_PLATFORM}/" "--ohnet-dir dependencies/${OH_PLATFORM}/ohNet-${OH_PLATFORM}-release-dev/lib/"
+"ohnet" "${OHNET_ARTIFACTS}/ohNet/ohNet-1.0~277-${OH_PLATFORM}-dev-release.tar.gz" "dependencies/${OH_PLATFORM}/" "--ohnet-dir dependencies/${OH_PLATFORM}/ohNet-${OH_PLATFORM}-release-dev/lib/"
 
 # Platform-independent dependencies
-"nunit" "${OHNET_ARTIFACTS}/AnyPlatform/NUnit-2.6.0.12017.tar.gz" "dependencies/AnyPlatform/" "--nunit-dir dependencies/AnyPlatform/NUnit-2.6.0.12017/"
 "ndesk-options" "${OHNET_ARTIFACTS}/AnyPlatform/ndesk-options-0.2.1.bin.tar.gz" "dependencies/AnyPlatform/" "--ndesk-options-dir dependencies/AnyPlatform/ndesk-options-0.2.1.bin/"
-"moq" "${OHNET_ARTIFACTS}/AnyPlatform/Moq.4.0.10827.tar.gz" "dependencies/AnyPlatform/" "--moq-dir dependencies/AnyPlatform/Moq.4.0.10827/"
 "yui-compressor" "${OHNET_ARTIFACTS}/AnyPlatform/yui-compressor.tar.gz" "dependencies/AnyPlatform/" "--yui-compressor-dir dependencies/AnyPlatform/yui-compressor/"
 "sharpziplib" "${OHNET_ARTIFACTS}/AnyPlatform/SharpZipLib_0840_Bin.tar.gz" "dependencies/AnyPlatform/" "--sharp-zip-lib-dir dependencies/AnyPlatform/SharpZipLib_0840_Bin/"
-"log4net" "${OHNET_ARTIFACTS}/AnyPlatform/log4net-1.2.10.tar.gz" "dependencies/AnyPlatform/" "--log4net-dir dependencies/AnyPlatform/log4net-1.2.10/bin/net/2.0/release/"
 "sshnet" "${OHNET_ARTIFACTS}/AnyPlatform/Renci.SshNet-14316.tar.gz" "dependencies/AnyPlatform/" "--sshnet-dir dependencies/AnyPlatform/Renci.SshNet-14316/"
 "nuget" "${OHNET_ARTIFACTS}/AnyPlatform/NuGet.1.7.30402.9028.tar.gz" "dependencies/AnyPlatform/" ""

@@ -28,21 +28,6 @@ from waflib.Node import Node
 
 csharp_dependencies = CSharpDependencyCollection()
 
-nunit = csharp_dependencies.add_package('nunit')
-nunitdir = nunit.add_directory(
-    unique_id='nunit-dir',
-    as_option = '--nunit-dir',
-    option_help = 'Location of NUnit install',
-    in_dependencies = 'AnyPlatform/[Nn][Uu]nit*')
-nunitframeworkdir = nunitdir.add_directory(
-    unique_id='nunit-framework-dir',
-    as_option = '--nunit-framework-dir',
-    option_help = 'Location of NUnit framework DLL, defaults to "bin/framework" relative to NUNIT_DIR.',
-    relative_path = 'bin/framework')
-nunitframeworkdir.add_assemblies(
-    'nunit.framework.dll',
-    reference=True, copy=True)
-
 systemxmllinq = csharp_dependencies.add_package('systemxmllinq')
 systemxmllinq.add_system_assembly('System.Xml.Linq.dll')
 
@@ -117,32 +102,6 @@ sharpziplibdir.add_assemblies(
     'ICSharpCode.SharpZipLib.dll',
     reference=True, copy=True)
 
-# Log4Net is a logging library
-log4net = csharp_dependencies.add_package('log4net')
-log4netdir = log4net.add_directory(
-        unique_id = 'log4net-dir',
-        as_option = '--log4net-dir',
-        option_help = 'Location of log4net DLL',
-        in_dependencies = 'AnyPlatform/log4net-*/bin/net/2.0/release')
-log4netdir.add_assemblies(
-        'log4net.dll',
-        reference=True, copy=True)
-
-moq = csharp_dependencies.add_package('moq')
-moqdir = moq.add_directory(
-    unique_id = 'moq-dir',
-    as_option = '--moq-dir',
-    option_help = 'Location of Moq install',
-    in_dependencies = 'AnyPlatform/[Mm]oq*')
-moqdlldir = moqdir.add_directory(
-    unique_id = 'moq-dll-dir',
-    relative_path = {
-        '*':       'NET40',
-        'Linux-*': 'NET35'})
-moqdlldir.add_assemblies(
-    'Moq.dll',
-    reference=True, copy=True)
-
 # SshNet is a ssh client
 sshnet = csharp_dependencies.add_package('sshnet')
 sshnetdir = sshnet.add_directory(
@@ -154,7 +113,9 @@ sshnetdir.add_assemblies(
         'Renci.SshNet.dll',
         reference=True, copy=True)
 
-def add_nuget_package(name, assembly=None, subdir='lib/net40'):
+DEFAULT_ASSEMBLY = object()
+
+def add_nuget_package(name, assembly=DEFAULT_ASSEMBLY, subdir='lib/net40'):
     def to_option(s):
         s = s.lower()
         s = s.replace('.', '-')
@@ -164,7 +125,7 @@ def add_nuget_package(name, assembly=None, subdir='lib/net40'):
         return s
     option = to_option(name)
     pkg = csharp_dependencies.add_package('nuget-' + name)
-    if assembly is None:
+    if assembly is DEFAULT_ASSEMBLY:
         assembly = name + '.dll'
     # Note: the following pattern is designed to accomodate packages
     # whose names are prefixes of each other. For example, "Gate" and
@@ -177,7 +138,10 @@ def add_nuget_package(name, assembly=None, subdir='lib/net40'):
             as_option = option,
             option_help = 'Location of %s package' % name,
             in_dependencies = dependency_path)
-    pkgdir.add_assemblies(assembly, copy=True)
+    # Store the reference on the pkg object itself to query later.
+    pkg.directory = pkgdir
+    if assembly is not None:
+        pkgdir.add_assemblies(assembly, copy=True)
 
 add_nuget_package("Firefly")
 add_nuget_package("Gate")
@@ -186,6 +150,8 @@ add_nuget_package("Kayak", subdir='lib')
 add_nuget_package("Owin")
 add_nuget_package("Moq", subdir='lib/NET40')
 add_nuget_package("NUnit", assembly='nunit.framework.dll', subdir='lib')
+add_nuget_package("NUnit.Runners", assembly=None, subdir='tools')
+add_nuget_package("log4net", subdir='lib/net40-client')
 
 
 
@@ -200,6 +166,7 @@ def options(opt):
     opt.add_option('--notests', action='store_false', default=True, dest='tests', help='Disable compilation of NUnit tests')
     opt.add_option('--ohnet-source-dir', action='store', default=None, help='Location of OhNet source tree, if using OhNet built from source')
     opt.add_option('--nunit-args', action='store', default=None, help='Arguments to pass on to NUnit (only during "test")')
+    opt.add_option('--ohos-version', action='store', default='UNKNOWN', help='Specify the version number to embed in ohOs.')
 
 def configure(conf):
     def set_env(conf, varname, value):
@@ -232,7 +199,7 @@ def configure(conf):
     mono = set_env(conf, 'MONO', [] if plat.startswith('Windows') else ["mono", "--debug", "--runtime=v4.0"])
 
     if conf.env.BUILDTESTS:
-        nunitexedir = path.join(nunitdir.absolute_path, 'bin')
+        nunitexedir = csharp_dependencies['nuget-NUnit.Runners'].directory.absolute_path
         nunitexe = set_env(conf, 'NUNITEXE', path.join(nunitexedir, 'nunit-console-x86.exe' if plat.endswith('x86') else 'nunit-console.exe'))
         # NUnit uses $TMP to shadow copy assemblies. If it's not set it can end up writing
         # to /tmp/nunit20, causing all sorts of problems on a multi-user system. On non-Windows
@@ -248,6 +215,8 @@ def configure(conf):
                 (['env','LD_LIBRARY_PATH=' + conf.path.get_bld().abspath()]+mono))
 
     conf.env.append_value('CSFLAGS', '/warnaserror+')
+
+    set_env(conf, 'OHOS_VERSION', conf.options.ohos_version)
 
 
 # == Build support ==
@@ -277,13 +246,14 @@ def create_copy_task(build_context, files, target_dir='.', cwd=None, keep_relati
 
 
 class CSharpProject(object):
-    def __init__(self, name, dir, type, categories, packages, references):
+    def __init__(self, name, dir, type, categories, packages, references, extra_sources=[]):
         self.name = name
         self.dir = dir
         self.type = type
         self.categories = categories
         self.packages = packages
         self.references = references
+        self.extra_sources = list(extra_sources)
 
 class GeneratedFile(object):
     def __init__(self, xml, domain, type, version, target):
@@ -310,7 +280,7 @@ def create_csharp_tasks(bld, projects, csharp_dependencies):
         pkg_assemblies = csharp_dependencies.get_assembly_names_for_packages(bld, project.packages)
         bld(
             features='cs',
-            source=bld.path.ant_glob('src/'+project.dir+'/**/*.cs'),
+            source=bld.path.ant_glob('src/'+project.dir+'/**/*.cs') + project.extra_sources,
             type=project.type,
             platform="x86",    # TODO: Only set this where appropriate.
             gen=outputname,
@@ -346,10 +316,11 @@ def create_zip_task(bld, zipfile, sourceroot, ziproot, sourcefiles):
 
 def get_active_dependencies(env):
     active_dependency_names = set([
-        'ohnet', 'yui-compressor', 'sharpziplib', 'log4net', 'systemxmllinq', 'mef', 'sshnet',
-        'nuget-Gate', 'nuget-Owin', 'nuget-Gate.Hosts.Firefly', 'nuget-Firefly', 'nuget-Kayak', 'nuget-Moq', 'nuget-NUnit'])
+        'ohnet', 'yui-compressor', 'sharpziplib', 'systemxmllinq', 'mef', 'sshnet',
+        'nuget-Gate', 'nuget-Owin', 'nuget-Gate.Hosts.Firefly', 'nuget-Firefly', 'nuget-Kayak',
+        'nuget-Moq', 'nuget-NUnit', 'nuget-NUnit.Runners', 'nuget-log4net'])
     if env.BUILDTESTS:
-        active_dependency_names |= set(['nunit', 'ndeskoptions', 'moq'])
+        active_dependency_names |= set(['ndeskoptions'])
     return csharp_dependencies.get_subset(active_dependency_names)
 
 def get_path_inside_archive(input_path, source_root, target_root):
@@ -416,8 +387,9 @@ csharp_projects = [
         CSharpProject(
             name="ohOs.Platform", dir="Platform", type="library",
             categories=["early"],
-            packages=['ohnet', 'log4net', 'systemxmllinq'],
-            references=[]
+            packages=['ohnet', 'nuget-log4net', 'systemxmllinq'],
+            references=[],
+            extra_sources=['ohOs.Platform.Version.cs']
             ),
         CSharpProject(
             name="WebCompressor", dir="WebCompressor", type="exe",
@@ -429,33 +401,46 @@ csharp_projects = [
         CSharpProject(
             name="ohOs.Apps", dir="Apps", type="library",
             categories=["core"],
-            packages=['ohnet', 'sharpziplib', 'log4net', 'systemxmllinq', 'mef'],
+            packages=['ohnet', 'nuget-log4net', 'systemxmllinq'],
+            references=['ohOs.Platform', 'OpenHome.XappForms', 'OpenHome.XappForms.Hosting']
+            ),
+        CSharpProject(
+            name="ohOs.Apps.Hosting", dir="Apps.Hosting", type="library",
+            categories=["core"],
+            packages=['ohnet', 'sharpziplib', 'nuget-log4net', 'systemxmllinq', 'mef'],
             references=[
                 'DvOpenhomeOrgApp1',
                 'DvOpenhomeOrgAppList1',
                 'DvOpenhomeOrgAppManager1',
                 'ohOs.Platform',
+                'ohOs.Apps',
+                'OpenHome.XappForms',
+                'OpenHome.XappForms.Hosting'
             ]),
         CSharpProject(
             name="ohOs.IntegrationTests", dir="IntegrationTests", type="exe",
             categories=["core"],
-            packages=['ohnet', 'log4net', 'systemxmllinq'],
+            packages=['ohnet', 'nuget-log4net', 'systemxmllinq'],
             references=[
                 'DvOpenhomeOrgApp1',
-                'ohOs.Apps',
+                'ohOs.Apps.Hosting',
                 'ohOs.Platform',
+                'ohOs.Apps',
                 'ohOs.Host',
+                'OpenHome.XappForms.Hosting',
+                'OpenHome.XappForms',
             ]),
         CSharpProject(
             name="ohOs.PackageTests", dir="PackageTests", type="exe",
             categories=["core"],
-            packages=['ohnet', 'log4net', 'systemxmllinq'],
+            packages=['ohnet', 'nuget-log4net', 'systemxmllinq'],
             references=[
                 'CpOpenhomeOrgApp1',
                 'CpOpenhomeOrgAppList1',
                 'CpOpenhomeOrgAppManager1',
-                'ohOs.Apps',
+                'ohOs.Apps.Hosting',
                 'ohOs.Platform',
+                'ohOs.Apps',
                 'ohOs.Host',
             ]),
         CSharpProject(
@@ -464,54 +449,62 @@ csharp_projects = [
             packages=['ohnet', 'mef', 'systemxmllinq'],
             references=[
                 'ohOs.Platform',
+                'ohOs.Apps',
             ]),
         CSharpProject(
             name="ohOs.AppManager.App", dir="AppManager", type="library",
             categories=["core"],
-            packages=['ohnet', 'mef', 'systemxmllinq', 'log4net'],
+            packages=['ohnet', 'mef', 'systemxmllinq', 'nuget-log4net'],
             references=[
-                'ohOs.Apps',
+                'ohOs.Apps.Hosting',
                 'ohOs.Platform',
+                'ohOs.Apps',
                 'DvOpenhomeOrgAppManager1',
             ]),
         CSharpProject(
             name="ohOs.Host", dir="Host", type="exe",
             categories=["core"],
-            packages=['ohnet', 'log4net', 'systemxmllinq'],
+            packages=['ohnet', 'nuget-log4net', 'systemxmllinq', 'nuget-Owin', 'nuget-Gate', 'nuget-Firefly', 'nuget-Gate.Hosts.Firefly'],
             references=[
                 'ohOs.Platform',
-                'ohOs.Core',
                 'ohOs.Apps',
+                'ohOs.Core',
+                'ohOs.Apps.Hosting',
                 'ohOs.Update',
                 'DvOpenhomeOrgSystemUpdate1',
                 'DvOpenhomeOrgNode1',
+                'OpenHome.XappForms.Hosting',
+                'OpenHome.XappForms',
                 ]
             ),
         CSharpProject(
             name="ohOs.Update", dir="Update", type="library",
             categories=["core"],
-            packages=['ohnet', 'log4net', 'systemxmllinq'],
-            references=['DvOpenhomeOrgSystemUpdate1', 'ohOs.Platform']
+            packages=['ohnet', 'nuget-log4net', 'systemxmllinq'],
+            references=['DvOpenhomeOrgSystemUpdate1',
+                'ohOs.Platform',
+                'ohOs.Apps']
             ),
         CSharpProject(
             name="ohOs.Core", dir="Core", type="library",
             categories=["core"],
-            packages=['ohnet', 'log4net', 'systemxmllinq'],
+            packages=['ohnet', 'nuget-log4net', 'systemxmllinq'],
             references=[
                 'ohOs.Platform',
+                'ohOs.Apps',
                 'DvOpenhomeOrgNode1',
                 ]
             ),
         CSharpProject(
             name="ohOs.Network", dir="Network", type="library",
             categories=["core"],
-            packages=['log4net', 'systemxmllinq'],
+            packages=['nuget-log4net', 'systemxmllinq'],
             references=[]
             ),
         CSharpProject(
             name="ohOs.Remote", dir="Remote", type="library",
             categories=["core"],
-            packages=['ohnet', 'log4net', 'systemxmllinq', 'sshnet'],
+            packages=['ohnet', 'nuget-log4net', 'systemxmllinq', 'sshnet'],
             references=[
                 'DvOpenhomeOrgRemoteAccess1',
             ]
@@ -519,24 +512,55 @@ csharp_projects = [
         CSharpProject(
             name="ohOs.Tests", dir="Tests", type="library",
             categories=["test"],
-            packages=['ohnet', 'nunit', 'moq', 'sharpziplib', 'log4net', 'systemxmllinq'],
+            packages=['ohnet', 'nuget-NUnit', 'nuget-Moq', 'sharpziplib', 'nuget-log4net', 'systemxmllinq'],
             references=[
                 'DvOpenhomeOrgApp1',
                 'DvOpenhomeOrgAppManager1',
-                'ohOs.Apps',
+                'ohOs.Apps.Hosting',
                 'ohOs.AppManager.App',
                 'ohOs.Platform',
+                'ohOs.Apps',
+                'ohOs.Core',
+                'OpenHome.XappForms.Hosting',
+                'OpenHome.XappForms',
             ]),
         CSharpProject(
-            name="OpenHome.XappForms", dir="XappForms", type="exe",
-            categories=["xappforms"],
+            name="OpenHome.XappForms", dir="OpenHome.XappForms", type="library",
+            categories=["early"],
+            packages=['nuget-Owin'],
+            references=['ohOs.Platform']),
+        CSharpProject(
+            name="OpenHome.XappForms.Hosting", dir="XappForms.Hosting", type="library",
+            categories=["core"],
             packages=['nuget-Owin', 'nuget-Gate', 'nuget-Firefly', 'nuget-Gate.Hosts.Firefly', 'nuget-Kayak'],
-            references=[]),
+            references=[
+                'OpenHome.XappForms',
+                'ohOs.Platform',
+                ]),
         CSharpProject(
             name="OpenHome.XappForms.Tests", dir="XappForms.Tests", type="library",
             categories=["test"],
             packages=['nuget-Moq', 'nuget-NUnit', 'nuget-Owin'],
-            references=['OpenHome.XappForms']),
+            references=[
+                'ohOs.Platform',
+                'OpenHome.XappForms',
+                'OpenHome.XappForms.Hosting',
+                ]),
+        CSharpProject(
+            name="OpenHome.XappForms.Chat.App", dir="OpenHome.XappForms.Chat", type="library",
+            categories=["core"],
+            packages=[
+                'nuget-Owin',
+                'ohnet',
+                'mef',
+                'systemxmllinq'
+                ],
+            references=[
+                'OpenHome.XappForms',
+                'ohOs.Platform',
+                'ohOs.Apps',
+                ],
+            ),
     ]
 
 # Files for minification.
@@ -589,6 +613,13 @@ ohos_apps = [
                 'CpOpenhomeOrgRemoteAccess1.js',
                 'CpOpenhomeOrgSystemUpdate1.js',
             ]),
+        OhOsApp(
+            name="OpenHome.XappForms.Chat",
+            files=[
+                'OpenHome.XappForms.Chat.App.dll'
+            ],
+            jsproxies=[]
+            ),
     ]
 
 integration_tests = [
@@ -615,6 +646,12 @@ def build(bld):
             find_resource_or_fail(bld, bld.root, path.join(ohnett4dir.absolute_path, 'UpnpServiceXml.dll')),
             find_resource_or_fail(bld, bld.root, path.join(ohnett4dir.absolute_path, 'UpnpServiceTemplate.xsd'))])
 
+    # Version number for ohOs.Platform
+    bld(
+            features='subst',
+            source='src/Platform/Version.cs.in',
+            target='ohOs.Platform.Version.cs',
+            OHOS_VERSION=bld.env.OHOS_VERSION)
 
     early_csharp_projects = [prj for prj in csharp_projects if "early" in prj.categories]
     create_csharp_tasks(bld, early_csharp_projects, csharp_dependencies)
@@ -793,22 +830,35 @@ def build(bld):
 
 
     dependencies_transfer = FileTransfer(
-            specify_files_root(bld, *(
-                yuicompressor.get_paths_of_files_to_copy_to_output(bld)+
-                ohnet.get_paths_of_files_to_copy_to_output(bld)+
-                sharpziplib.get_paths_of_files_to_copy_to_output(bld)+
-                log4net.get_paths_of_files_to_copy_to_output(bld)+
-                sshnet.get_paths_of_files_to_copy_to_output(bld)))).targets_flattened()
+            specify_files_root(bld, *
+                sum(
+                    (
+                        csharp_dependencies[dep].get_paths_of_files_to_copy_to_output(bld)
+                        for dep in [
+                            "yui-compressor",
+                            "ohnet",
+                            "sharpziplib",
+                            "nuget-log4net",
+                            "sshnet",
+                            "nuget-Owin",
+                            "nuget-Gate",
+                            "nuget-Firefly",
+                            "nuget-Gate.Hosts.Firefly"
+                        ]
+                    ), []))).targets_flattened()
 
     ohos_core_transfer = (
         FileTransfer(
             specify_files_bld(bld,
                 "ohOs.Host.exe",
                 "ohOs.Core.dll",
-                "ohOs.Apps.dll",
+                "ohOs.Apps.Hosting.dll",
                 "ohOs.Update.dll",
                 "ohOs.Platform.dll",
                 "ohOs.Remote.dll",
+                "ohOs.Apps.dll",
+                "OpenHome.XappForms.Hosting.dll",
+                "OpenHome.XappForms.dll",
                 "WebCompressor.exe",
                 ) +
             specify_files_bld(bld, *
@@ -833,15 +883,18 @@ def build(bld):
     ohos_main_transfer.targets_prefixed('install/OhOs').create_copy_tasks(bld)
 
 
-    xappforms_core_tree = mk_virtual_tree(bld, bld.bldnode.abspath(), [
-            'OpenHome.XappForms.exe',
-            'Firefly.dll',
-            'Gate.dll',
-            'Owin.dll',
-            'Gate.Hosts.Firefly.dll',
-        ])
-    xappforms_install_tree = (client_scripts_tree + xohj_tree + xappforms_core_tree)
-    xappforms_install_tree.targets_prefixed('install/XappForms').create_copy_tasks(bld)
+    #xappforms_core_tree = mk_virtual_tree(bld, bld.bldnode.abspath(), [
+    #        'OpenHome.XappForms.exe',
+    #        'Firefly.dll',
+    #        'Gate.dll',
+    #        'Owin.dll',
+    #        'Gate.Hosts.Firefly.dll',
+    #    ])
+    xappforms_http_tree = (client_scripts_tree + xohj_tree)
+    xappforms_http_tree.targets_prefixed('install/OhOs/http').create_copy_tasks(bld)
+    xappforms_http_tree.targets_prefixed('http').create_copy_tasks(bld)
+    xappforms_http_tree.targets_prefixed('${PREFIX}/lib/ohos/http').install_files(bld)
+    #xappforms_install_tree.targets_prefixed('install/XappForms').create_copy_tasks(bld)
 
     # Commenting this out in case the debian scripts include it in the wrong package.
     # Hopefully they should ignore it, but for now I'm leaving it out.

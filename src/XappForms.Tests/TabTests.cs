@@ -18,7 +18,7 @@ namespace UnitTests
         void End(Exception aException);
     }
 
-    class ThreadStandin : ISoftThread
+    class ThreadStandin : IStrand
     {
         public Task ScheduleExclusive(Action a)
         {
@@ -41,7 +41,7 @@ namespace UnitTests
         Mock<ITimerThread> iMockTimerThread;
         Mock<ITimerCallback> iMockTimerCallback;
         Mock<ISession> iMockSession;
-        ISoftThread iSoftThread;
+        IStrand iStrand;
         IPageWriter PageWriter { get { return iMockPageWriter.Object; } }
         ServerTab iServerTab;
         DateTime iNow = new DateTime(2000,1,1,0,0,0);
@@ -57,10 +57,10 @@ namespace UnitTests
             iMockTimerThread = new Mock<ITimerThread>();
             iMockTimerThread.Setup(x => x.RegisterCallback(It.IsAny<Action>())).Returns(iMockTimerCallback.Object);
             iMockSession = new Mock<ISession>();
-            iSoftThread = new ThreadStandin();
+            iStrand = new ThreadStandin();
             iServerTab = new ServerTab(
                 "session7", "tab9", iMockStatusListener.Object, ()=>iNow,
-                timeoutPolicy, iMockTimerThread.Object, iSoftThread, iMockSession.Object, null);
+                timeoutPolicy, iMockTimerThread.Object, iStrand, iMockSession.Object, null);
         }
         
         [Test]

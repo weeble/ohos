@@ -11,14 +11,14 @@ namespace UnitTests
 {
     public interface ITestRequestHandler
     {
-        void HandleFooBarBaz(RequestData aRequest, IWebRequestResponder aResponder);
-        void HandleFoo(RequestData aRequest, IWebRequestResponder aResponder);
-        void HandleRoot(RequestData aRequest, IWebRequestResponder aResponder);
+        bool HandleFooBarBaz(RequestData aRequest, IWebRequestResponder aResponder);
+        bool HandleFoo(RequestData aRequest, IWebRequestResponder aResponder);
+        bool HandleRoot(RequestData aRequest, IWebRequestResponder aResponder);
     }
     class UrlDispatcherTests
     {
         Mock<ITestRequestHandler> iMockHandler;
-        AppUrlDispatcher iDispatcher;
+        AppPathDispatcher iDispatcher;
         //Mock<IAppWebRequest> iMockRequest;
         Mock<IWebRequestResponder> iMockResponder;
         RequestData iRequest;
@@ -27,7 +27,7 @@ namespace UnitTests
         public void SetUp()
         {
             iMockHandler = new Mock<ITestRequestHandler>();
-            iDispatcher = new AppUrlDispatcher();
+            iDispatcher = new AppPathDispatcher();
             iDispatcher.MapPrefix(new[] { "foo/", "bar/", "baz" }, iMockHandler.Object.HandleFooBarBaz);
             iDispatcher.MapPrefix(new[] { "foo/" }, iMockHandler.Object.HandleFoo);
             iDispatcher.MapPrefixToDirectory(new[] { "directory/" }, Path.Combine("x:/", "test", "directory"));
@@ -40,7 +40,7 @@ namespace UnitTests
 
         void SetRequest(string aPath)
         {
-            iRequest = new RequestData("GET", aPath, new Dictionary<string, IEnumerable<string>>());
+            iRequest = new RequestData(new RequestPath(aPath), "GET", null, null);
         }
 
         [Test]

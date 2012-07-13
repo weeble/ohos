@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenHome.Os.Apps", "Apps\OpenHome.Os.Apps.csproj", "{AB03D699-04CE-48D6-B75C-A13E3AD75C1B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenHome.Os.Apps.Hosting", "Apps.Hosting\OpenHome.Os.Apps.Hosting.csproj", "{AB03D699-04CE-48D6-B75C-A13E3AD75C1B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenHome.Os.Platform", "Platform\OpenHome.Os.Platform.csproj", "{72A13E61-F6E5-4966-B66D-FB3E23157EE1}"
 EndProject
@@ -25,7 +25,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ohOs.Core", "Core\ohOs.Core
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenHome.Os.Update", "Update\OpenHome.Os.Update.csproj", "{D481FC2B-1091-4981-B436-BA3D5C19A7AE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenHome.XappForms", "XappForms\OpenHome.XappForms.csproj", "{FE47990D-5AF0-468B-BDE9-DCF76217A742}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenHome.XappForms.Hosting", "XappForms.Hosting\OpenHome.XappForms.Hosting.csproj", "{FE47990D-5AF0-468B-BDE9-DCF76217A742}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XappForms.Tests", "XappForms.Tests\XappForms.Tests.csproj", "{3AA7CDAF-BB25-46E9-B3B3-D109824175DE}"
 EndProject
@@ -40,6 +40,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{66EE4A
 		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
 >>>>>>> Stashed changes
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenHome.XappForms", "OpenHome.XappForms\OpenHome.XappForms.csproj", "{952680F0-1FD9-49DB-B69C-78D95D5D4F47}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenHome.Os.Apps", "Apps\OpenHome.Os.Apps.csproj", "{5FB1F26D-0064-4EA2-91EF-B5609B894E92}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenHome.XappForms.Chat", "OpenHome.XappForms.Chat\OpenHome.XappForms.Chat.csproj", "{6F02825C-A3FA-42F1-96F1-5D4E42CC8149}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -211,6 +217,36 @@ Global
 		{C355B68C-51C6-48B9-A949-08FE7B224010}.Release|Mixed Platforms.ActiveCfg = Debug|Any CPU
 		{C355B68C-51C6-48B9-A949-08FE7B224010}.Release|Mixed Platforms.Build.0 = Debug|Any CPU
 		{C355B68C-51C6-48B9-A949-08FE7B224010}.Release|x86.ActiveCfg = Debug|Any CPU
+		{952680F0-1FD9-49DB-B69C-78D95D5D4F47}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{952680F0-1FD9-49DB-B69C-78D95D5D4F47}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{952680F0-1FD9-49DB-B69C-78D95D5D4F47}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{952680F0-1FD9-49DB-B69C-78D95D5D4F47}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{952680F0-1FD9-49DB-B69C-78D95D5D4F47}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{952680F0-1FD9-49DB-B69C-78D95D5D4F47}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{952680F0-1FD9-49DB-B69C-78D95D5D4F47}.Release|Any CPU.Build.0 = Release|Any CPU
+		{952680F0-1FD9-49DB-B69C-78D95D5D4F47}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{952680F0-1FD9-49DB-B69C-78D95D5D4F47}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{952680F0-1FD9-49DB-B69C-78D95D5D4F47}.Release|x86.ActiveCfg = Release|Any CPU
+		{5FB1F26D-0064-4EA2-91EF-B5609B894E92}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5FB1F26D-0064-4EA2-91EF-B5609B894E92}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5FB1F26D-0064-4EA2-91EF-B5609B894E92}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{5FB1F26D-0064-4EA2-91EF-B5609B894E92}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{5FB1F26D-0064-4EA2-91EF-B5609B894E92}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{5FB1F26D-0064-4EA2-91EF-B5609B894E92}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5FB1F26D-0064-4EA2-91EF-B5609B894E92}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5FB1F26D-0064-4EA2-91EF-B5609B894E92}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{5FB1F26D-0064-4EA2-91EF-B5609B894E92}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{5FB1F26D-0064-4EA2-91EF-B5609B894E92}.Release|x86.ActiveCfg = Release|Any CPU
+		{6F02825C-A3FA-42F1-96F1-5D4E42CC8149}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F02825C-A3FA-42F1-96F1-5D4E42CC8149}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F02825C-A3FA-42F1-96F1-5D4E42CC8149}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{6F02825C-A3FA-42F1-96F1-5D4E42CC8149}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{6F02825C-A3FA-42F1-96F1-5D4E42CC8149}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{6F02825C-A3FA-42F1-96F1-5D4E42CC8149}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F02825C-A3FA-42F1-96F1-5D4E42CC8149}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6F02825C-A3FA-42F1-96F1-5D4E42CC8149}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{6F02825C-A3FA-42F1-96F1-5D4E42CC8149}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{6F02825C-A3FA-42F1-96F1-5D4E42CC8149}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

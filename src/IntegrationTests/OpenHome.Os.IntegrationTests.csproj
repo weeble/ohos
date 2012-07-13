@@ -19,7 +19,9 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="log4net, Version=1.2.10.0, Culture=neutral, PublicKeyToken=1b44e1d426115821, processorArchitecture=MSIL" />
+    <Reference Include="log4net, Version=1.2.11.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <HintPath>..\..\dependencies\nuget\log4net.2.0.0\lib\net40-client\log4net.dll</HintPath>
+    </Reference>
     <Reference Include="ohNet.net, Version=0.0.0.0, Culture=neutral, processorArchitecture=x86" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -33,8 +35,12 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Apps\OpenHome.Os.Apps.csproj">
-      <Project>{AB03D699-04CE-48D6-B75C-A13E3AD75C1B}</Project>
+      <Project>{5FB1F26D-0064-4EA2-91EF-B5609B894E92}</Project>
       <Name>OpenHome.Os.Apps</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Apps.Hosting\OpenHome.Os.Apps.Hosting.csproj">
+      <Project>{AB03D699-04CE-48D6-B75C-A13E3AD75C1B}</Project>
+      <Name>OpenHome.Os.Apps.Hosting</Name>
     </ProjectReference>
     <ProjectReference Include="..\Host\OpenHome.Os.Host.csproj">
       <Project>{192EAE4A-07F8-4608-AC8C-3C07EDCDEF11}</Project>
@@ -44,6 +50,13 @@
       <Project>{72A13E61-F6E5-4966-B66D-FB3E23157EE1}</Project>
       <Name>OpenHome.Os.Platform</Name>
     </ProjectReference>
+    <ProjectReference Include="..\XappForms.Hosting\OpenHome.XappForms.Hosting.csproj">
+      <Project>{FE47990D-5AF0-468B-BDE9-DCF76217A742}</Project>
+      <Name>OpenHome.XappForms.Hosting</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

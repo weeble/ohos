@@ -1,0 +1,7 @@
+namespace OpenHome.Os.Platform
+{
+    public static class OhOsVersion
+    {
+        public static string Version { get { return "@OHOS_VERSION@"; } }
+    }
+}
