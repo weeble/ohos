@@ -213,6 +213,11 @@
                                         navigateNext()</code></td>
                                     <td> Causes the page slider to navigate to the next page defined within the DOM </td>
                                 </tr>
+                                 <tr>
+                                    <td><code>
+                                        isLastPage()</code></td>
+                                    <td> Returns a bool to determine if the current page is the last page. </td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
@@ -420,21 +425,21 @@
         <script src="ohj.pageslider.js"></script>
         
         <script>
-            $().ready(function() {
+            $().ready(function () {
                 var ps = $('#ps1container').ohjpageslider({
-                    height:'200px'
+                    height: '200px'
                 });
-                
-                $('#btnP1Next').on('click',function() {
+
+                $('#btnP1Next').on('click', function () {
                     ps.navigateNext();
                 });
-                
-                $('#btnP1Back').on('click',function() {
+
+                $('#btnP1Back').on('click', function () {
                     // Use dom data to get ohjpageslider instance
                     $('#ps1container').data('ohjpageslider').navigateBack();
                 });
-                
-            
+
+
             });
         </script>
     </body>

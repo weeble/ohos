@@ -45,17 +45,19 @@
                     $('#basic').data('ohjpageslider').navigateBack();
                 });
                 isActivePage('basic', 'basic1');
+                equal($('#basic').data('ohjpageslider').isLastPage(), false, 'Current page is not the last page');
                 $('#basic').data('ohjpageslider').navigateBack();
                 $('#basic').data('ohjpageslider').navigateBack();
                 $('#basic').data('ohjpageslider').navigateBack();
                 $('#basic').data('ohjpageslider').navigateBack();
+
                 isActivePage('basic', 'basic1');
                 equal($('#basic').css('display'), 'block', 'Page 1 should be visible');
                 $('#basic').data('ohjpageslider').navigateNext();
                 $('#basic').data('ohjpageslider').navigateNext();
                 $('#basic').data('ohjpageslider').navigateNext();
                 $('#basic').data('ohjpageslider').navigateNext();
-
+                equal($('#basic').data('ohjpageslider').isLastPage(), true, 'Current page is the last page');
 
                 basicActivePage = 'basic2';
 
@@ -73,7 +75,7 @@
                 }
 
             });
-            
+
             asyncTest("Fluid is code decorated with Page Slider", function () {
                 ok($('#fluid').hasClass('ohjui'), 'We expect the class ohjui');
                 ok($('#fluid').hasClass('ohjpageslider'), 'We expect the class ohjpageslider');
@@ -83,7 +85,6 @@
                 isActivePage('fluid', 'fluid1');
                 fluidActivePage = 'fluid3';
                 $('#fluid').data('ohjpageslider').navigateToPage($('#fluid3'));
-
             });
 
 

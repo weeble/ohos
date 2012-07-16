@@ -106,6 +106,11 @@
             this.navigateNext = function() {
                 slidePage(currentPage.next());
             };
+
+            this.isLastPage = function() {
+                var pages = elem.children('div');
+                return currentPage.attr('id') === pages.last().attr('id');
+            };
     
             if(settings.extend)
                 settings.extend.call(this,elem,settings);
