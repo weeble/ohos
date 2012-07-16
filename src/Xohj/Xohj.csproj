@@ -59,6 +59,8 @@
     <Content Include="lib\zepto-1.0rc1.min.js" />
     <Content Include="ohj\grid\index.html" />
     <Content Include="ohj\grid\ohj.grid.js" />
+    <Content Include="ohj\virtuallist\background-sm.jpg" />
+    <Content Include="ohj\virtuallist\background.jpg" />
     <Content Include="ohj\virtuallist\virtuallist-test.html" />
     <Content Include="ohj\lazylist\default.jpg" />
     <Content Include="ohj\lazylist\index.html" />

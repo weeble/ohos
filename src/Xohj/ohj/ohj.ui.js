@@ -36,15 +36,21 @@ var ohjui = {};
     }
 
     $.fn.hookPlugin = function(settings) {
+        var _this = this;
         for(var i in settings) {
         
-            if(i.indexOf('on') == 0 && i.length > 2 && settings[i] != null)
-            {
-                var onFunc = $.fn.stringToFunction(settings[i]);
-                
-                if(onFunc!=null) {
-                    this.on(i.substring(2),onFunc);
+        if(i.indexOf('on') == 0 && i.length > 2 && settings[i] != null)
+        {
+            var func = settings[i];
+            this.on(i.substring(2),function() {
+                if(window[func]) {
+                     window[func].apply(_this, arguments);
                 }
+                else 
+                {
+                    console.log('Function '+ func + ' does not exist yet');
+                }
+            });
             }   
         }
     }
