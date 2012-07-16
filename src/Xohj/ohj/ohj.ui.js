@@ -43,13 +43,20 @@ var ohjui = {};
         {
             var func = settings[i];
             this.on(i.substring(2),function() {
-                if(window[func]) {
-                     window[func].apply(_this, arguments);
+                if(typeof obj == "string") {
+                    if(window[func]) {
+                        window[func].apply(_this, arguments);
+                    }
+                    else
+                    {
+                        console.log('Function '+ func + ' does not exist yet');
+                    }
                 }
-                else 
+                else if(func!=null)
                 {
-                    console.log('Function '+ func + ' does not exist yet');
+                    func.apply(_this, arguments);
                 }
+              
             });
             }   
         }
