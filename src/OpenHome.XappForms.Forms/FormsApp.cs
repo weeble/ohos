@@ -335,18 +335,27 @@ namespace OpenHome.XappForms.Forms
         /// </summary>
         object iLock = new object();
         string iUserId;
+        ButtonControl iButtonFour;
 
         public FormsAppTab(FormsApp aFormsApp, IBrowserTabProxy aBrowserTabProxy, int aId, UserList aUserList, string aUserId)
         {
             iXFTab = new XappFormsBrowserTab(aBrowserTabProxy);
+
+
             var grid = new GridControl(iXFTab);
+
             grid.TopLeft = new ButtonControl(iXFTab) { Text = "First" };
             grid.TopRight = new ButtonControl(iXFTab) { Text = "Beta" };
             grid.BottomLeft = new ButtonControl(iXFTab) { Text = "Charlie" };
-            var buttonFour = new ButtonControl(iXFTab) { Text = "FOUR" };
-            grid.BottomRight = buttonFour;
-            buttonFour.Clicked += buttonFour_Clicked;
+            iButtonFour = new ButtonControl(iXFTab) { Text = "FOUR" };
+
+            grid.BottomRight = iButtonFour;
+            iButtonFour.Clicked += OnButtonFourClicked;
+
             iXFTab.SetRoot(grid);
+
+
+
             iFormsApp = aFormsApp;
             iBrowserTabProxy = aBrowserTabProxy;
             iId = aId;
@@ -354,9 +363,10 @@ namespace OpenHome.XappForms.Forms
             //iUserList = aUserList;
         }
 
-        void buttonFour_Clicked(object sender, EventArgs e)
+        void OnButtonFourClicked(object sender, EventArgs e)
         {
             Console.WriteLine("Click!");
+            iButtonFour.Text = iButtonFour.Text == "CLICKED" ? "clicked" : "CLICKED";
         }
 
 
