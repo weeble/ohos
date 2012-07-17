@@ -53,7 +53,6 @@ namespace OpenHome.Os.Platform
                 string baseDir = Path.GetDirectoryName(Path.GetFullPath(Name));
                 if (baseDir == null) { return aFilepath; }
                 string result = Path.GetFullPath(Path.Combine(baseDir, aFilepath));
-                Console.WriteLine("ResolveRelativePath({0})[Name={1}]->{2}", aFilepath, Name, result);
                 return result;
             }
         }

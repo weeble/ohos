@@ -431,7 +431,6 @@ namespace OpenHome.Os.Host
                                                        UserList = xappModule.UserList
                                                    };
 
-                        Console.WriteLine(storeDirectory);
                         using (var appModule = new AppShellModule(services, config, xappModule.XappServer, nodeGuid))
                         {
                             services.RegisterService(appModule.AppShell);
