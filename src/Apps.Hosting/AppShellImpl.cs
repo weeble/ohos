@@ -585,7 +585,10 @@ namespace OpenHome.Os.Apps
 
         public void UninstallAllApps()
         {
-            throw new NotImplementedException();
+            foreach (var appName in iKnownApps.Keys.ToList())
+            {
+                UninstallByAppName(appName);
+            }
         }
 
         private bool UninstallByUdn(string aUdn, bool aUpdateHistory)

@@ -153,6 +153,7 @@ namespace OpenHome.Os.Host
         {
             public OptionParser.OptionString ConfigFile { get; private set; }
             public OptionParser.OptionString InstallFile { get; private set; }
+            public OptionParser.OptionBool RemoveAllApps { get; private set; }
             public OptionParser.OptionString Subprocess { get; private set; }
             public OptionParser.OptionBool SingleProcess { get; private set; }
             public OptionParser.OptionString LogLevel { get; private set; }
@@ -165,6 +166,7 @@ namespace OpenHome.Os.Host
                 SingleProcess = new OptionParser.OptionBool(null, "--single-process", "Run as a single process. Disables soft restarts.");
                 LogLevel = new OptionParser.OptionString(null, "--loglevel", null, "Set default log level.", "LOGLEVEL");
                 Uuid = new OptionParser.OptionString(null, "--udn", null, "Override UDN.", "UDN");
+                RemoveAllApps = new OptionParser.OptionBool(null, "--remove-all-apps", "Uninstall all apps.");
             }
             public OptionParser Parse(string[] aArgs)
             {
@@ -175,6 +177,7 @@ namespace OpenHome.Os.Host
                 parser.AddOption(SingleProcess);
                 parser.AddOption(LogLevel);
                 parser.AddOption(Uuid);
+                parser.AddOption(RemoveAllApps);
                 parser.Parse();
                 return parser;
             }
@@ -431,7 +434,11 @@ namespace OpenHome.Os.Host
                         {
                             services.RegisterService(appModule.AppShell);
                             var appManager = appModule.AppShell;
-                            if (aOptions.InstallFile.Value != null)
+                            if (aOptions.RemoveAllApps.Value)
+                            {
+                                appManager.UninstallAllApps();
+                            }
+                            else if (aOptions.InstallFile.Value != null)
                             {
                                 appManager.Install(aOptions.InstallFile.Value);
                             }

@@ -288,7 +288,7 @@ namespace OpenHome.Os.Apps
 
         public void UninstallAllApps()
         {
-            throw new NotImplementedException();
+            InvokeAndFireEvents(() => iImpl.UninstallAllApps());
         }
 
         /// <summary>
