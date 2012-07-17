@@ -54,6 +54,10 @@ namespace OpenHome.Os.Apps
                     }
                 }
             }
+            catch (FileNotFoundException fnfe)
+            {
+                throw new BadPluginException(String.Format("Bad plugin: \"{0}\" not found.", fnfe.FileName));
+            }
             catch (ZipException)
             {
                 throw new BadPluginException("Bad plugin: corrupt archive.");

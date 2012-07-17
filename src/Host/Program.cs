@@ -142,6 +142,7 @@ namespace OpenHome.Os.Host
     public enum ExitCodes
     {
         NormalExit = 0,
+        InvocationError = 6,
         SoftRestart = 9,
         HardReboot = 10,
         GuardianDied = 7,
@@ -220,6 +221,7 @@ namespace OpenHome.Os.Host
                         if (aExitCode == (int)ExitCodes.SoftRestart) return ExitBehaviour.Repeat;
                         if (aExitCode == (int)ExitCodes.NormalExit) return ExitBehaviour.Exit;
                         if (aExitCode == (int)ExitCodes.HardReboot) return ExitBehaviour.Exit;
+                        if (aExitCode == (int)ExitCodes.InvocationError) return ExitBehaviour.Exit;
                         return ExitBehaviour.Retry;
                     }
             };
@@ -440,7 +442,15 @@ namespace OpenHome.Os.Host
                             }
                             else if (aOptions.InstallFile.Value != null)
                             {
-                                appManager.Install(aOptions.InstallFile.Value);
+                                try
+                                {
+                                    appManager.Install(aOptions.InstallFile.Value);
+                                }
+                                catch (BadPluginException bpe)
+                                {
+                                    Console.WriteLine(bpe.Message);
+                                    exitCode = (int)ExitCodes.InvocationError;
+                                }
                             }
                             else
                             {
