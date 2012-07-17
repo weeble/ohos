@@ -503,7 +503,6 @@ namespace OpenHome.Os.Host
             {
                 logSystem.LogController.SetLogLevel("ROOT", logLevel);
             }
-            logSystem.LogController.SetLogLevel("OpenHome.Os.Host.Program", "DEBUG");
             //if (optionLogLevel.Value != null)
             //{
             //    logSystem.LogController.SetLogLevel("ROOT", optionLogLevel.Value);
