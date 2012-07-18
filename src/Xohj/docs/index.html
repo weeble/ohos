@@ -45,6 +45,31 @@
                 font-weight: 700;
             }
             
+        
+            #navbar {
+                background-color: #2C2C2C;
+                height: 45px;
+                color: #FFF;
+                font-weight: 700;
+            }
+            
+            #navbar .ohjborderlayout-right 
+            {
+                text-align:right;
+                margin:8px;
+      
+            }
+            
+            #navbar .ohjborderlayout-middle 
+            {
+                 line-height: 45px;
+                 text-align:center;
+            }
+            
+            #navbar .ohjborderlayout-left 
+            {
+                 margin:8px;
+            }
            
             h1
             {
@@ -132,26 +157,26 @@
                 
             }
             
-            .ohjborderlayout-left
+            #borderlayout .ohjborderlayout-left
             {
                 background-color:#AAA;
                 text-align:center;
             }
             
-             .ohjborderlayout-right
+            #borderlayout .ohjborderlayout-right
             {
                 background-color:#AAA;
                 text-align:center;
             }
             
-            .ohjborderlayout-main
+            #borderlayout .ohjborderlayout-main
             {
                 background-color:#EEE;
                 text-align:center;
                 line-height:240px;
             }
 
-            .ohjborderlayout-top
+            #borderlayout .ohjborderlayout-top
             {   
                 color:#FFF;
                 text-align: center;
@@ -159,7 +184,7 @@
                 background-color:#E19800;
             }
             
-            .ohjborderlayout-bottom
+            #borderlayout .ohjborderlayout-bottom
             {   
                 color:#FFF;
                 text-align: center;
@@ -360,10 +385,14 @@
                         <div class="demo">
                             <h3>Navbar</h3>
                             <p>
-                                A horizontal bar that contains header text and left and right buttons.
+                                A horizontal bar that contains header text and left and right buttons. (Built using borderlayout)
                             </p>
-                            <div id="nb1" data-use-ohjnavbar="true" data-leftbuttontext="Prev" data-rightbuttontext="Next">
-                                Header
+                             <div id="navbar" data-use-ohjborderlayout="true" data-height="45px" data-leftwidth="60px" data-rightwidth="60px">
+                                <div class="ohjborderlayout-main">
+                                    <div class="ohjborderlayout-left"><button class="btn">Prev</button></div>
+                                    <div class="ohjborderlayout-middle ellipsis">Header</div>
+                                    <div class="ohjborderlayout-right"><button class="btn">Next</button></div>
+                                </div>
                             </div>
                         </div>
                         <div class="row">
@@ -558,7 +587,7 @@
                         <div class="row">
                             <div class="span3"  style="text-align:center">
                                 <br/>
-                                <a class="btn btn-warning btn-large" href="../ohj/virtuallist/index.html"> Learn more </a>
+                                <a class="btn btn-warning btn-large" href="../ohj/borderlayout/index.html"> Learn more </a>
                             </div>
                         </div>
                     </div>
