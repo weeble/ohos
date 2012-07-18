@@ -230,6 +230,7 @@
     <script src="../../lib/jquery-1.7.2.min.js"></script>
     <script src="../../ohj/ohj.util.js"></script>
     <script src="../../ohj/ohj.ui.js"></script>
+    <script src="../../ohj/ohj.ui.bridge.js"></script>
         <script src="../../ohj/page/ohj.page.js"></script>
     <script src="../../ohj/pageslider/ohj.pageslider.js"></script>
     <script src="../../ohj/scroller/ohj.scroller.js"></script>
@@ -247,7 +248,8 @@
             
         });
 
-        function pageload(page) {
+        function pageload(e, page) {
+            page = $(page);
             switch (page.attr('id')) {
                 case 'pgChat':
                     {
