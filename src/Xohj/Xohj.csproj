@@ -57,6 +57,7 @@
     <Content Include="lib\test\qunit.css" />
     <Content Include="lib\test\qunit.js" />
     <Content Include="lib\zepto-1.0rc1.min.js" />
+    <Content Include="ohj\borderlayout\index.html" />
     <Content Include="ohj\borderlayout\ohj.borderlayout.js" />
     <Content Include="ohj\borderlayout\ohj.borderlayout.css" />
     <Content Include="ohj\borderlayout\temp.html" />
