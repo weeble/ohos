@@ -57,8 +57,12 @@
     <Content Include="lib\test\qunit.css" />
     <Content Include="lib\test\qunit.js" />
     <Content Include="lib\zepto-1.0rc1.min.js" />
+    <Content Include="ohj\borderlayout\ohj.borderlayout.js" />
+    <Content Include="ohj\borderlayout\ohj.borderlayout.css" />
+    <Content Include="ohj\borderlayout\temp.html" />
     <Content Include="ohj\grid\index.html" />
     <Content Include="ohj\grid\ohj.grid.js" />
+    <Content Include="ohj\navbar\navbar-test.html" />
     <Content Include="ohj\virtuallist\background-sm.jpg" />
     <Content Include="ohj\virtuallist\background.jpg" />
     <Content Include="ohj\virtuallist\virtuallist-test.html" />
@@ -72,7 +76,6 @@
     <Content Include="ohj\list\ohj.list.css" />
     <Content Include="ohj\list\ohj.list.js" />
     <Content Include="ohj\navbar\index.html" />
-    <Content Include="ohj\navbar\navbar-test.html" />
     <Content Include="ohj\navbar\ohj.navbar.js" />
     <Content Include="ohj\ohj.plugin.js" />
     <Content Include="ohj\ohj.ui.bridge.js" />
