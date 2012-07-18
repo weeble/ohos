@@ -8,10 +8,12 @@
         <meta name="author" content="">
         <link href="../ohj/scroller/ohj.scroller.pointer.css" rel="stylesheet">
         <link href="../ohj/list/ohj.list.css" rel="stylesheet">
+        <link href="../ohj/borderlayout/ohj.borderlayout.css" rel="stylesheet">
         <!-- Le styles -->
         <link href="css/bootstrap.min.css" rel="stylesheet">
         <link href="css/docs.css" rel="stylesheet">
         <link href="css/prettify.css" rel="stylesheet">
+
         <style>
             body {
                 padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
@@ -129,6 +131,42 @@
                 background:#FFF url('../ohj/virtuallist/background-sm.jpg') repeat-y;
                 
             }
+            
+            .ohjborderlayout-left
+            {
+                background-color:#AAA;
+                text-align:center;
+            }
+            
+             .ohjborderlayout-right
+            {
+                background-color:#AAA;
+                text-align:center;
+            }
+            
+            .ohjborderlayout-main
+            {
+                background-color:#EEE;
+                text-align:center;
+                line-height:240px;
+            }
+
+            .ohjborderlayout-top
+            {   
+                color:#FFF;
+                text-align: center;
+                line-height:30px;
+                background-color:#E19800;
+            }
+            
+            .ohjborderlayout-bottom
+            {   
+                color:#FFF;
+                text-align: center;
+                line-height:30px;
+                background-color:#E19800;
+            }
+
             
             
         </style>
@@ -501,6 +539,29 @@
                             </div>
                         </div>
                     </div>
+                     <div class="span3 well">
+                        <div class="demo">
+                            <h3>Border Layout</h3>
+                            <p>
+                                 A layout control that divides the area into top, bottom, left, right and middle regions.
+                            </p>
+                            <div id="borderlayout" data-height="300px" data-use-ohjborderlayout="true" data-topheight="30px" data-bottomheight="30px" data-leftwidth="50px" data-rightwidth="50px">
+                            <div class="ohjborderlayout-top">Top</div>
+                            <div class="ohjborderlayout-main">
+                                <div class="ohjborderlayout-left">Left</div>
+                                <div class="ohjborderlayout-middle">Middle</div>
+                                <div class="ohjborderlayout-right">Right</div>
+                            </div>
+                            <div class="ohjborderlayout-bottom">Bottom</div>   
+                        </div>
+                        </div>
+                        <div class="row">
+                            <div class="span3"  style="text-align:center">
+                                <br/>
+                                <a class="btn btn-warning btn-large" href="../ohj/virtuallist/index.html"> Learn more </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
             <section id="lib">
@@ -533,10 +594,12 @@
     &lt;script src="../ohj/list/ohj.list.js"&gt;&lt;/script&gt;
     &lt;script src="../ohj/lazylist/ohj.lazylist.js"&gt;&lt;/script&gt;
     &lt;script src="../ohj/virtuallist/ohj.virtuallist.js"&gt;&lt;/script&gt;
+    &lt;script src="../ohj/borderlayout/ohj.borderlayout.js"&gt;&lt;/script&gt;
 
     &lt;!-- css Files --&gt;
     &lt;link href="../ohj/scroller/ohj.scroller.pointer.css" rel="stylesheet"&gt;
     &lt;link href="../ohj/list/ohj.list.css" rel="stylesheet"&gt;
+    &lt;link href="../ohj/borderlayout/ohj.borderlayout.css" rel="stylesheet"&gt;
                         </pre>
                     </div>
                 </div>
@@ -595,6 +658,7 @@
         <script src="../ohj/list/ohj.list.js"></script>
         <script src="../ohj/lazylist/ohj.lazylist.js"></script>
         <script src="../ohj/virtuallist/ohj.virtuallist.js"></script>
+        <script src="../ohj/borderlayout/ohj.borderlayout.js"></script>
         <script>
             $().ready(function () {
 

@@ -14,7 +14,7 @@
                 rightwidth: null,
                 height: null
             }, options || {});
-            
+
 
             // Private Methods
             var render = function() {
