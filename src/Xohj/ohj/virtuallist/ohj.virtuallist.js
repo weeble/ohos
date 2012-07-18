@@ -126,7 +126,6 @@
                 _this.getScroller().refreshScroller();
                 elem.find('ul').html(''); // Remove dummy to calculate space available
                 getNextDataSegment();
-                console.log(listitemHeight);
             }
             
             // Private Methods
