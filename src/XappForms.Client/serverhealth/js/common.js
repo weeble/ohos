@@ -16,7 +16,7 @@
     });
 
     $('#btnLogin').press(function () {
-        $('#chatapp').data('ohjpageslider').navigateNext();
+        $('#chatapp').data('ohjcontentslider').navigateNext();
     });
 
     $('body').bind('xappevent', function (event, data) {
@@ -121,9 +121,9 @@ function pageload(page) {
 }
 
 function goback(page) {
-    $('#chatapp').data('ohjpageslider').navigateBack();
+    $('#chatapp').data('ohjcontentslider').navigateBack();
 }
 
 function showusers(page) {
-    $('#chatapp').data('ohjpageslider').navigateNext();
+    $('#chatapp').data('ohjcontentslider').navigateNext();
 }

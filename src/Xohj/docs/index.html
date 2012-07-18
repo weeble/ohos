@@ -19,7 +19,7 @@
                 padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
             }
 
-            .ohjpageslider-page {
+            .ohjcontentslider-page {
                 background-color: #CCCCCC;
                 line-height: 200px;
                 text-align: center;
@@ -235,7 +235,7 @@
 
                     <div class="offset1 span3 well">
                         <div class="demo">
-                            <h3>Page Slider</h3>
+                            <h3>Content Slider</h3>
                             <p>
                                 A container control to hold pages that can be navigated using slide animations.
                             </p>
@@ -273,7 +273,7 @@
                         <div class="row">
                             <div class="span3"  style="text-align:center">
                                 <br/>
-                                <a class="btn btn-warning btn-large" href="../ohj/pageslider/index.html"> Learn more </a>
+                                <a class="btn btn-warning btn-large" href="../ohj/contentslider/index.html"> Learn more </a>
                             </div>
                         </div>
                     </div><!-- /.span -->
@@ -585,7 +585,7 @@
     &lt;script src="../ohj/ohj.util.js">&lt;/script&gt;
     &lt;script src="../ohj/ohj.ui.js">&lt;/script&gt;
     &lt;script src="../ohj/ohj.ui.bridge.js">&lt;/script&gt;
-    &lt;script src="../ohj/pageslider/ohj.pageslider.js"&gt;&lt;/script&gt;
+    &lt;script src="../ohj/contentslider/ohj.contentslider.js"&gt;&lt;/script&gt;
     &lt;script src="../ohj/scroller/ohj.scroller.js"&gt;&lt;/script&gt;
     &lt;script src="../ohj/scroller/ohj.scroller.pointer.js"&gt;&lt;/script&gt;
     &lt;script src="../ohj/scroller/ohj.scroller.touch.js"&gt;&lt;/script&gt;
@@ -649,7 +649,7 @@
         <script src="../ohj/ohj.util.js"></script>
         <script src="../ohj/ohj.ui.js"></script>
         <script src="../ohj/ohj.ui.bridge.js"></script>
-        <script src="../ohj/pageslider/ohj.pageslider.js"></script>
+        <script src="../ohj/contentslider/ohj.contentslider.js"></script>
         <script src="../ohj/scroller/ohj.scroller.js"></script>
         <script src="../ohj/scroller/ohj.scroller.pointer.js"></script>
         <script src="../ohj/scroller/ohj.scroller.touch.js"></script>
@@ -668,7 +668,7 @@
                     listdata.push('This is listitem ' + i);
                 }
 
-                var ps = $('#ps1container').ohjpageslider({
+                var ps = $('#ps1container').ohjcontentslider({
                     height : '200px'
                 });
 
@@ -677,8 +677,8 @@
                 });
 
                 $('#btnP1Back').on('click', function() {
-                    // Use dom data to get ohjpageslider instance
-                    $('#ps1container').data('ohjpageslider').navigateBack();
+                    // Use dom data to get ohjcontentslider instance
+                    $('#ps1container').data('ohjcontentslider').navigateBack();
                 });
 
                 $('#scroller1').ohjscroller();

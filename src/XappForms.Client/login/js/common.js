@@ -4,7 +4,7 @@ $().ready(function () {
     var users = {};
 
     $('#btnLogin').press(function () {
-        //$('#chatapp').data('ohjpageslider').navigateNext();
+        //$('#chatapp').data('ohjcontentslider').navigateNext();
         var userid = $('#cbxUsers option').not(function () { return !this.selected }).data('userid');
         if (typeof userid !== "undefined") {
             var msg = { 'type': 'user', 'id': userid };
@@ -91,9 +91,9 @@ $().ready(function () {
 
 
 function goback(page) {
-    $('#chatapp').data('ohjpageslider').navigateBack();
+    $('#chatapp').data('ohjcontentslider').navigateBack();
 }
 
 function showusers(page) {
-    $('#chatapp').data('ohjpageslider').navigateNext();
+    $('#chatapp').data('ohjcontentslider').navigateNext();
 }

@@ -8,7 +8,7 @@
  
     <script src="../ohj.util.js"></script>
     <script src="../ohj.ui.js"></script>
-    <script src="ohj.pageslider.js"></script>
+    <script src="ohj.contentslider.js"></script>
 
     <style>
       
@@ -30,34 +30,34 @@
         }
 
         $(document).ready(function () {
-            module("Basic Page Slider");
+            module("Basic Content Slider");
 
-            asyncTest("Basic is inline decorated with Page Slider", function () {
+            asyncTest("Basic is inline decorated with Content Slider", function () {
                 ok($('#basic').hasClass('ohjui'), 'We expect the class ohjui');
-                ok($('#basic').hasClass('ohjpageslider'), 'We expect the class ohjpageslider');
-                equal($('#basic .ohjpageslider-page').length, 2, 'There should be two pages');
+                ok($('#basic').hasClass('ohjcontentslider'), 'We expect the class ohjcontentslider');
+                equal($('#basic .ohjcontentslider-page').length, 2, 'There should be two pages');
                 equal($('#basic1').css('display'), 'block', 'Page 1 should be visible');
 
                 $('#basic').on('pageloadcomplete', function () {
                     start();
                     isActivePage('basic', basicActivePage);
                     basicActivePage = 'basic1';
-                    $('#basic').data('ohjpageslider').navigateBack();
+                    $('#basic').data('ohjcontentslider').navigateBack();
                 });
                 isActivePage('basic', 'basic1');
-                equal($('#basic').data('ohjpageslider').isLastPage(), false, 'Current page is not the last page');
-                $('#basic').data('ohjpageslider').navigateBack();
-                $('#basic').data('ohjpageslider').navigateBack();
-                $('#basic').data('ohjpageslider').navigateBack();
-                $('#basic').data('ohjpageslider').navigateBack();
+                equal($('#basic').data('ohjcontentslider').isLastPage(), false, 'Current page is not the last page');
+                $('#basic').data('ohjcontentslider').navigateBack();
+                $('#basic').data('ohjcontentslider').navigateBack();
+                $('#basic').data('ohjcontentslider').navigateBack();
+                $('#basic').data('ohjcontentslider').navigateBack();
 
                 isActivePage('basic', 'basic1');
                 equal($('#basic').css('display'), 'block', 'Page 1 should be visible');
-                $('#basic').data('ohjpageslider').navigateNext();
-                $('#basic').data('ohjpageslider').navigateNext();
-                $('#basic').data('ohjpageslider').navigateNext();
-                $('#basic').data('ohjpageslider').navigateNext();
-                equal($('#basic').data('ohjpageslider').isLastPage(), true, 'Current page is the last page');
+                $('#basic').data('ohjcontentslider').navigateNext();
+                $('#basic').data('ohjcontentslider').navigateNext();
+                $('#basic').data('ohjcontentslider').navigateNext();
+                $('#basic').data('ohjcontentslider').navigateNext();
+                equal($('#basic').data('ohjcontentslider').isLastPage(), true, 'Current page is the last page');
 
                 basicActivePage = 'basic2';
 
@@ -67,7 +67,7 @@
             module("Fluid navigation");
 
 
-            $('#fluid').ohjpageslider({
+            $('#fluid').ohjcontentslider({
                 height: '250px',
                 onpageloadcomplete: function () {
                     isActivePage('fluid', fluidActivePage);
@@ -76,32 +76,32 @@
 
             });
 
-            asyncTest("Fluid is code decorated with Page Slider", function () {
+            asyncTest("Fluid is code decorated with Content Slider", function () {
                 ok($('#fluid').hasClass('ohjui'), 'We expect the class ohjui');
-                ok($('#fluid').hasClass('ohjpageslider'), 'We expect the class ohjpageslider');
-                equal($('#fluid .ohjpageslider-page').length, 4, 'There should be four pages');
+                ok($('#fluid').hasClass('ohjcontentslider'), 'We expect the class ohjcontentslider');
+                equal($('#fluid .ohjcontentslider-page').length, 4, 'There should be four pages');
                 isActivePage('fluid', 'fluid1');
                 equal($('#fluid').height(), 250, 'We expect the height to be 250');
                 isActivePage('fluid', 'fluid1');
                 fluidActivePage = 'fluid3';
-                $('#fluid').data('ohjpageslider').navigateToPage($('#fluid3'));
+                $('#fluid').data('ohjcontentslider').navigateToPage($('#fluid3'));
             });
 
 
-            module("Destroy Page Slider");
+            module("Destroy Content Slider");
 
-            test("Destroy the page slider", function () {
-                $('#destroy').ohjpageslider();
-                ok($('#destroy').data('ohjpageslider') != undefined, 'Destroy page slider created');
-                $('#destroy').data('ohjpageslider').destroy();
-                equal($('#destroy').data('ohjpageslider'), undefined, 'Destroy page slider destroyed');
+            test("Destroy the content slider", function () {
+                $('#destroy').ohjcontentslider();
+                ok($('#destroy').data('ohjcontentslider') != undefined, 'Destroy content slider created');
+                $('#destroy').data('ohjcontentslider').destroy();
+                equal($('#destroy').data('ohjcontentslider'), undefined, 'Destroy content slider destroyed');
             });
         });
     </script>
 </head>
 <body>
     <h1 id="qunit-header">
-        Page Slider Tests</h1>
+        Content Slider Tests</h1>
     <h2 id="qunit-banner">
     </h2>
     <div id="qunit-testrunner-toolbar">
@@ -115,7 +115,7 @@
     <h2>
         Basic</h2>
         <div style="width:300px;">
-        <div  id="basic" data-use-ohjpageslider="true" data-height='200px' style="background:whitesmoke;">
+        <div  id="basic" data-use-ohjcontentslider="true" data-height='200px' style="background:whitesmoke;">
             <div id="basic1">Basic 1</div>
             <div id="basic2">Basic 2</div>
         </div>

@@ -163,7 +163,7 @@
     <script src="../../lib/jquery-1.7.2.min.js"></script>
     <script src="../../ohj/ohj.util.js"></script>
     <script src="../../ohj/ohj.ui.js"></script>
-    <script src="../../ohj/pageslider/ohj.pageslider.js"></script>
+    <script src="../../ohj/contentslider/ohj.contentslider.js"></script>
     <script src="../../ohj/scroller/ohj.scroller.js"></script>
     <script src="../../ohj/scroller/ohj.scroller.pointer.js"></script>
     <script src="../../ohj/scroller/ohj.scroller.touch.js"></script>
@@ -173,7 +173,7 @@
     <script>
         $().ready(function () {
             $('#btnLogin').press(function () {
-                $('#chatapp').data('ohjpageslider').navigateNext();
+                $('#chatapp').data('ohjcontentslider').navigateNext();
             });
 
         });
@@ -183,11 +183,11 @@
         }
 
         function goback(page) {
-            $('#chatapp').data('ohjpageslider').navigateBack();
+            $('#chatapp').data('ohjcontentslider').navigateBack();
         }
 
         function showusers(page) {
-            $('#chatapp').data('ohjpageslider').navigateNext();
+            $('#chatapp').data('ohjcontentslider').navigateNext();
         }
     </script>
 </body>

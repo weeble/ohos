@@ -99,9 +99,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="ohj\scroller\scroller-test.html" />
-    <Content Include="ohj\pageslider\index.html" />
-    <Content Include="ohj\pageslider\ohj.pageslider.js" />
-    <Content Include="ohj\pageslider\pageslider-test.html" />
+    <Content Include="ohj\contentslider\index.html" />
+    <Content Include="ohj\contentslider\ohj.contentslider.js" />
+    <Content Include="ohj\contentslider\contentslider-test.html" />
     <Content Include="ohj\page\index.html" />
     <Content Include="ohj\page\ohj.page.js" />
     <Content Include="ohj\page\page-test.html" />

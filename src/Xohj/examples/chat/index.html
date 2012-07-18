@@ -104,7 +104,7 @@
         <![endif]-->
 </head>
 <body>
-    <div id="chatapp" data-use-ohjpageslider="true" data-height="100%" data-onpageload="pageload">
+    <div id="chatapp" data-use-ohjcontentslider="true" data-height="100%" data-onpageload="pageload">
         <div id="pgLogin" data-use-ohjpage="true" style="height: 100%">
             <header>
                     Chat App
@@ -232,7 +232,7 @@
     <script src="../../ohj/ohj.ui.js"></script>
     <script src="../../ohj/ohj.ui.bridge.js"></script>
         <script src="../../ohj/page/ohj.page.js"></script>
-    <script src="../../ohj/pageslider/ohj.pageslider.js"></script>
+    <script src="../../ohj/contentslider/ohj.contentslider.js"></script>
     <script src="../../ohj/scroller/ohj.scroller.js"></script>
     <script src="../../ohj/scroller/ohj.scroller.pointer.js"></script>
     <script src="../../ohj/scroller/ohj.scroller.touch.js"></script>
@@ -243,7 +243,7 @@
     <script>
         $().ready(function () {
             $('#btnLogin').press(function () {
-                $('#chatapp').data('ohjpageslider').navigateNext();
+                $('#chatapp').data('ohjcontentslider').navigateNext();
             });
             
         });
@@ -269,11 +269,11 @@
         }
 
         function goback(page) {
-            $('#chatapp').data('ohjpageslider').navigateBack();
+            $('#chatapp').data('ohjcontentslider').navigateBack();
         }
 
         function showusers(page) {
-            $('#chatapp').data('ohjpageslider').navigateNext();
+            $('#chatapp').data('ohjcontentslider').navigateNext();
         }
     </script>
 </body>

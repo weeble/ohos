@@ -1,5 +1,5 @@
 ;(function($) {
-    ohjui['ohjpageslider'] =  function(element, options) {
+    ohjui['ohjcontentslider'] =  function(element, options) {
             var elem = $(element), currentPage, history = [], inProgress = false;
             var _this = this;
             var settings = $.extend({
@@ -59,7 +59,7 @@
             };
 
             var render = function() {
-                elem.initPlugin('ohjpageslider');
+                elem.initPlugin('ohjcontentslider');
                 elem.hookPlugin(settings);
                 elem.css({
                     'position' : 'relative',
@@ -69,7 +69,7 @@
                 });
     
                 var pages = elem.children('div');
-                pages.addClass('ohjpageslider-page');
+                pages.addClass('ohjcontentslider-page');
                 pages.css({
                     'display' : 'none',
                     'position' : 'absolute',
@@ -118,6 +118,6 @@
         
     };
     
-    $.fn.createPlugin('ohjpageslider');
+    $.fn.createPlugin('ohjcontentslider');
 
 })(window.jQuery || window.Zepto);
