@@ -38,28 +38,30 @@ var ohjui = {};
     $.fn.hookPlugin = function(settings) {
         var _this = this;
         for(var i in settings) {
-        
-        if(i.indexOf('on') == 0 && i.length > 2 && settings[i] != null)
-        {
-            var func = settings[i];
-            this.on(i.substring(2),function() {
-                if(func!=null && typeof func == "string") {
-                    if(window[func]) {
-                        window[func].apply(_this, arguments);
-                    }
-                    else
-                    {
-                        console.log('Function '+ func + ' does not exist yet');
-                    }
-                }
-                else if(func!=null && $.isFunction(func))
-                {
-                    func.apply(_this, arguments);
-                }
-              
-            });
+            if(i.indexOf('on') == 0 && i.length > 2 && settings[i] != null)
+            {
+                _this.hookEvent(i.substring(2),settings[i]);
             }   
         }
+    }
+
+    $.fn.hookEvent = function(event,func) {
+        var _this = this;
+        this.on(event,function() {
+            if(func!=null && typeof func == "string") {
+                if(window[func]) {
+                    window[func].apply(_this, arguments);
+                }
+                else
+                {
+                    console.log('Function '+ func + ' does not exist yet');
+                }
+            }
+            else if(func!=null && $.isFunction(func))
+            {
+                func.apply(_this, arguments);
+            }
+        });
     }
 
 
