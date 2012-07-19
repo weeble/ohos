@@ -328,13 +328,7 @@ namespace OpenHome.XappForms.Forms
         readonly FormsApp iFormsApp;
         readonly IBrowserTabProxy iBrowserTabProxy;
         readonly int iId;
-        //readonly UserList iUserList;
 
-        /// <summary>
-        /// Protects iUser.
-        /// </summary>
-        object iLock = new object();
-        string iUserId;
         ButtonControl iButtonFour;
 
         public FormsAppTab(FormsApp aFormsApp, IBrowserTabProxy aBrowserTabProxy, int aId, UserList aUserList, string aUserId)
@@ -359,8 +353,6 @@ namespace OpenHome.XappForms.Forms
             iFormsApp = aFormsApp;
             iBrowserTabProxy = aBrowserTabProxy;
             iId = aId;
-            iUserId = aUserId;
-            //iUserList = aUserList;
         }
 
         void OnButtonFourClicked(object sender, EventArgs e)
