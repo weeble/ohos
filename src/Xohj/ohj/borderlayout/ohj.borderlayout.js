@@ -46,8 +46,8 @@
                     mainLayout.css({ 'top' : settings.topheight,
                                       'bottom' : settings.bottomheight });
                     rightLayout.css({ 'width': settings.rightwidth });
-                    midLayout.css({ 'left' : settings.leftwidth,
-                                    'right' : settings.rightwidth });
+                    midLayout.css({ 'left' : settings.leftwidth || 0 ,
+                                    'right' : settings.rightwidth || 0 });
                }
                else
                {
