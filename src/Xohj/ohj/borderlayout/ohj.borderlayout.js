@@ -23,7 +23,6 @@
 
                 if(settings.height == null) settings.height = $.fn.getOuterHeight(elem);
                 elem.css({'height': settings.height });
-
                 if( $.fn.getOuterHeight(elem) > 0)
                 {
                     var mainLayout = elem.children('.ohjborderlayout-main');
@@ -33,19 +32,18 @@
                     var topLayout = elem.children('.ohjborderlayout-top');
                     var bottomLayout = elem.children('.ohjborderlayout-bottom');
                 
-
                     if(settings.topheight == null) settings.topheight = $.fn.getOuterHeight(topLayout);
                     if(settings.bottomheight == null) settings.bottomheight = $.fn.getOuterHeight(bottomLayout);
                     if(settings.leftwidth == null) settings.leftwidth = $.fn.getOuterWidth(leftLayout);
                     if(settings.rightwidth == null) settings.rightwidth = $.fn.getOuterWidth(rightLayout);
                     
-                   
-                    topLayout.css({ 'height': settings.topheight });
-                    leftLayout.css({ 'width': settings.leftwidth });
-                    bottomLayout.css({ 'height': settings.bottomheight });
-                    mainLayout.css({ 'top' : settings.topheight,
-                                      'bottom' : settings.bottomheight });
-                    rightLayout.css({ 'width': settings.rightwidth });
+
+                    topLayout.css({ 'height': settings.topheight || 0 });
+                    leftLayout.css({ 'width': settings.leftwidth || 0});
+                    bottomLayout.css({ 'height': settings.bottomheight || 0 });
+                    mainLayout.css({ 'top' : settings.topheight || 0,
+                                      'bottom' : settings.bottomheight || 0 });
+                    rightLayout.css({ 'width': settings.rightwidth || 0});
                     midLayout.css({ 'left' : settings.leftwidth || 0 ,
                                     'right' : settings.rightwidth || 0 });
                }
