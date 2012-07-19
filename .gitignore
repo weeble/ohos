@@ -13,7 +13,7 @@ _ReSharper.*
 *.sln.docstates
 
 # Monodevelop user prefs
-Smarties.userprefs
+*.userprefs
 
 # Debugging database
 *.pidb
