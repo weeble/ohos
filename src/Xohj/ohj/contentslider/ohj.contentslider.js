@@ -3,7 +3,7 @@
             var elem = $(element), currentPage, history = [], inProgress = false;
             var _this = this;
             var settings = $.extend({
-                height : '450px',
+                height : '100%',
                 speed : 200,
                 onpageload : null,
                 onpageloadcomplete : null,
