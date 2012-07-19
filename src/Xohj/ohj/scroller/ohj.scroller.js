@@ -3,7 +3,7 @@
         var elem = $(element);
         var _this = this;
         var settings = $.extend({
-            height:'450px',
+            height:'100%',
             extend: null
         }, options || {});
 
