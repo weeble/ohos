@@ -6,6 +6,19 @@ using OpenHome.XappForms.Json;
 
 namespace OpenHome.XappForms.Forms
 {
+    public interface IXappFormsBrowserTab
+    {
+        void Send(JsonObject aJsonObject);
+        T CreateControl<T>(Func<long, T> aControlFunc) where T:IControl;
+        void DestroyControl(IControl aControl);
+    }
+
+    public interface IControl
+    {
+        long Id { get; }
+        string Class { get; }
+        void Receive(JsonObject aMessage);
+    }
 
     class XappFormsBrowserTab
     {

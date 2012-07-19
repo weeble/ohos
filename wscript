@@ -545,6 +545,7 @@ csharp_projects = [
                 'ohOs.Platform',
                 'OpenHome.XappForms',
                 'OpenHome.XappForms.Hosting',
+                'OpenHome.XappForms.Forms.App',
                 ]),
         CSharpProject(
             name="OpenHome.XappForms.Chat.App", dir="OpenHome.XappForms.Chat", type="library",
