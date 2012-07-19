@@ -191,7 +191,60 @@
                 line-height:30px;
                 background-color:#E19800;
             }
+            
+             #page .ohjborderlayout-left
+            {
+                background-color:#AAA;
+                line-height:200px;
+                text-align:center;
+            }
+            
+            #page .ohjborderlayout-right
+            {
+                background-color:#AAA;
+                line-height:200px;
+                text-align:center;
+            }
+            
+            #page .ohjborderlayout-main
+            {
+                background-color:#EEE;
+            }
+            
+           
 
+            #page .ohjborderlayout-top
+            {   
+                color:#FFF;
+                text-align: center;
+                line-height:45px;
+                background-color:#333;
+            }
+            
+            #page .ohjborderlayout-bottom
+            {   
+                color:#FFF;
+                text-align: center;
+                line-height:45px;
+                background-color:#333;
+            }
+            
+             #page .ohjscroller ul
+             {
+                 list-style:none;
+                 font-size:14px;
+                 padding:0;
+                 margin:0;
+             }
+            
+             #page .ohjscroller li
+             {
+                 border-bottom:1px solid #CCC;
+                 padding:0;
+                 line-height:30px;
+                 height:30px;
+                 padding-left:20px;
+             }
             
             
         </style>
@@ -398,7 +451,7 @@
                         <div class="row">
                             <div class="span3"  style="text-align:center">
                                 <br/>
-                                <a class="btn btn-warning btn-large" href="../ohj/navbar/index.html"> Learn more </a>
+                                <a class="btn btn-warning btn-large" href="../ohj/borderlayout/index.html#examples"> Learn more </a>
                             </div>
                         </div>
                     </div><!-- /.span -->
@@ -408,85 +461,86 @@
                         <div class="demo">
                             <h3>Page</h3>
                             <p>
-                                A page control contains header, footer and a pagescoller.
+                                A page control contains header, footer and a content scroller. (Built using borderlayout)
                             </p>
-                            <div id="pg1" data-use-ohjpage="true" style="height:300px">
-                                <header>
-                                    Page Header
-                                </header>
-                                <article>
-                                    <ul>
-                                        <li>
-                                            One
-                                        </li>
-                                        <li>
-                                            Two
-                                        </li>
-                                        <li>
-                                            Three
-                                        </li>
-                                        <li>
-                                            Four
-                                        </li>
-                                        <li>
-                                            Five
-                                        </li>
-                                        <li>
-                                            Six
-                                        </li>
-                                        <li>
-                                            Seven
-                                        </li>
-                                        <li>
-                                            Eight
-                                        </li>
-                                        <li>
-                                            Nine
-                                        </li>
-                                        <li>
-                                            Ten
-                                        </li>
-                                        <li>
-                                            11
-                                        </li>
-                                        <li>
-                                            12
-                                        </li>
-                                        <li>
-                                            13
-                                        </li>
-                                        <li>
-                                            14
-                                        </li>
-                                        <li>
-                                            15
-                                        </li>
-                                        <li>
-                                            16
-                                        </li>
-                                        <li>
-                                            17
-                                        </li>
-                                        <li>
-                                            18
-                                        </li>
-                                        <li>
-                                            19
-                                        </li>
-                                        <li>
-                                            20
-                                        </li>
-                                    </ul>
-                                </article>
-                                <footer data-use-ohjnavbar="true">
-                                    Page Footer
-                                </footer>
+                            <div id="page" data-use-ohjborderlayout="true" data-height="300px" data-bottomheight="45px" data-topheight="45px">
+                            <div class="ohjborderlayout-top">Header</div>
+                            <div class="ohjborderlayout-main">
+                                <div class="ohjborderlayout-middle">
+                                
+                                <div id="page-scroller" data-use-ohjscroller="true" >
+                                <ul>
+                                    <li>
+                                        One
+                                    </li>
+                                    <li>
+                                        Two
+                                    </li>
+                                    <li>
+                                        Three
+                                    </li>
+                                    <li>
+                                        Four
+                                    </li>
+                                    <li>
+                                        Five
+                                    </li>
+                                    <li>
+                                        Six
+                                    </li>
+                                    <li>
+                                        Seven
+                                    </li>
+                                    <li>
+                                        Eight
+                                    </li>
+                                    <li>
+                                        Nine
+                                    </li>
+                                    <li>
+                                        Ten
+                                    </li>
+                                    <li>
+                                        11
+                                    </li>
+                                    <li>
+                                        12
+                                    </li>
+                                    <li>
+                                        13
+                                    </li>
+                                    <li>
+                                        14
+                                    </li>
+                                    <li>
+                                        15
+                                    </li>
+                                    <li>
+                                        16
+                                    </li>
+                                    <li>
+                                        17
+                                    </li>
+                                    <li>
+                                        18
+                                    </li>
+                                    <li>
+                                        19
+                                    </li>
+                                    <li>
+                                        20
+                                    </li>
+                                </ul>
                             </div>
+                                </div>
+                            </div>
+                            <div class="ohjborderlayout-bottom">Footer</div>
+                        </div>
                         </div>
                         <div class="row">
                             <div class="span3"  style="text-align:center">
                                 <br/>
-                                <a class="btn btn-warning btn-large" href="../ohj/page/index.html"> Learn more </a>
+                                <a class="btn btn-warning btn-large" href="../ohj/borderlayout/index.html#examples"> Learn more </a>
                             </div>
                         </div>
                     </div><!-- /.span -->
@@ -614,16 +668,14 @@
     &lt;script src="../ohj/ohj.util.js">&lt;/script&gt;
     &lt;script src="../ohj/ohj.ui.js">&lt;/script&gt;
     &lt;script src="../ohj/ohj.ui.bridge.js">&lt;/script&gt;
+    &lt;script src="../ohj/borderlayout/ohj.borderlayout.js"&gt;&lt;/script&gt;
     &lt;script src="../ohj/contentslider/ohj.contentslider.js"&gt;&lt;/script&gt;
     &lt;script src="../ohj/scroller/ohj.scroller.js"&gt;&lt;/script&gt;
     &lt;script src="../ohj/scroller/ohj.scroller.pointer.js"&gt;&lt;/script&gt;
     &lt;script src="../ohj/scroller/ohj.scroller.touch.js"&gt;&lt;/script&gt;
-    &lt;script src="../ohj/navbar/ohj.navbar.js"&gt;&lt;/script&gt;
-    &lt;script src="../ohj/page/ohj.page.js"&gt;&lt;/script&gt;
     &lt;script src="../ohj/list/ohj.list.js"&gt;&lt;/script&gt;
     &lt;script src="../ohj/lazylist/ohj.lazylist.js"&gt;&lt;/script&gt;
     &lt;script src="../ohj/virtuallist/ohj.virtuallist.js"&gt;&lt;/script&gt;
-    &lt;script src="../ohj/borderlayout/ohj.borderlayout.js"&gt;&lt;/script&gt;
 
     &lt;!-- css Files --&gt;
     &lt;link href="../ohj/scroller/ohj.scroller.pointer.css" rel="stylesheet"&gt;
@@ -679,6 +731,7 @@
         <script src="../ohj/ohj.ui.js"></script>
         <script src="../ohj/ohj.ui.bridge.js"></script>
         <script src="../ohj/contentslider/ohj.contentslider.js"></script>
+        <script src="../ohj/borderlayout/ohj.borderlayout.js"></script>
         <script src="../ohj/scroller/ohj.scroller.js"></script>
         <script src="../ohj/scroller/ohj.scroller.pointer.js"></script>
         <script src="../ohj/scroller/ohj.scroller.touch.js"></script>
@@ -687,7 +740,7 @@
         <script src="../ohj/list/ohj.list.js"></script>
         <script src="../ohj/lazylist/ohj.lazylist.js"></script>
         <script src="../ohj/virtuallist/ohj.virtuallist.js"></script>
-        <script src="../ohj/borderlayout/ohj.borderlayout.js"></script>
+        
         <script>
             $().ready(function () {
 
@@ -698,14 +751,14 @@
                 }
 
                 var ps = $('#ps1container').ohjcontentslider({
-                    height : '200px'
+                    height: '200px'
                 });
 
-                $('#btnP1Next').on('click', function() {
+                $('#btnP1Next').on('click', function () {
                     ps.navigateNext();
                 });
 
-                $('#btnP1Back').on('click', function() {
+                $('#btnP1Back').on('click', function () {
                     // Use dom data to get ohjcontentslider instance
                     $('#ps1container').data('ohjcontentslider').navigateBack();
                 });
@@ -721,8 +774,8 @@
                             html += '<li id="li_' + i + '">  <img src="../ohj/list/default.jpg" /><h3>' + arguments[i] + '</h3></li>'; // console.log(arguments[i]);
                         }
 
-                         $("#lazylist1 ul").data('ohjlist').addListItem(html);
-                         $('#lazylist1').data('ohjlazylist').getScroller().refreshScroller();
+                        $("#lazylist1 ul").data('ohjlist').addListItem(html);
+                        $('#lazylist1').data('ohjlazylist').getScroller().refreshScroller();
                     },
                     ongetdata: function (e, startIndex, endIndex, onSuccess) {
                         if (onSuccess != null) {
