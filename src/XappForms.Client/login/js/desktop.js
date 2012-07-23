@@ -5,8 +5,8 @@ function pageload(e, page) {
     switch (page.attr('id')) {
         case 'pgChat':
             {
-                $('#pgUser').data('ohjpage').refreshPage();
-                $('#pgConversation').data('ohjpage').refreshPage();
+                $('#pgUser').data('ohj').refreshPage();
+                $('#pgConversation').data('ohj').refreshPage();
                 setTimeout(function () {
                     $('#txtMessage').focus();
                 }, 200);
@@ -14,7 +14,7 @@ function pageload(e, page) {
             }
         default:
             {
-                page.data('ohjpage').refreshPage();
+                page.data('ohj').refreshPage();
             }
     }
 

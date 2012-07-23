@@ -16,7 +16,7 @@
     });
 
     $('#btnLogin').press(function () {
-        $('#chatapp').data('ohjcontentslider').navigateNext();
+        $('#chatapp').data('ohj').navigateNext();
     });
 
     $('body').bind('xappevent', function (event, data) {
@@ -85,7 +85,7 @@ function newtab(data) {
         }));
     refreshTabcount(data);
     refreshQueuecount(data) 
-    $('#pg1').data('ohjpage').refreshPage();
+    $('#pg1').data('ohj').refreshPage();
 }
 
 function closedtab(data) {
@@ -98,7 +98,7 @@ function closedtab(data) {
         $('#session_' + data.session).remove();
     }
     refreshTabcount(data);
-    $('#pg1').data('ohjpage').refreshPage();
+    $('#pg1').data('ohj').refreshPage();
 }
 
 function updatetab(data) {
@@ -116,14 +116,14 @@ function updatetab(data) {
 
 // inline callbacks
 function pageload(page) {
-    page.data('ohjpage').refreshPage();
+    page.data('ohj').refreshPage();
     
 }
 
 function goback(page) {
-    $('#chatapp').data('ohjcontentslider').navigateBack();
+    $('#chatapp').data('ohj').navigateBack();
 }
 
 function showusers(page) {
-    $('#chatapp').data('ohjcontentslider').navigateNext();
+    $('#chatapp').data('ohj').navigateNext();
 }
