@@ -5,15 +5,14 @@ var ohjui = {};
                 var ret = [];
                 this.each(function() {
                     var element = $(this);
-                    var data = element.data(pluginName);
-
-                    if(data) {
-                        return data;
+                    if(element.data('ohjtype')) {
+                        return element.data('ohj');
                     }
                     var settings = $.extend(element.data(), options || {});
 
-                    data = new ohjui[pluginName](this,settings);
-                    element.data(pluginName, data);
+                    var data = new ohjui[pluginName](this,settings);
+                    element.data('ohjtype',pluginName);
+                    element.data('ohj', data);
                     ret.push(data);
                 });
                 return ret.length > 1 ? ret : ret[0];
@@ -21,14 +20,16 @@ var ohjui = {};
         
             $().ready(function () {
                 $.fn.decoratePlugin(pluginName,$('body'));
+
             });
         }
 
     $.fn.decoratePlugin = function(pluginName, element) {
        element.find('[data-ohj="'+pluginName+'"]').each(function () {  
             var element = $(this);
-            if (element.data(pluginName))
+            if (element.data('ohjtype'))
                 return;
+           
             element.data('ohjtype',pluginName);
             element.data('ohj', new ohjui[pluginName](this, element.data()));
         });
