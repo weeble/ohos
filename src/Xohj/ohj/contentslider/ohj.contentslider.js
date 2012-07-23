@@ -59,7 +59,6 @@
             };
 
             var render = function() {
-                elem.initPlugin('ohjcontentslider');
                 elem.hookPlugin(settings);
                 elem.css({
                     'position' : 'relative',

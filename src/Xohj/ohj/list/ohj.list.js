@@ -26,7 +26,6 @@
 
         // Private Methods
         var render = function() {
-            elem.initPlugin('ohjlist');
             refresh();
         };
 

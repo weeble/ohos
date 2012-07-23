@@ -89,7 +89,6 @@
         };
 
         var render = function() {
-            elem.initPlugin('ohjlazylist');
             elem.hookPlugin(settings);
            
             elem.css({'position':'relative','overflow' : 'hidden'});

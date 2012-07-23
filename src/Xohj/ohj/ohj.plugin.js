@@ -18,7 +18,6 @@
             
             // Private Methods
             var render = function() {
-                elem.initPlugin('ohjplugin');
                 elem.hookPlugin(settings);
             };
             

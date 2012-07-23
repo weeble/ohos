@@ -130,7 +130,6 @@
             
             // Private Methods
             var render = function() {
-                elem.initPlugin('ohjvirtuallist');
                 elem.hookPlugin(settings);
                
                 setTimeout(function () {

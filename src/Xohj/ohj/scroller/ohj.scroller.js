@@ -9,7 +9,6 @@
 
         // Private Methods   
         var render = function() {
-            elem.initPlugin('ohjscroller');
             elem.css({'height':settings.height});
           
             _this.renderScroller();

@@ -13,6 +13,7 @@ var ohjui = {};
                     var data = new ohjui[pluginName](this,settings);
                     element.data('ohjtype',pluginName);
                     element.data('ohj', data);
+                    element.addClass(pluginName);
                     ret.push(data);
                 });
                 return ret.length > 1 ? ret : ret[0];
@@ -20,7 +21,6 @@ var ohjui = {};
         
             $().ready(function () {
                 $.fn.decoratePlugin(pluginName,$('body'));
-
             });
         }
 
@@ -32,6 +32,7 @@ var ohjui = {};
            
             element.data('ohjtype',pluginName);
             element.data('ohj', new ohjui[pluginName](this, element.data()));
+            element.addClass(pluginName);
         });
     }
 
@@ -62,18 +63,6 @@ var ohjui = {};
                 func.apply(_this, arguments);
             }
         });
-    }
-
-
-    $.fn.initPlugins = function(pluginName,element) {
-        element.find('[data-use-'+pluginName+']').each(function () {  
-            $(this).initPlugin(pluginName);
-        });
-    }
-
-    $.fn.initPlugin = function(pluginName) {
-        this.addClass('ohjui '+pluginName);
-        this.attr('ohjui',pluginName);
     }
 
     $.fn.decoratePlugins = function(element) {

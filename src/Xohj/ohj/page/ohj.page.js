@@ -39,7 +39,6 @@
 
         // Private Methods
         var render = function() {
-            elem.initPlugin('ohjpage');
             header = elem.children('header').ohjnavbar();
             scroller = elem.children('article').ohjscroller();
             _this.refreshPage();

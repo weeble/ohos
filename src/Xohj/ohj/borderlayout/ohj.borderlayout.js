@@ -18,7 +18,6 @@
 
             // Private Methods
             var render = function() {
-                elem.initPlugin('ohjborderlayout');
                 elem.hookPlugin(settings);
 
                 if(settings.height == null) settings.height = $.fn.getOuterHeight(elem);
