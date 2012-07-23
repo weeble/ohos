@@ -34,8 +34,13 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TabTests.cs" />
     <Compile Include="UrlDispatcherTests.cs" />
+    <Compile Include="XappFormsBrowserTabTests.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\OpenHome.XappForms.Forms\OpenHome.XappForms.Forms.csproj">
+      <Project>{80776D93-509E-483A-AEF6-911FDA34027C}</Project>
+      <Name>OpenHome.XappForms.Forms</Name>
+    </ProjectReference>
     <ProjectReference Include="..\OpenHome.XappForms\OpenHome.XappForms.csproj">
       <Project>{952680F0-1FD9-49DB-B69C-78D95D5D4F47}</Project>
       <Name>OpenHome.XappForms</Name>

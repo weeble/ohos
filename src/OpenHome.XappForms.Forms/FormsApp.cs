@@ -336,19 +336,17 @@ namespace OpenHome.XappForms.Forms
             iXFTab = new XappFormsBrowserTab(aBrowserTabProxy);
 
 
-            var grid = new GridControl(iXFTab);
+            var grid = GridControl.Create(iXFTab);
 
-            grid.TopLeft = new ButtonControl(iXFTab) { Text = "First" };
-            grid.TopRight = new ButtonControl(iXFTab) { Text = "Beta" };
-            grid.BottomLeft = new ButtonControl(iXFTab) { Text = "Charlie" };
-            iButtonFour = new ButtonControl(iXFTab) { Text = "FOUR" };
+            grid.TopLeft = ButtonControl.Create(iXFTab, "First");
+            grid.TopRight = ButtonControl.Create(iXFTab, "Beta");
+            grid.BottomLeft = ButtonControl.Create(iXFTab, "Charlie");
+            iButtonFour = ButtonControl.Create(iXFTab, "FOUR");
 
             grid.BottomRight = iButtonFour;
             iButtonFour.Clicked += OnButtonFourClicked;
 
-            iXFTab.SetRoot(grid);
-
-
+            iXFTab.Root = grid;
 
             iFormsApp = aFormsApp;
             iBrowserTabProxy = aBrowserTabProxy;

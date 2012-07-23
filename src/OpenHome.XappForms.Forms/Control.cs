@@ -11,6 +11,7 @@ namespace OpenHome.XappForms.Forms
         void Send(JsonObject aJsonObject);
         T CreateControl<T>(Func<long, T> aControlFunc) where T:IControl;
         void DestroyControl(IControl aControl);
+        IControl Root { get; set; }
     }
 
     public interface IControl
@@ -20,20 +21,23 @@ namespace OpenHome.XappForms.Forms
         void Receive(JsonObject aMessage);
     }
 
-    class XappFormsBrowserTab
+    public class XappFormsBrowserTab : IXappFormsBrowserTab
     {
         IBrowserTabProxy iTabProxy;
         long iIdCounter = 0;
-        Dictionary<long, Control> iControls = new Dictionary<long, Control>();
+        Dictionary<long, IControl> iControls = new Dictionary<long, IControl>();
+        SlottedControlContainer iRootContainer = new SlottedControlContainer();
+
 
         public XappFormsBrowserTab(IBrowserTabProxy aTabProxy)
         {
             iTabProxy = aTabProxy;
+            iRootControl = new RootContainer { BrowserTab = this };
         }
 
-        public void Send(JsonValue aJsonValue)
+        public void Send(JsonObject aJsonObject)
         {
-            iTabProxy.Send(new JsonObject { { "type", "xf-custom" }, { "value", aJsonValue } });
+            iTabProxy.Send(aJsonObject);
         }
 
         public long GenerateId()
@@ -42,151 +46,231 @@ namespace OpenHome.XappForms.Forms
             return iIdCounter;
         }
 
-        public void SetProperty(long aId, string aName, JsonValue aValue)
+        class RootControl : IControl
         {
-            iTabProxy.Send(new JsonObject { { "type", "xf-property" }, { "control", aId }, { "property", aName }, { "value", aValue } });
+            public long Id { get { return 0; } }
+            public string Class { get { return "root"; } }
+            public void Receive(JsonObject aMessage) { }
         }
 
-        public void SetSlot(long aId, string aName, long aChildId)
+        private class RootContainer : IInternalControl
         {
-            iTabProxy.Send(new JsonObject { { "type", "xf-slot" }, { "parent", aId }, { "slot", aName }, { "child", aChildId } });
+            public long Id { get { return 0; } }
+            public string Class { get { return "root"; } }
+            public void Receive(JsonObject aMessage) { }
+            public IXappFormsBrowserTab BrowserTab { get; set; }
         }
-
-        public long CreateControl(string aClassName)
-        {
-            long controlId = GenerateId();
-            iTabProxy.Send(new JsonObject { { "type", "xf-control" }, { "class", aClassName }, { "id", controlId } });
-            return controlId;
-        }
-
-        public void RegisterControl(Control aControl)
-        {
-            iControls[aControl.Id] = aControl;
-        }
-
-        public void Subscribe(long aId, string aEventName)
-        {
-            iTabProxy.Send(new JsonObject { { "type", "xf-subscribe" }, { "control", aId }, { "event", aEventName } });
-        }
-
-        public void Unsubscribe(long aId, string aEventName)
-        {
-            iTabProxy.Send(new JsonObject { { "type", "xf-unsubscribe" }, { "control", aId }, { "event", aEventName } });
-        }
+        RootContainer iRootControl;
+        IControl iRoot;
+        public IControl Root { get { return iRoot; } set { iRootContainer.SetSlot(iRootControl, "root", value); iRoot = value; } }
 
         public void Receive(JsonValue aValue)
         {
-            string messageType = aValue.Get("type").AsString();
-            switch (messageType)
+            if (!aValue.IsObject) return;
+            long controlId = aValue.Get("control").AsLong();
+            IControl control;
+            if (iControls.TryGetValue(controlId, out control))
             {
-                case "xf-event":
-                    long controlId = aValue.Get("control").AsLong();
-                    string eventName = aValue.Get("event").AsString();
-                    JsonValue eventObject = aValue.Get("object");
-                    Control control;
-                    if (iControls.TryGetValue(controlId, out control))
-                    {
-                        control.HandleEvent(eventName, eventObject);
-                    }
-                    break;
+                control.Receive((JsonObject)aValue);
             }
         }
 
-        public void SetRoot(Control aControl)
+        public T CreateControl<T>(Func<long, T> aControlFunc) where T : IControl
         {
-            SetSlot(0, "root", aControl.Id);
+            long controlId = GenerateId();
+            T control = aControlFunc(controlId);
+            iTabProxy.Send(new JsonObject { { "type", "xf-create" }, { "class", control.Class }, { "control", controlId } });
+            iControls[controlId] = control;
+            return control;
+        }
+
+        public void DestroyControl(IControl aControl)
+        {
+            long controlId = aControl.Id;
+            iControls.Remove(controlId);
+            iTabProxy.Send(new JsonObject { { "type", "xf-destroy" }, { "control", controlId } });
         }
     }
-    class Control
+
+
+    public interface IInternalControl : IControl
     {
-        readonly XappFormsBrowserTab iTab;
-        public long Id { get; private set; }
-        Control Parent { get; set; }
-        bool Placed { get { return Parent != null; } }
-        Dictionary<string, Control> iSlots = new Dictionary<string, Control>();
-        Dictionary<string, JsonValue> iProperties = new Dictionary<string, JsonValue>();
-        Dictionary<string, EventHandler> iEventHandlers = new Dictionary<string, EventHandler>();
-        public Control(XappFormsBrowserTab aTab, string aClass)
-        {
-            iTab = aTab;
-            // TODO: Move nasty object-graph assembly into factory.
-            Id = iTab.CreateControl(aClass);
-            iTab.RegisterControl(this);
-        }
-        void Eject()
-        {
-            Parent = null;
-        }
-        void Emplace(Control aParent)
-        {
-            if (aParent == null) throw new ArgumentNullException("aParent");
-            if (aParent.iTab != iTab) throw new ArgumentException("Parent and child elements must belong to same browser tab.");
-            Parent = aParent;
-        }
-        protected Control GetSlot(string aName)
+        IXappFormsBrowserTab BrowserTab { get; }
+    }
+
+    class SlottedControlContainer
+    {
+        Dictionary<string, IControl> iSlots = new Dictionary<string, IControl>();
+        public IControl GetSlot(string aName)
         {
             return iSlots[aName];
         }
-        protected void SetSlot(string aName, Control aControl)
+        public void SetSlot(IInternalControl aThisControl, string aSlot, IControl aChild)
         {
-            if (aControl.Placed)
-            {
-                throw new Exception("Control is already placed.");
-            }
-            if (iSlots.ContainsKey(aName))
-            {
-                iSlots[aName].Eject();
-            }
-            aControl.Emplace(this);
-            iSlots[aName] = aControl;
-            iTab.SetSlot(Id, aName, aControl.Id);
+            iSlots[aSlot] = aChild;
+            aThisControl.BrowserTab.Send(new JsonObject { { "type", "xf-bind-slot" }, { "control", aThisControl.Id }, {"slot", aSlot}, { "child", aChild.Id } });
         }
-        protected JsonValue GetProperty(string aName)
+    }
+
+    struct Slice
+    {
+        int iStart;
+        int iEnd;
+        public Slice(int aStart, int aEnd)
+        {
+            iStart = aStart;
+            iEnd = aEnd;
+        }
+        public int Start { get { return iStart; } }
+        public int End { get { return iEnd; } }
+        public int Count { get { return iEnd-iStart; } }
+        public Slice MakeAbsolute(int aCount)
+        {
+            var start = iStart;
+            var end = iEnd;
+            if (start < 0) { start += aCount; }
+            if (start < 0) { start = 0; }
+            if (end < 0) { end += aCount; }
+            if (end < start) { end = start; }
+            if (end >= aCount) { end = aCount; }
+            if (start >= end) { start = end; }
+            return new Slice(start, end);
+        }
+        public static Slice BeforeStart { get { return new Slice(0,0); } }
+        public static Slice AfterEnd { get { return new Slice(int.MaxValue,int.MaxValue); } }
+        public static Slice All { get { return new Slice(0, int.MaxValue); } }
+        public static Slice Single(int aIndex) { return new Slice(aIndex, aIndex+1); }
+    }
+
+    class IndexedControlContainer
+    {
+        readonly List<IControl> iChildren = new List<IControl>();
+        public IControl Get(int aIndex)
+        {
+            return iChildren[aIndex];
+        }
+        public List<IControl> Get(Slice aSlice)
+        {
+            var slice = aSlice.MakeAbsolute(iChildren.Count);
+            return iChildren.GetRange(slice.Start, slice.Count);
+        }
+        public void Set(IInternalControl aThisControl, int aIndex, IControl aChild)
+        {
+            Set(aThisControl, Slice.Single(aIndex), new List<IControl>{aChild});
+        }
+        public void Set(IInternalControl aThisControl, Slice aSlice, List<IControl> aChildren)
+        {
+            var slice = aSlice.MakeAbsolute(iChildren.Count);
+            if (slice.Count > 0)
+            {
+                iChildren.RemoveRange(slice.Start, slice.Count);
+            }
+            var childIds = new JsonArray();
+            if (aChildren != null && aChildren.Count > 0)
+            {
+                iChildren.InsertRange(slice.Start, aChildren);
+                foreach (var child in aChildren)
+                {
+                    childIds.Add(child.Id);
+                }
+            }
+            aThisControl.BrowserTab.Send(
+                new JsonObject {
+                    { "type", "xf-bind-slice" },
+                    { "start", slice.Start },
+                    { "end", slice.End },
+                    { "control", aThisControl.Id },
+                    { "children", childIds } });
+        }
+    }
+
+    public class JsonProperties
+    {
+        readonly Dictionary<string, JsonValue> iProperties = new Dictionary<string, JsonValue>();
+        public JsonValue GetProperty(string aName)
         {
             return iProperties[aName];
         }
-        protected void SetProperty(string aName, JsonValue aValue)
+        public void SetProperty(IInternalControl aThisControl, string aName, JsonValue aValue)
         {
             iProperties[aName] = aValue;
-            iTab.SetProperty(Id, aName, aValue);
+            aThisControl.BrowserTab.Send(new JsonObject { { "type", "xf-set-property" }, { "control", aThisControl.Id }, { "property", aName }, { "value", aValue } });
         }
-        protected void Send(JsonValue aJsonValue)
-        {
-            iTab.Send(aJsonValue);
-        }
-        protected void SubscribeEventHandler(string aEventName, EventHandler aHandler)
+    }
+
+    public class EventCollection
+    {
+        readonly Dictionary<string, EventHandler> iEventHandlers = new Dictionary<string, EventHandler>();
+        public void SubscribeEventHandler(IInternalControl aThisControl, string aEventName, EventHandler aHandler)
         {
             EventHandler handler;
             iEventHandlers.TryGetValue(aEventName, out handler);
             if (handler == null)
             {
-                iTab.Subscribe(Id, aEventName);
+                aThisControl.BrowserTab.Send(new JsonObject { { "type", "xf-subscribe" }, { "control", aThisControl.Id }, { "event", aEventName } });
             }
             handler += aHandler;
             iEventHandlers[aEventName] = handler;
-            //var eventId = iTab.GenerateId();
         }
-        protected void UnsubscribeEventHandler(string aEventName, EventHandler aHandler)
+        public void UnsubscribeEventHandler(IInternalControl aThisControl, string aEventName, EventHandler aHandler)
         {
             var handler = iEventHandlers[aEventName];
             handler -= aHandler;
             iEventHandlers[aEventName] = handler;
             if (handler == null)
             {
-                iTab.Unsubscribe(Id, aEventName);
+                aThisControl.BrowserTab.Send(new JsonObject { { "type", "xf-unsubscribe" }, { "control", aThisControl.Id }, { "event", aEventName } });
             }
         }
-        public void HandleEvent(string aEventName, JsonValue aEventObject)
+        public bool Receive(JsonValue aMessage)
         {
-            //TODO: Pass on event object.
-            iEventHandlers[aEventName](this, EventArgs.Empty);
+            if (!aMessage.IsObject) return false;
+            var type = aMessage.Get("type");
+            if (!type.IsString || type.AsString() != "xf-event") return false;
+            var ev = aMessage.Get("event");
+            if (!ev.IsString) return false;
+            EventHandler handler;
+            if (!iEventHandlers.TryGetValue(ev.AsString(), out handler)) return false;
+            handler(this, EventArgs.Empty);
+            return true;
+        }
+    }
+
+    abstract class Control : IControl, IInternalControl, IDisposable
+    {
+        readonly IXappFormsBrowserTab iTab;
+        public long Id { get; private set; }
+        public Control(IXappFormsBrowserTab aTab, long aId)
+        {
+            iTab = aTab;
+            Id = aId;
+        }
+        public abstract string Class { get; }
+        public IXappFormsBrowserTab BrowserTab { get { return iTab; } }
+        public virtual void Receive(JsonObject aObject)
+        {
+        }
+        bool iDisposed;
+        public void Dispose()
+        {
+            if (!iDisposed)
+            {
+                iDisposed = true;
+                iTab.DestroyControl(this);
+            }
         }
     }
 
     class GridControl : Control
     {
-        public GridControl(XappFormsBrowserTab aTab) : base(aTab, "grid")
+        readonly SlottedControlContainer iSlots = new SlottedControlContainer();
+        public GridControl(IXappFormsBrowserTab aTab, long aId) : base(aTab, aId)
         {
+        }
+
+        public static GridControl Create(IXappFormsBrowserTab aTab)
+        {
+            return aTab.CreateControl(aId => new GridControl(aTab, aId));
         }
 
         public static string HtmlTemplate
@@ -205,17 +289,40 @@ namespace OpenHome.XappForms.Forms
                     @"</table>";
             }
         }
-        public Control TopLeft { get { return GetSlot("topleft"); } set { SetSlot("topleft", value); } }
-        public Control TopRight { get { return GetSlot("topright"); } set { SetSlot("topright", value); } }
-        public Control BottomLeft { get { return GetSlot("bottomleft"); } set { SetSlot("bottomleft", value); } }
-        public Control BottomRight { get { return GetSlot("bottomright"); } set { SetSlot("bottomright", value); } }
+        public IControl TopLeft { get { return iSlots.GetSlot("topleft"); } set { iSlots.SetSlot(this, "topleft", value); } }
+        public IControl TopRight { get { return iSlots.GetSlot("topright"); } set { iSlots.SetSlot(this, "topright", value); } }
+        public IControl BottomLeft { get { return iSlots.GetSlot("bottomleft"); } set { iSlots.SetSlot(this, "bottomleft", value); } }
+        public IControl BottomRight { get { return iSlots.GetSlot("bottomright"); } set { iSlots.SetSlot(this, "bottomright", value); } }
+
+        public override string Class
+        {
+            get { return "grid"; }
+        }
     }
 
     class ButtonControl : Control
     {
-        public ButtonControl(XappFormsBrowserTab aTab) : base(aTab, "button")
+        JsonProperties iProperties = new JsonProperties();
+        EventCollection iEventHandlers = new EventCollection();
+        public ButtonControl(IXappFormsBrowserTab aTab, long aId) : base(aTab, aId)
         {
         }
+
+        public override void Receive(JsonObject aObject)
+        {
+            iEventHandlers.Receive(aObject);
+        }
+
+        public static ButtonControl Create(IXappFormsBrowserTab aTab)
+        {
+            return aTab.CreateControl(aId => new ButtonControl(aTab, aId));
+        }
+
+        public static ButtonControl Create(IXappFormsBrowserTab aTab, string aButtonText)
+        {
+            return aTab.CreateControl(aId => new ButtonControl(aTab, aId) { Text = aButtonText });
+        }
+
 
         public static string HtmlTemplate
         {
@@ -228,13 +335,18 @@ namespace OpenHome.XappForms.Forms
 
         public event EventHandler Clicked
         {
-            add { SubscribeEventHandler("click", value); }
-            remove { UnsubscribeEventHandler("click", value); }
+            add { iEventHandlers.SubscribeEventHandler(this, "click", value); }
+            remove { iEventHandlers.UnsubscribeEventHandler(this, "click", value); }
         }
 
         public string Text {
-            get { return GetProperty("text").AsString(); }
-            set { SetProperty("text", new JsonString(value)); }
+            get { return iProperties.GetProperty("text").AsString(); }
+            set { iProperties.SetProperty(this, "text", new JsonString(value)); }
+        }
+
+        public override string Class
+        {
+            get { return "button"; }
         }
     }
 }

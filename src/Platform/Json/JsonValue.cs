@@ -261,7 +261,14 @@ namespace OpenHome.XappForms.Json
     public class JsonString : JsonValue
     {
         readonly string iValue;
-        public JsonString(string aValue) { iValue = aValue; }
+        public JsonString(string aValue)
+        {
+            if (aValue == null)
+            {
+                throw new ArgumentNullException("aValue");
+            }
+            iValue = aValue;
+        }
         override public bool IsString { get { return true; } }
         override public string AsString() { return iValue; }
         override public string ToString()
@@ -315,6 +322,10 @@ namespace OpenHome.XappForms.Json
     {
         public static string EncodeJsonString(string aContent)
         {
+            if (aContent == null)
+            {
+                throw new ArgumentNullException("aContent");
+            }
             StringBuilder sb = new StringBuilder("\"");
             foreach (char ch in aContent)
             {

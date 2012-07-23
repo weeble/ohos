@@ -10,11 +10,10 @@ namespace OpenHome.XappForms.Forms
     [TestFixture]
     public class XappFormsBrowserTabTests
     {
-        IXappFormsBrowserTab iXFBrowserTab;
+        XappFormsBrowserTab iXFBrowserTab;
         Mock<IBrowserTabProxy> iMockTabProxy;
         List<Mock<IControl>> iMockControls;
         List<long> iControlIds;
-        IAppTab iAppTab;
 
         [SetUp]
         public void SetUp()
@@ -22,8 +21,7 @@ namespace OpenHome.XappForms.Forms
             iMockControls = new List<Mock<IControl>>();
             iControlIds = new List<long>();
             iMockTabProxy = new Mock<IBrowserTabProxy>();
-            iXFBrowserTab = null; //new XappFormsBrowserTab(iMockTabProxy.Object);
-            iAppTab = null; //Same XappFormsBrowserTab
+            iXFBrowserTab = new XappFormsBrowserTab(iMockTabProxy.Object);
         }
 
         void CreateControl()
@@ -32,20 +30,21 @@ namespace OpenHome.XappForms.Forms
                     {
                         iControlIds.Add(aId);
                         var control = new Mock<IControl>();
+                        control.Setup(x => x.Class).Returns("test-control");
                         iMockControls.Add(control);
                         return control.Object;
                     });
         }
 
         [Test]
-        void WhenAControlIsCreated_TheDelegateIsInvoked()
+        public void WhenAControlIsCreated_TheDelegateIsInvoked()
         {
             CreateControl();
             Assert.That(iControlIds.Count, Is.EqualTo(1));
         }
 
         [Test]
-        void WhenTwoControlsAreCreated_TheyReceiveDistinctIds()
+        public void WhenTwoControlsAreCreated_TheyReceiveDistinctIds()
         {
             CreateControl();
             CreateControl();
@@ -54,23 +53,24 @@ namespace OpenHome.XappForms.Forms
         }
 
         [Test]
-        void WhenAControlIsCreated_TheBrowserIsNotified()
+        public void WhenAControlIsCreated_TheBrowserIsNotified()
         {
             CreateControl();
             long id = iControlIds[0];
             iMockTabProxy.Verify(x=>x.Send(
                 new JsonObject{
                     {"type", "xf-create"},
+                    {"class", "test-control"},
                     {"control", id} }));
         }
 
         [Test]
-        void WhenAMessageIsReceived_TheControlIsNotified()
+        public void WhenAMessageIsReceived_TheControlIsNotified()
         {
             CreateControl();
             long id = iControlIds[0];
             var jsonObject = new JsonObject{{"control", id}, {"alpha", "bravo"}};
-            iAppTab.Receive(jsonObject);
+            iXFBrowserTab.Receive(jsonObject);
             iMockControls[0].Verify(x=>x.Receive(jsonObject));
         }
     }
