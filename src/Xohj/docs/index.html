@@ -362,7 +362,7 @@
                             <p>
                                 A container control which allows it's content to be scrolled.
                             </p>
-                            <div id="scroller1" data-use-ohjscroller="true" data-height="250px">
+                            <div id="scroller1" data-ohj="ohjscroller" data-height="250px">
                                 <ul>
                                     <li>
                                         One
@@ -440,7 +440,7 @@
                             <p>
                                 A horizontal bar that contains header text and left and right buttons. (Built using borderlayout)
                             </p>
-                             <div id="navbar" data-use-ohjborderlayout="true" data-height="45px" data-leftwidth="60px" data-rightwidth="60px">
+                             <div id="navbar" data-ohj="ohjborderlayout" data-height="45px" data-leftwidth="60px" data-rightwidth="60px">
                                 <div class="ohjborderlayout-main">
                                     <div class="ohjborderlayout-left"><button class="btn">Prev</button></div>
                                     <div class="ohjborderlayout-middle ellipsis">Header</div>
@@ -463,12 +463,12 @@
                             <p>
                                 A page control contains header, footer and a content scroller. (Built using borderlayout)
                             </p>
-                            <div id="page" data-use-ohjborderlayout="true" data-height="300px" data-bottomheight="45px" data-topheight="45px">
+                            <div id="page" data-ohj="ohjborderlayout" data-height="300px" data-bottomheight="45px" data-topheight="45px">
                             <div class="ohjborderlayout-top">Header</div>
                             <div class="ohjborderlayout-main">
                                 <div class="ohjborderlayout-middle">
                                 
-                                <div id="page-scroller" data-use-ohjscroller="true" >
+                                <div id="page-scroller" data-ohj="ohjscroller" >
                                 <ul>
                                     <li>
                                         One
@@ -550,7 +550,7 @@
                             <p>
                                Displays a list
                             </p>
-                            <ul id="userlist" data-use-ohjlist="true">
+                            <ul id="userlist" data-ohj="ohjlist">
                                 <li>
                                     <img src="../ohj/list/default.jpg" />
                                     <h3>User 1</h3>
@@ -587,8 +587,8 @@
                                A list control where data is loaded as the user scrolls down
                             </p>
                              <div id="lazylist1" >
-                                <div data-use-ohjscroller="true" data-height="300px" >
-                                    <ul data-use-ohjlist="true">
+                                <div data-ohj="ohjscroller" data-height="300px" >
+                                    <ul data-ohj="ohjlist">
                                     </ul>
                                 </div>
                             </div>
@@ -609,8 +609,8 @@
                                A list control where a large finite set of list items can be scrolled on demand
                             </p>
                              <div id="virtuallist" >
-                                <div data-use-ohjscroller="true" data-height="300px" >
-                                    <ul data-use-ohjlist="true">
+                                <div data-ohj="ohjscroller" data-height="300px" >
+                                    <ul data-ohj="ohjlist">
                                     </ul>
                                 </div>
                             </div>
@@ -628,7 +628,7 @@
                             <p>
                                  A layout control that divides the area into top, bottom, left, right and middle regions.
                             </p>
-                            <div id="borderlayout" data-height="300px" data-use-ohjborderlayout="true" data-topheight="30px" data-bottomheight="30px" data-leftwidth="50px" data-rightwidth="50px">
+                            <div id="borderlayout" data-height="300px" data-ohj="ohjborderlayout" data-topheight="30px" data-bottomheight="30px" data-leftwidth="50px" data-rightwidth="50px">
                             <div class="ohjborderlayout-top">Top</div>
                             <div class="ohjborderlayout-main">
                                 <div class="ohjborderlayout-left">Left</div>
@@ -760,7 +760,7 @@
 
                 $('#btnP1Back').on('click', function () {
                     // Use dom data to get ohjcontentslider instance
-                    $('#ps1container').data('ohjcontentslider').navigateBack();
+                    $('#ps1container').data('ohj').navigateBack();
                 });
 
                 $('#scroller1').ohjscroller();
@@ -774,8 +774,8 @@
                             html += '<li id="li_' + i + '">  <img src="../ohj/list/default.jpg" /><h3>' + arguments[i] + '</h3></li>'; // console.log(arguments[i]);
                         }
 
-                        $("#lazylist1 ul").data('ohjlist').addListItem(html);
-                        $('#lazylist1').data('ohjlazylist').getScroller().refreshScroller();
+                        $("#lazylist1 ul").data('ohj').addListItem(html);
+                        $('#lazylist1').data('ohj').getScroller().refreshScroller();
                     },
                     ongetdata: function (e, startIndex, endIndex, onSuccess) {
                         if (onSuccess != null) {
@@ -788,8 +788,8 @@
 
                 var virtuallist = $("#virtuallist").ohjvirtuallist({
                     onrenderitem: function (e, index, data) {
-                        var html = '<li class=" li_' + index + '" style="top:' + $(this).data('ohjvirtuallist').getItemHeight() * index + 'px" ><img src="../ohj/virtuallist/default.jpg" /><h3>' + data + '</h3></li>';
-                        $('#virtuallist ul').data('ohjlist').addListItem(html);
+                        var html = '<li class=" li_' + index + '" style="top:' + $(this).data('ohj').getItemHeight() * index + 'px" ><img src="../ohj/virtuallist/default.jpg" /><h3>' + data + '</h3></li>';
+                        $('#virtuallist ul').data('ohj').addListItem(html);
                     },
                     onremoveitem: function (e, index) {
                         $('#virtuallist .li_' + index).remove();
@@ -807,7 +807,7 @@
                         }
                     },
                     ongetitemcount: function () {
-                        $(this).data('ohjvirtuallist').setItemCount(10000);
+                        $(this).data('ohj').setItemCount(10000);
                     }
                 });
             });

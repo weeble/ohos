@@ -107,12 +107,12 @@
         <![endif]-->
 </head>
 <body>
-    <div id="chatapp" data-use-ohjcontentslider="true" data-height="100%" data-onpageload="pageload">
-        <div id="pgLogin" data-use-ohjborderlayout="true" data-topheight="45px">
+    <div id="chatapp" data-ohj="ohjcontentslider" data-height="100%" data-onpageload="pageload">
+        <div id="pgLogin" data-ohj="ohjborderlayout" data-topheight="45px">
             <div class="ohjborderlayout-top">Chat App</div>
             <div class="ohjborderlayout-main">
                 <div class="ohjborderlayout-middle">
-                    <div id="page-scroller" data-use-ohjscroller="true" >
+                    <div id="page-scroller" data-ohj="ohjscroller" >
                         <div class="clearfix message login">
                         <div class="modal-header">
                             <h1>Chat App</h1>
@@ -143,11 +143,11 @@
             </div>
         
             </div>
-        <div id="pgChat" data-use-ohjpage="true">
+        <div id="pgChat" data-ohj="ohjpage">
            <div style="float:left; width:25%; height:100%;" >
-                  <div id="pgChat-User" class="header" data-use-ohjborderlayout="true" data-topheight="45px" data-height="100%">
+                  <div id="pgChat-User" class="header" data-ohj="ohjborderlayout" data-topheight="45px" data-height="100%">
                     <div class="ohjborderlayout-top">
-                        <div id="pgChat-User-navbar" data-use-ohjborderlayout="true" data-height="45px" data-leftwidth="60px" data-rightwidth="60px">
+                        <div id="pgChat-User-navbar" data-ohj="ohjborderlayout" data-height="45px" data-leftwidth="60px" data-rightwidth="60px">
                             <div class="ohjborderlayout-main">
                                 <div class="ohjborderlayout-left"><button class="btn back">Back</button></div>
                                 <div class="ohjborderlayout-middle">User List</div>
@@ -156,8 +156,8 @@
                     </div>
                     <div class="ohjborderlayout-main">
                         <div class="ohjborderlayout-middle">   
-                            <div id="pgChat-User-scroller" data-use-ohjscroller="true">  
-                                <ul id="userlist" data-use-ohjlist="true">
+                            <div id="pgChat-User-scroller" data-ohj="ohjscroller">  
+                                <ul id="userlist" data-ohj="ohjlist">
                                      <li>
                                         <img src="../../ohj/list/default.jpg" />
                                         <p><strong>Chris Cheung</strong></p>
@@ -185,13 +185,13 @@
                     </div>
                 </div>
                 <div style="float:left; width:75%; height:100%;">
-                <div id="pgConversation" class="header" data-use-ohjborderlayout="true" data-topheight="45px" data-bottomheight="65px" data-height="100%">
+                <div id="pgConversation" class="header" data-ohj="ohjborderlayout" data-topheight="45px" data-bottomheight="65px" data-height="100%">
                       <div class="ohjborderlayout-top">
                         The chat
                       </div>
                       <div class="ohjborderlayout-main">
                         <div class="ohjborderlayout-middle">   
-                            <div data-use-ohjscroller="true">  
+                            <div data-ohj="ohjscroller">  
                                 <div class="chatmessage " style="clear:both;">
                                     <div style="float:left; width:120px;margin-bottom:15px; text-align:center;" >
                                          <img src="../../ohj/list/default.jpg" style="width:55px; height:55px;" />
@@ -256,8 +256,9 @@
    <script src="../../ohj/list/ohj.list.js"></script>
     <script>
         $().ready(function () {
+            //$.fn.decoratePlugins($('body'));
             $('#btnLogin').press(function () {
-                $('#chatapp').data('ohjcontentslider').navigateNext();
+                $('#chatapp').data('ohj').navigateNext();
             });
             
             $('.back').press(function() {
@@ -286,11 +287,11 @@
         }
 
         function goback() {
-            $('#chatapp').data('ohjcontentslider').navigateBack();
+            $('#chatapp').data('ohj').navigateBack();
         }
 
         function showusers(page) {
-            $('#chatapp').data('ohjcontentslider').navigateNext();
+            $('#chatapp').data('ohj').navigateNext();
         }
     </script>
 </body>

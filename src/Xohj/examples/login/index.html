@@ -120,7 +120,7 @@
         <![endif]-->
 </head>
 <body>
-    <div id="pg1" data-use-ohjpage="true" style="height: 100%">
+    <div id="pg1" data-ohj="ohjpage" style="height: 100%">
         <header>
             User Login
         </header>
@@ -174,21 +174,21 @@
     <script>
         $().ready(function () {
             $('#btnLogin').press(function () {
-                $('#chatapp').data('ohjcontentslider').navigateNext();
+                $('#chatapp').data('ohj').navigateNext();
             });
 
         });
 
         function pageload(page) {
-            page.data('ohjpage').refreshPage();
+            page.data('ohj').refreshPage();
         }
 
         function goback(page) {
-            $('#chatapp').data('ohjcontentslider').navigateBack();
+            $('#chatapp').data('ohj').navigateBack();
         }
 
         function showusers(page) {
-            $('#chatapp').data('ohjcontentslider').navigateNext();
+            $('#chatapp').data('ohj').navigateNext();
         }
     </script>
 </body>
