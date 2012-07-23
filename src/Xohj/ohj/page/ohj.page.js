@@ -19,7 +19,7 @@
         };
 
         this.getScroller = function() {
-            return elem.children('article').data('ohjscroller');
+            return scroller;
         }
 
         this.destroy = function() {

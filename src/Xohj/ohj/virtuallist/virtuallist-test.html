@@ -63,8 +63,8 @@
         }
 
         function renderBasicItem(e, index,data) {
-            var html = '<li class=" li_' + index + '" style="top:' + $(this).data('ohjvirtuallist').getItemHeight() * index + 'px" ><img src="default.jpg" /><h3>' + data + '</h3></li>'; // console.log(arguments[i]);
-            $('#basic ul').data('ohjlist').addListItem(html);
+            var html = '<li class=" li_' + index + '" style="top:' + $(this).data('ohj').getItemHeight() * index + 'px" ><img src="default.jpg" /><h3>' + data + '</h3></li>'; // console.log(arguments[i]);
+            $('#basic ul').data('ohj').addListItem(html);
         }
 
         function removeBasicItem(e, index) {
@@ -84,7 +84,7 @@
         }
 
        function getItemCount() {
-            $(this).data('ohjvirtuallist').setItemCount(10000);
+            $(this).data('ohj').setItemCount(10000);
         }
 
         $(document).ready(function () {
@@ -100,7 +100,7 @@
                     var current = $('#basic li').length;
                     equal(current, 30, 'We expect the Basic list to start with 30 items (2 blocks of 15)');
 
-                    $('#basic .ohjscroller').data('ohjscroller').scrollToBottom();
+                    $('#basic .ohjscroller').data('ohj').scrollToBottom();
                     stop(1);
                     setTimeout(function () {
                         start();
@@ -113,9 +113,9 @@
 
                 test("Destroy the list", function () {
                     $('#destroy').ohjvirtuallist();
-                    ok($('#destroy').data('ohjvirtuallist') != undefined, 'Destroy list created');
-                    $('#destroy').data('ohjvirtuallist').destroy();
-                    equal($('#destroy').data('ohjvirtuallist'), undefined, 'Destroy list destroyed');
+                    ok($('#destroy').data('ohj') != undefined, 'Destroy list created');
+                    $('#destroy').data('ohj').destroy();
+                    equal($('#destroy').data('ohj'), undefined, 'Destroy list destroyed');
                 });
             }, 1000);
         });
@@ -136,16 +136,16 @@
         test markup, will be hidden</div>
     <h2>
         Basic</h2>
-    <div id="basic" data-use-ohjvirtuallist="true" style="width:320px;" data-ongetitemcount="getItemCount" data-ongetdata="getBasicData" data-onremoveitem="removeBasicItem"  data-onrenderitem="renderBasicItem">
-        <div data-use-ohjscroller="true" data-height="500px">
-            <ul data-use-ohjlist="true">
+    <div id="basic" data-ohj="ohjvirtuallist" style="width:320px;" data-ongetitemcount="getItemCount" data-ongetdata="getBasicData" data-onremoveitem="removeBasicItem"  data-onrenderitem="renderBasicItem">
+        <div data-ohj="ohjscroller" data-height="500px">
+            <ul data-ohj="ohjlist">
             </ul>
         </div>
     </div>
 
        <div id="destroy"  style="width:320px;" >
-        <div data-use-ohjscroller="true" data-height="200px">
-            <ul data-use-ohjlist="true">
+        <div data-ohj="ohjscroller" data-height="200px">
+            <ul data-ohj="ohjlist">
             </ul>
         </div>
     </div>

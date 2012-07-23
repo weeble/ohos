@@ -135,8 +135,8 @@
                             '&lt;/li&gt;';
                 }
 
-                $('#lazylist ul').data('ohjlist').addListItem(html);
-                $('#lazylist').data('ohjlazylist').getScroller().refreshScroller();
+                $('#lazylist ul').data('ohj').addListItem(html);
+                $('#lazylist').data('ohj').getScroller().refreshScroller();
             },
             ongetdata: function (e, startIndex, endIndex, onSuccess) {
                 // Ajax call
@@ -146,8 +146,8 @@
     &lt;/script&gt;
     ...
     &lt;div id="lazylist"&gt;
-        &lt;div data-use-ohjscroller="true"&gt;
-            &lt;ul data-use-ohjlist="true"&gt;
+        &lt;div data-ohj="ohjscroller"&gt;
+            &lt;ul data-ohj="ohjlist"&gt;
             &lt;/ul&gt;
         &lt;/div&gt;
     &lt;/div&gt;
@@ -158,8 +158,8 @@
                     </div><!-- /.span -->
                     <div class="span4">
                           <div id="lazylist">
-                            <div data-use-ohjscroller="true">
-                                <ul data-use-ohjlist="true">
+                            <div data-ohj="ohjscroller">
+                                <ul data-ohj="ohjlist">
                                 </ul>
                             </div>
                         </div>
@@ -519,8 +519,8 @@
                             html += '<li id="li_' + i + '">  <img src="default.jpg" /><h3>' + arguments[i] + '</h3></li>'; // console.log(arguments[i]);
                         }
 
-                        $("#lazylist ul").data('ohjlist').addListItem(html);
-                        $('#lazylist').data('ohjlazylist').getScroller().refreshScroller();
+                        $("#lazylist ul").data('ohj').addListItem(html);
+                        $('#lazylist').data('ohj').getScroller().refreshScroller();
                     },
                     ongetdata: function (e, startIndex, endIndex, onSuccess) {
                         // Mock ajax call

@@ -20,18 +20,17 @@ var ohjui = {};
             };
         
             $().ready(function () {
-                $.fn.initPlugins(pluginName,$('body'));
                 $.fn.decoratePlugin(pluginName,$('body'));
             });
         }
 
-    
     $.fn.decoratePlugin = function(pluginName, element) {
-       element.find('[data-use-'+pluginName+']').each(function () {  
+       element.find('[data-ohj="'+pluginName+'"]').each(function () {  
             var element = $(this);
             if (element.data(pluginName))
                 return;
-            element.data(pluginName, new ohjui[pluginName](this, element.data()));
+            element.data('ohjtype',pluginName);
+            element.data('ohj', new ohjui[pluginName](this, element.data()));
         });
     }
 
@@ -78,11 +77,10 @@ var ohjui = {};
 
     $.fn.decoratePlugins = function(element) {
         var elementList = [];
-
         // Get list of ohj elements
-        element.find('.ohjui').each(function() {
+        element.find('[data-ohj]').each(function() {
             var _this = $(this);
-            elementList.push({ element: _this.attr('id'), depth: _this.parents().length});
+            elementList.push({ element: _this.attr('data-ohj'), depth: _this.parents().length});
         });
         
         // Sort by DOM depth

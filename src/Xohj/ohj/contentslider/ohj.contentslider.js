@@ -10,7 +10,7 @@
                 onpageunload : null,
                 extend: null
             }, options || {});
-
+            
 
             // Private Methods
             var slidePage = function(page, back) {

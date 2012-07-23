@@ -17,7 +17,7 @@
            
             // Public Methods / Virtual Methods
             this.getScroller = function() {
-                return elem.find('.ohjscroller').data('ohjscroller');
+                return elem.find('.ohjscroller').data('ohj');
             }
 
             this.getItemHeight = function() {
@@ -142,7 +142,7 @@
                     getNextDataSegment();
                 });
 
-                list =  elem.find('.ohjlist').data('ohjlist');
+                list =  elem.find('.ohjlist').data('ohj');
             };
 
             var getData = function(sBlock, eBlock,onSuccess)

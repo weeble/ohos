@@ -116,8 +116,8 @@
     &lt;script&gt;
         var virtuallist = $("#virtuallist").ohjvirtuallist({
                     onrenderitem: function (e, index, data) {
-                         var html = '&lt;li class=" li_' + index + '" style="top:' + $(this).data('ohjvirtuallist').getItemHeight() * index + 'px" &gt;&lt;img src="default.jpg" /&gt;&lt;h3&gt;' + data + '&lt;/h3&gt;&lt;/li&gt;';
-                        $('#virtuallist ul').data('ohjlist').addListItem(html);
+                         var html = '&lt;li class=" li_' + index + '" style="top:' + $(this).data('ohj').getItemHeight() * index + 'px" &gt;&lt;img src="default.jpg" /&gt;&lt;h3&gt;' + data + '&lt;/h3&gt;&lt;/li&gt;';
+                        $('#virtuallist ul').data('ohj').addListItem(html);
                     },
                     onremoveitem: function (e, index) {
                         $('#virtuallist .li_' + index).remove();
@@ -128,14 +128,14 @@
                     },
                     ongetitemcount: function () {
                         // ajax call to get count - mocked 10000
-                        $(this).data('ohjvirtuallist').setItemCount(10000);
+                        $(this).data('ohj').setItemCount(10000);
                     }
                 });
     &lt;/script&gt;
     ...
     &lt;div id="virtuallist"&gt;
-        &lt;div data-use-ohjscroller="true"&gt;
-            &lt;ul data-use-ohjlist="true"&gt;
+        &lt;div data-ohj="ohjscroller"&gt;
+            &lt;ul data-ohj="ohjlist"&gt;
             &lt;/ul&gt;
         &lt;/div&gt;
     &lt;/div&gt;
@@ -146,8 +146,8 @@
                     </div><!-- /.span -->
                     <div class="span4">
                           <div id="virtuallist">
-                            <div data-use-ohjscroller="true">
-                                <ul data-use-ohjlist="true">
+                            <div data-ohj="ohjscroller">
+                                <ul data-ohj="ohjlist">
                                 </ul>
                             </div>
                         </div>
@@ -553,8 +553,8 @@
             $().ready(function () {
                 var virtuallist = $("#virtuallist").ohjvirtuallist({
                     onrenderitem: function (e, index, data) {
-                        var html = '<li class=" li_' + index + '" style="top:' + $(this).data('ohjvirtuallist').getItemHeight() * index + 'px" ><img src="default.jpg" /><h3>' + data + '</h3></li>'; // console.log(arguments[i]);
-                        $('#virtuallist ul').data('ohjlist').addListItem(html);
+                        var html = '<li class=" li_' + index + '" style="top:' + $(this).data('ohj').getItemHeight() * index + 'px" ><img src="default.jpg" /><h3>' + data + '</h3></li>'; // console.log(arguments[i]);
+                        $('#virtuallist ul').data('ohj').addListItem(html);
                     },
                     onremoveitem: function (e, index) {
                         $('#virtuallist .li_' + index).remove();
@@ -572,7 +572,7 @@
                         }
                     },
                     ongetitemcount: function () {
-                        $(this).data('ohjvirtuallist').setItemCount(10000);
+                        $(this).data('ohj').setItemCount(10000);
                     }
                 });
 

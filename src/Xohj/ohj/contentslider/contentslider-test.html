@@ -42,22 +42,22 @@
                     start();
                     isActivePage('basic', basicActivePage);
                     basicActivePage = 'basic1';
-                    $('#basic').data('ohjcontentslider').navigateBack();
+                    $('#basic').data('ohj').navigateBack();
                 });
                 isActivePage('basic', 'basic1');
-                equal($('#basic').data('ohjcontentslider').isLastPage(), false, 'Current page is not the last page');
-                $('#basic').data('ohjcontentslider').navigateBack();
-                $('#basic').data('ohjcontentslider').navigateBack();
-                $('#basic').data('ohjcontentslider').navigateBack();
-                $('#basic').data('ohjcontentslider').navigateBack();
+                equal($('#basic').data('ohj').isLastPage(), false, 'Current page is not the last page');
+                $('#basic').data('ohj').navigateBack();
+                $('#basic').data('ohj').navigateBack();
+                $('#basic').data('ohj').navigateBack();
+                $('#basic').data('ohj').navigateBack();
 
                 isActivePage('basic', 'basic1');
                 equal($('#basic').css('display'), 'block', 'Page 1 should be visible');
-                $('#basic').data('ohjcontentslider').navigateNext();
-                $('#basic').data('ohjcontentslider').navigateNext();
-                $('#basic').data('ohjcontentslider').navigateNext();
-                $('#basic').data('ohjcontentslider').navigateNext();
-                equal($('#basic').data('ohjcontentslider').isLastPage(), true, 'Current page is the last page');
+                $('#basic').data('ohj').navigateNext();
+                $('#basic').data('ohj').navigateNext();
+                $('#basic').data('ohj').navigateNext();
+                $('#basic').data('ohj').navigateNext();
+                equal($('#basic').data('ohj').isLastPage(), true, 'Current page is the last page');
 
                 basicActivePage = 'basic2';
 
@@ -84,7 +84,7 @@
                 equal($('#fluid').height(), 250, 'We expect the height to be 250');
                 isActivePage('fluid', 'fluid1');
                 fluidActivePage = 'fluid3';
-                $('#fluid').data('ohjcontentslider').navigateToPage($('#fluid3'));
+                $('#fluid').data('ohj').navigateToPage($('#fluid3'));
             });
 
 
@@ -92,9 +92,9 @@
 
             test("Destroy the content slider", function () {
                 $('#destroy').ohjcontentslider();
-                ok($('#destroy').data('ohjcontentslider') != undefined, 'Destroy content slider created');
-                $('#destroy').data('ohjcontentslider').destroy();
-                equal($('#destroy').data('ohjcontentslider'), undefined, 'Destroy content slider destroyed');
+                ok($('#destroy').data('ohj') != undefined, 'Destroy content slider created');
+                $('#destroy').data('ohj').destroy();
+                equal($('#destroy').data('ohj'), undefined, 'Destroy content slider destroyed');
             });
         });
     </script>
@@ -115,7 +115,7 @@
     <h2>
         Basic</h2>
         <div style="width:300px;">
-        <div  id="basic" data-use-ohjcontentslider="true" data-height='200px' style="background:whitesmoke;">
+        <div  id="basic" data-ohj="ohjcontentslider" data-height='200px' style="background:whitesmoke;">
             <div id="basic1">Basic 1</div>
             <div id="basic2">Basic 2</div>
         </div>
