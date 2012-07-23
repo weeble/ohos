@@ -19,7 +19,7 @@ $().ready(function () {
     });
 
     $('#btnLogin').press(function () {
-        $('#chatapp').data('ohjpageslider').navigateNext();
+        $('#chatapp').data('ohj').navigateNext();
         var userid = $('#cbxUsers option').not(function () { return !this.selected }).data('userid');
         if (typeof userid !== "undefined") {
             var msg = { 'type': 'user', 'id': userid };
@@ -31,8 +31,8 @@ $().ready(function () {
     });
 
     var updateMessagePane = function () {
-        $('#pgConversation').data('ohjpage').refreshPage();
-        $('#pgConversation').data('ohjpage').getScroller().scrollToBottom();
+        $('#pgConversation').data('ohj').refreshPage();
+        $('#pgConversation').data('ohj').getScroller().scrollToBottom();
     };
 
 
@@ -99,7 +99,7 @@ $().ready(function () {
             case 'login':
                 $('#userlist > li').removeClass('active');
                 $('#usr_' + data.user.id).addClass('active');
-                $('#chatapp').data('ohjpageslider').navigateToPage($('#pgChat'));
+                $('#chatapp').data('ohj').navigateToPage($('#pgChat'));
                 break;
             case 'user':
                 var userSelection = $('#cbxUsers');
@@ -121,7 +121,7 @@ $().ready(function () {
                         .appendTo(userSelection);
 
                     $('#userlist')
-                        .data('ohjlist')
+                        .data('ohj')
                         .addListItem($.fn.template($('#tplUser').html(), {
                             name: data.newValue.displayName,
                             status: data.newValue.status.toUpperCase(),
@@ -181,9 +181,9 @@ function changeuser(page) {
 }
 
 function goback(page) {
-    $('#chatapp').data('ohjpageslider').navigateBack();
+    $('#chatapp').data('ohj').navigateBack();
 }
 
 function showusers(page) {
-    $('#chatapp').data('ohjpageslider').navigateNext();
+    $('#chatapp').data('ohj').navigateNext();
 }

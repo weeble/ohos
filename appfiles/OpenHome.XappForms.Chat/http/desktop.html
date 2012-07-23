@@ -18,44 +18,16 @@
 </head>
 <body data-appname="chat">
 
-    <div id="chatapp" data-use-ohjpageslider="true" data-height="100%" data-onpageload="pageload">
-     <!--<div id="pgLogin" data-use-ohjpage="true" style="height: 100%">
-            <header>
-                    Chat App
-            </header>
-            <article>
-                <div class="clearfix message login">
-                    <div class="modal-header">
-                        <h1>Chat App</h1>
-                    </div>
-                    <div class="modal-body">
-                    <form class="form-horizontal">
-                    <fieldset>
-                        <div class="control-group">
-                        <label class="control-label">Who are you?</label>
-                        <div class="controls">
-                            <select id="cbxUsers">
-                            </select>
-                        </div>
-                        </div>
-                    </fieldset>
-                    </form>
-                    </div>
-                    <div class="modal-footer">
-                        <a href="#" id="btnLogin" class="btn btn-primary btn-large">Start Chatting</a>
-                    </div>
-                </div>
-            </article>
-        </div> -->
-        <div id="pgChat" data-use-ohjpage="true">
+    <div id="chatapp" data-ohj="ohjcontentslider" data-height="100%" data-onpageload="pageload">
+        <div id="pgChat" data-ohj="ohjpage">
            <div style="float:left; width:25%; height:100%;" >
-                        <div id="pgUser" data-use-ohjpage="true" style="height:100%;">
-                            <header data-leftbuttontext="Back" data-onleftbuttonpress="goback">
+                        <div id="pgUser" data-ohj="ohjpage" style="height:100%;">
+                            <header>
                         User List
                 </header>
                             <article>
   
-                <ul id="userlist" data-use-ohjlist="true">
+                <ul id="userlist" data-ohj="ohjlist">
                     
                 </ul>
                   
@@ -65,14 +37,14 @@
                         </div>
                           <div style="float:left; width:75%; height:100%;">
             
-                        <div id="pgConversation" data-use-ohjpage="true" style="height: 100%;">
+                        <div id="pgConversation" data-ohj="ohjpage" style="height: 100%;">
                             <header data-rightbuttontext="Change user" data-onrightbuttonpress="changeuser">
                                 The chat
                             </header>
 
                             <article>
                       
-                    </article>
+                            </article>
                             <footer>
                         <br/>
                         <table>
@@ -101,14 +73,20 @@
     <script src="../ohj/ohj.util.js"></script>
     <script src="../ohj/ohj.ui.js"></script>
     <script src="../ohj/ohj.ui.bridge.js"></script>
+        <script src="../ohj/scroller/ohj.scroller.js"></script>
+    <script src="../ohj/scroller/ohj.scroller.pointer.js"></script>
+    <script src="../ohj/scroller/ohj.scroller.touch.js"></script>
+  <script src="../ohj/page/ohj.page.js"></script>
+   <script src="../ohj/contentslider/ohj.contentslider.js"></script>
+    <script src="../ohj/borderlayout/ohj.borderlayout.js"></script>
+   
+
+
     <script src="../ohj/navbar/ohj.navbar.js"></script>
-    <script src="../ohj/scroller/ohj.scroller.js"></script>
-    <script src="../ohj/scroller/ohj.scroller.touch.js"></script>    
-    <script src="../ohj/scroller/ohj.scroller.pointer.js"></script>    
-    <script src="../ohj/page/ohj.page.js"></script>
-    <script src="../ohj/pageslider/ohj.pageslider.js"></script> 
- 
-    <script src="../ohj/list/ohj.list.js"></script>
+
+
+   <script src="../ohj/list/ohj.list.js"></script>
+   
     <script src="js/common.js"></script>
     <script src="js/desktop.js"></script>
 
