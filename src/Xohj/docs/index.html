@@ -681,6 +681,13 @@
     &lt;link href="../ohj/scroller/ohj.scroller.pointer.css" rel="stylesheet"&gt;
     &lt;link href="../ohj/list/ohj.list.css" rel="stylesheet"&gt;
     &lt;link href="../ohj/borderlayout/ohj.borderlayout.css" rel="stylesheet"&gt;
+
+    &lt;script src="../ohj/ohj.util.js">&lt;/script&gt;
+        // Instantiate all ohj plugins at startup within the body element
+         $().ready(function () {
+                $.fn.decorateContainerPlugins($('body'));
+         });
+    &lt;/script&gt;
                         </pre>
                     </div>
                 </div>
