@@ -13,7 +13,7 @@
             
 
             // Private Methods
-            var slidePage = function(page, back) {
+            var slidePage = function(page, ignoreHistory, transition) {
                 if(!inProgress) {
                     var pageid = page.attr('id');
                     if(page.length > 0 && pageid != null) {
@@ -22,20 +22,25 @@
                             $.fn.blockUI();
                             inProgress = true;
                             //var has3d = ('WebKitCSSMatrix' in window && 'm11' in new WebKitCSSMatrix())
-                            currentPage.animate({
-                                left : back ? '100%' : '-100%'
-                            }, settings.speed);
-                            page.show();
-                            page.css({
-                                left : back ? '-100%' : '100%'
-                            });
-                            page.animate({
-                                left : '0%'
-                            }, settings.speed);
-
-                            finishTransition(currentPage);
+                            console.log(transition);
+                            switch(transition) {
+                                case 'none':
+                                {
+                                    slideAnimation(page,true,0);
+                                    break;
+                                }
+                                case 'slideback':
+                                {
+                                    slideAnimation(page,true,settings.speed);
+                                    break;
+                                }
+                                default : // slide
+                                {
+                                    slideAnimation(page,false,settings.speed);
+                                }
+                            }
                             
-                            if(!back)
+                            if(!ignoreHistory)
                                 history.push(currentPage.attr('id'));
 
                             elem.trigger('pageload',page);
@@ -49,13 +54,28 @@
                 }
             }
             
-            var finishTransition = function(page) { 
+            var slideAnimation = function (page, back, duration)
+            {
+                currentPage.animate({
+                    left : back ? '100%' : '-100%'
+                }, duration);
+                page.show();
+                page.css({
+                    left : back ? '-100%' : '100%'
+                });
+                page.animate({
+                    left : '0%'
+                }, duration);
+                finishTransition(currentPage,duration);
+            };
+
+            var finishTransition = function(page , speed) { 
                 setTimeout(function() {    
                     inProgress = false;
                     $.fn.unblockUI();
                     page.hide();
                     elem.trigger('pageloadcomplete',page);
-                }, settings.speed);
+                }, speed);
             };
 
             var render = function() {
@@ -84,8 +104,8 @@
             };
             
             // Public Methods
-            this.navigateToPage = function(page) {
-                slidePage(page);
+            this.navigateToPage = function(page, ignoreHistory, transition) {
+                slidePage(page, ignoreHistory, transition);
             };
 
             this.destroy = function() {
@@ -97,13 +117,13 @@
                     var pageBefore = history.pop();
                     if(pageBefore != undefined) // Prevent going back past the start
                     {
-                        slidePage($('#' + pageBefore), true);
+                        slidePage($('#' + pageBefore), true, 'slideback');
                     }
                 }
             };
             
-            this.navigateNext = function() {
-                slidePage(currentPage.next());
+            this.navigateNext = function(transition) {
+                slidePage(currentPage.next(), false, transition);
             };
 
             this.isLastPage = function() {

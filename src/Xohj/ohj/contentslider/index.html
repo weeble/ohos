@@ -199,19 +199,19 @@
                             <tbody>
                                 <tr>
                                     <td><code>
-                                        navigateToPage(pageElement)</code></td>
-                                    <td> Causes the content slider to navigate to a page using the slide animation </td>
+                                        navigateToPage(pageElement, ignoreHistory, transition)</code></td>
+                                    <td> Causes the content slider to navigate to a page using the slide animation.  The argument transition can be 'none','slideback','slide' (default). </td>
          
                                 </tr>
                                 <tr>
                                     <td><code>
                                         navigateBack()</code></td>
-                                    <td> Causes the content slider to navigate back to the previous page </td>
+                                    <td> Causes the content slider to navigate back to the previous page. </td>
                                 </tr>
                                 <tr>
                                     <td><code>
-                                        navigateNext()</code></td>
-                                    <td> Causes the content slider to navigate to the next page defined within the DOM </td>
+                                        navigateNext(transition)</code></td>
+                                    <td> Causes the content slider to navigate to the next page defined within the DOM.  The argument transition can be 'none','slideback','slide' (default). </td>
                                 </tr>
                                  <tr>
                                     <td><code>
@@ -392,6 +392,12 @@
                     <h2>Future Developments</h2>
                 </div>
                 <ul>
+                    <li>
+                        Add test for navigateToPage with 'none' transition.
+                    </li>
+                    <li>
+                        Add test for navigateToPage with ignore history flag.
+                    </li>
                     <li>
                         3d Transform for capable devices
                     </li>
