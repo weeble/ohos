@@ -223,7 +223,7 @@
 
                     </div><!-- /.span -->
                     <div class="span6">
-                        <div id="borderlayout" data-height="300px" data-ohj="borderlayout" data-topheight="50px" data-bottomheight="50px" data-leftwidth="80px" data-rightwidth="80px">
+                        <div id="borderlayout" data-height="300px" data-ohj="ohjborderlayout" data-topheight="50px" data-bottomheight="50px" data-leftwidth="80px" data-rightwidth="80px">
                             <div class="ohjborderlayout-top">Top</div>
                             <div class="ohjborderlayout-main">
                                 <div class="ohjborderlayout-left">Left</div>
@@ -660,5 +660,11 @@
         <script src="ohj.borderlayout.js"></script>
         <script src="../scroller/ohj.scroller.js"></script>
         <script src="../scroller/ohj.scroller.pointer.js"></script>
+        <script>
+            $().ready(function () {
+                $.fn.decorateContainerPlugins($('body'));
+            });
+        </script>
+        
     </body>
 </html>

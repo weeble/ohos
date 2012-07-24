@@ -426,6 +426,8 @@
         
         <script>
             $().ready(function () {
+                $.fn.decorateContainerPlugins($('body'));
+            
                 var ps = $('#ps1container').ohjcontentslider({
                     height: '200px'
                 });

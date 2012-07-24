@@ -145,7 +145,7 @@
 
                     </div><!-- /.span -->
                     <div class="span4">
-                          <div id="virtuallist">
+                          <div id="virtuallist" style="height:500px">
                             <div data-ohj="ohjscroller">
                                 <ul data-ohj="ohjlist">
                                 </ul>
@@ -551,6 +551,9 @@
 
         <script>
             $().ready(function () {
+
+                $.fn.decorateContainerPlugins($('body'));
+ 
                 var virtuallist = $("#virtuallist").ohjvirtuallist({
                     onrenderitem: function (e, index, data) {
                         var html = '<li class=" li_' + index + '" style="top:' + $(this).data('ohj').getItemHeight() * index + 'px" ><img src="default.jpg" /><h3>' + data + '</h3></li>'; // console.log(arguments[i]);

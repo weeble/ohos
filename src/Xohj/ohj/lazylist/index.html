@@ -510,6 +510,8 @@
 
         <script>
             $().ready(function () {
+
+                $.fn.decorateContainerPlugins($('body'));
                 var lazylist = $("#lazylist").ohjlazylist({
                     threshold: 30,
                     overflow: 2,
