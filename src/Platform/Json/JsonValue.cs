@@ -123,7 +123,14 @@ namespace OpenHome.XappForms.Json
         }
         public void Add(string aName, string aString)
         {
-            iContents.Add(aName, new JsonString(aString));
+            if (aString == null)
+            {
+                iContents.Add(aName, JsonNull.Instance);
+            }
+            else
+            {
+                iContents.Add(aName, new JsonString(aString));
+            }
         }
         public void Add(string aName, bool aBool)
         {
