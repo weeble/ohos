@@ -280,11 +280,11 @@ namespace OpenHome.XappForms.Forms
                 return
                     @"<table id='xf-grid'>" +
                         @"<tr>" +
-                            @"<td><span class='xfslot-topleft'></span></td>" +
-                            @"<td><span class='xfslot-topright'></span></td>" +
+                            @"<td data-xfslot='topleft'></td>" +
+                            @"<td data-xfslot='topright'></td>" +
                         @"</tr><tr>" +
-                            @"<td><span class='xfslot-bottomleft'></span></td>" +
-                            @"<td><span class='xfslot-bottomright'></span></td>" +
+                            @"<td data-xfslot='bottomleft'></td>" +
+                            @"<td data-xfslot='bottomright'></td>" +
                         @"</tr>" +
                     @"</table>";
             }

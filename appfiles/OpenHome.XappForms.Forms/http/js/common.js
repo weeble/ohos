@@ -78,7 +78,10 @@ $().ready(function () {
         prototype['xf-bind-slot'] = function (message) {
             var childControl = this.controlManager.getControl(message.child);
             if (typeof childControl === 'undefined') return console.log('No such child control.');
-            this.domElement.find('.xfslot-'+message.slot).replaceWith(childControl.domElement);
+            var slotId = 'xf-'+this.id+'-'+message.slot;
+            var slotElement = this.domElement.find('.'+slotId).andSelf().filter('.'+slotId);
+            slotElement.find('>*').detach();
+            slotElement.append(childControl.domElement);
             return null;
         };
         return prototype;
@@ -107,7 +110,14 @@ $().ready(function () {
     }
 
     function applyTemplate(name, id) {
-        return $('#'+name).clone().attr('id','xf-'+id);
+        var topId = 'xf-' + id;
+        var topElement = $('#'+name).clone().attr('id',topId);
+        topElement.find('[data-xfslot]').each(function(i,el){
+            var jElement = $(el);
+            jElement.addClass(topId+'-'+jElement.data('xfslot'));
+            jElement.removeData('xfslot');
+        });
+        return topElement;
     }
 
 
@@ -142,7 +152,8 @@ $().ready(function () {
     function RootControl(controlManager) {
         this.id = 0;
         this.controlManager = controlManager;
-        this.domElement = $('body');
+        this.domElement = $('<div id="xf-0"></div>').appendTo('body');
+        this.domElement.addClass('xf-0-root');
     }
     mixinControl(RootControl.prototype);
     mixinSlottedContainer(RootControl.prototype);
