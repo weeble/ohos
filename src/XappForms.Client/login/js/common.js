@@ -1,6 +1,6 @@
 ﻿
 $().ready(function () {
-
+    $.fn.decorateContainerPlugins($('body'));
     var users = {};
 
     $('#btnLogin').press(function () {

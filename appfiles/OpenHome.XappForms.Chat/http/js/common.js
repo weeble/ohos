@@ -1,6 +1,6 @@
 ﻿
 $().ready(function () {
-
+    $.fn.decorateContainerPlugins($('body'));
     var users = {};
 
 
@@ -87,12 +87,12 @@ $().ready(function () {
     $('body').on('xappevent', function (event, data) {
         var message = '';
         switch (data.type) {
-            //case 'connect':                            
-            //    message = ' connected>';                            
-            //    break;                            
-            //case 'disconnect':                            
-            //    message = ' disconnected>';                            
-            //    break;                            
+            //case 'connect':                             
+            //    message = ' connected>';                             
+            //    break;                             
+            //case 'disconnect':                             
+            //    message = ' disconnected>';                             
+            //    break;                             
             case 'message':
                 userMessage(data.sender, data.content);
                 break;
