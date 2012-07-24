@@ -5,36 +5,16 @@ var ohjui = {};
                 var ret = [];
                 this.each(function() {
                     var element = $(this);
-                    if(element.data('ohjtype')) {
-                        return element.data('ohj');
-                    }
-                    var settings = $.extend(element.data(), options || {});
-
-                    var data = new ohjui[pluginName](this,settings);
-                    element.data('ohjtype',pluginName);
-                    element.data('ohj', data);
-                    element.addClass(pluginName);
-                    ret.push(data);
+                    $.extend(element.data(), options || {});
+                    ret.push($.fn.decoratePlugin(pluginName,element));
                 });
                 return ret.length > 1 ? ret : ret[0];
             };
         
-            $().ready(function () {
-                $.fn.decoratePlugin(pluginName,$('body'));
-            });
+            //$().ready(function () {
+              //  $.fn.decoratePluginType(pluginName,$('body'));
+            //});
         }
-
-    $.fn.decoratePlugin = function(pluginName, element) {
-       element.find('[data-ohj="'+pluginName+'"]').each(function () {  
-            var element = $(this);
-            if (element.data('ohjtype'))
-                return;
-           
-            element.data('ohjtype',pluginName);
-            element.data('ohj', new ohjui[pluginName](this, element.data()));
-            element.addClass(pluginName);
-        });
-    }
 
     $.fn.hookPlugin = function(settings) {
         var _this = this;
@@ -65,12 +45,17 @@ var ohjui = {};
         });
     }
 
-    $.fn.decoratePlugins = function(element) {
+    $.fn.decorateContainerPlugins = function(element) {
         var elementList = [];
-        // Get list of ohj elements
+        var _this = $(this);
+        if(element.attr('data-ohj'))
+        {
+            elementList.push({ pluginName: _this.attr('data-ohj'), element:_this, depth: 0});
+        }
+        // Get list of child ohj elements
         element.find('[data-ohj]').each(function() {
-            var _this = $(this);
-            elementList.push({ element: _this.attr('data-ohj'), depth: _this.parents().length});
+            var that = $(this);
+            elementList.push({ pluginName: that.attr('data-ohj'), element:that, depth: that.parents().length});
         });
         
         // Sort by DOM depth
@@ -82,15 +67,25 @@ var ohjui = {};
 
         // Decorate in order of lowest level to the root  
         for(i in elementList) {
-            var element = elementList[i].element;
-            var plugin = element.attr('ohjui');
-            if(!element.hasClass(plugin)) {
-                if (element.data(plugin))
-                    return;
-                element.data(plugin, new ohjui[plugin](element, element.data()));
-            }
-       }
+            $.fn.decoratePlugin(elementList[i].pluginName,elementList[i].element);
+        }
     }
+
+    $.fn.decoratePluginType = function(pluginName, element) {
+       element.find('[data-ohj="'+pluginName+'"]').each(function () {  
+            $.fn.decoratePlugin(pluginName,$(this));
+        });
+    }
+
+    $.fn.decoratePlugin = function(pluginName, element) {
+        if (element.data('ohjtype'))
+            return element.data('ohj');
+        element.data('ohjtype',pluginName);
+        element.data('ohj', new ohjui[pluginName](element, element.data()));
+        element.addClass(pluginName);
+        return element.data('ohj');
+    }
+
 
     $.fn.press = function(onPress) {
         if('ontouchstart' in window && window.Zepto)
