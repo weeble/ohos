@@ -172,6 +172,7 @@
     <script src="../../ohj/list/ohj.list.js"></script>
     <script>
         $().ready(function () {
+            $.fn.decorateContainerPlugins($('body'));
             $('#btnLogin').press(function () {
                 $('#chatapp').data('ohj').navigateNext();
             });

@@ -108,7 +108,8 @@
 </head>
 <body>
     <div id="chatapp" data-ohj="ohjcontentslider" data-height="100%" data-onpageload="pageload">
-        <div id="pgLogin" data-ohj="ohjborderlayout" data-topheight="45px">
+        <div id="pgLogin">
+        <div data-ohj="ohjborderlayout" data-topheight="45px" data-height="100%" >
             <div class="ohjborderlayout-top">Chat App</div>
             <div class="ohjborderlayout-main">
                 <div class="ohjborderlayout-middle">
@@ -141,7 +142,7 @@
                     </div>
                 </div>
             </div>
-        
+        </div>
             </div>
         <div id="pgChat" data-ohj="ohjpage">
            <div style="float:left; width:25%; height:100%;" >
@@ -185,6 +186,7 @@
                     </div>
                 </div>
                 <div style="float:left; width:75%; height:100%;">
+
                 <div id="pgConversation" class="header" data-ohj="ohjborderlayout" data-topheight="45px" data-bottomheight="65px" data-height="100%">
                       <div class="ohjborderlayout-top">
                         The chat
@@ -256,7 +258,7 @@
    <script src="../../ohj/list/ohj.list.js"></script>
     <script>
         $().ready(function () {
-            //$.fn.decoratePlugins($('body'));
+            $.fn.decorateContainerPlugins($('body'));
             $('#btnLogin').press(function () {
                 $('#chatapp').data('ohj').navigateNext();
             });
