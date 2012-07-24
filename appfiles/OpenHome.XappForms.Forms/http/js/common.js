@@ -1,178 +1,176 @@
 ﻿
 $().ready(function () {
 
-    var users = {};
+    // First define a Control class. We'll create instances of this for each control
+    // on the page. So if there are five buttons on the page, we'll have five control
+    // instances. These will wrap our DOM elements and provide handling for incoming
+    // messages from the server.
 
-
-    $('#txtMessage').bind('keypress', function (e) {
-        if ((e.which && e.which == 13) || (e.keyCode && e.keyCode == 13)) {
-            $('#btnMessage').click();
-            return false;
-        } else {
-            return true;
-        }
-    });
-
-    $('#btnMessage').bind('click', function (event) {
-        xapp.tx($('#txtMessage').val());
-        $('#txtMessage').val('');
-    });
-
-    $('#btnLogin').press(function () {
-        $('#chatapp').data('ohjpageslider').navigateNext();
-        var userid = $('#cbxUsers option').not(function () { return !this.selected; }).data('userid');
-        if (typeof userid !== "undefined") {
-            var msg = { 'type': 'user', 'id': userid };
-            console.log('Login: ' + JSON.stringify(msg));
-            xapp.tx(msg);
-            $('#userlist > li').removeClass('active');
-            $('#usr_' + userid).addClass('active');
-        }
-    });
-
-    var updateMessagePane = function () {
-        $('#pgConversation').data('ohjpage').refreshPage();
-        $('#pgConversation').data('ohjpage').getScroller().scrollToBottom();
-    };
-
-
-
-    var updateStatus = function (usrid, status) {
-        var statusElement = $('#usr_' + usrid + ' .status');
-        statusElement.html(status.toUpperCase());
-        if (status == 'online')
-            statusElement.addClass('label-success');
-        else
-            statusElement.removeClass('label-success');
-    };
-
-    var systemMessage = function (message) {
-        $('<div/>')
-                .text('<' + message + '>')
-                .addClass('message')
-                .addClass('system-message')
-                .appendTo($('#pgConversation article > .content'));
-        updateMessagePane();
-    };
-
-    var userMessage = function (userid, message) {
-        $('#pgConversation article > .content').append($.fn.template($('#tplMessage').html(), { name: userid, message: message, avatar: users[userid].iconUrl }));
-        updateMessagePane();
-    };
-
-    //    var systemMessage = function (message) {
-    //        $('<div/>')
-    //                .text('<' + message + '>')
-    //                .addClass('message')
-    //                .addClass('system-message')
-    //                .appendTo($('#pgConversation article > .content'));
-    //        updateMessagePane();
-    //    };
-
-    //    var userMessage = function (userid, message) {
-    //        var msgDiv = $('<div/>')
-    //            .addClass('message');
-    //        var senderSpan = $('<span/>')
-    //            .addClass('sender')
-    //            .text(userid + ':')
-    //            .appendTo(msgDiv);
-    //        msgDiv.append(' ');
-    //        var messageSpan = $('<span/>')
-    //            .text(message)
-    //            .appendTo(msgDiv);
-    //        msgDiv.appendTo($('#pgConversation article > .content'));
-    //        updateMessagePane();
-    //    };
-
-    var controlClasses = {
-        'grid' : { 'template' : 'xf-grid' },
-        'button' : { 'template' : 'xf-button' }
-    };
-
-    var controls = {};
-
-    var xappTmpl = function(template, id, slots) {
-        var element = template.clone();
-        if (id) {
-            element.attr('id',id);
-        } else {
-            element.removeAttr('id');
-        }
-        slots = slots || {};
-        for (var key in slots) {
-            element.find('.xfslot-'+key).replaceWith(slots[key]);
-        }
-        return element;
-    };
-
-    function handle_xf_control(data) {
-        var controlClass = controlClasses[data['class']];
-        var template = controlClass.template;
-        controls[data.id] = $('#'+template).clone().attr('id','xf-'+data.id);
+    function Control(id, domElement) {
+        this.id = id;
+        this.domElement = domElement;
     }
 
-    function handle_xf_slot(data) {
-        var parentControl;
-        if (data['parent'] === 0) {
-            parentControl = $('body');
-        } else {
-            parentControl = controls[data['parent']];
+
+    // ControlManager:
+    // Tracks the control classes available for use, and the controls
+    // instantiated on this page.
+    function ControlManager() {
+        this.classes = { };
+        this.controls = { };
+    }
+    ControlManager.prototype = {
+        addControl : function (control) {
+            this.controls[control.id] = control;
+        },
+        deliverControlMessage : function (id, message) {
+            this.controls[id].receive(message);
+        },
+        getControl : function (id) {
+            return this.controls[id];
+        },
+        destroyControl : function (id) {
+            this.controls[id].destroy();
+            delete this.controls[id];
+        },
+        registerClass : function (name, klass) {
+            var thisControlManager = this;
+            this.classes[name] = {
+                create: function (id) {
+                    return new klass(id, thisControlManager);
+                }
+            };
+        },
+        createControl: function (name, id) {
+            var control = this.classes[name].create(id);
+            this.addControl(control);
+            return control;
         }
-        var childControl = controls[data['child']];
-        parentControl.find('.xfslot-'+data.slot).replaceWith(childControl);
+    };
+
+    controlManager = new ControlManager();
+
+    // Mixins: The following classes are mixins. The idea is that there's no true
+    // single-inheritance relationship between "controls that contain other controls",
+    // "controls with subscribable events" and so on. So you create your subclass of
+    // Control and "mix in" whichever behaviours you want.
+
+    // Control: Controls can receive messages from the server with the 'receive'
+    // function. They are then dispatched to a handler function based on the type
+    // property.
+    function mixinControl(prototype) {
+        prototype.receive = function (message) {
+            var type = message.type;
+            if (typeof type === 'undefined') return console.log('Undefined message type.');
+            if (typeof type !== 'string') return console.log('Non-string message type.');
+            if (type.slice(0,3) !== 'xf-') return console.log('Non-XappForms message.');
+            var method = this[type];
+            if (typeof method === 'undefined') return console.log('Control cannot handle message.');
+            return method.call(this, message);
+        };
+    };
+
+
+    // SlottedContainer: This is a control that contains some set of named slots,
+    // each of which can contain another control.
+    // Requires domElement property.
+    function mixinSlottedContainer(prototype) {
+        prototype['xf-bind-slot'] = function (message) {
+            var childControl = this.controlManager.getControl(message.child);
+            if (typeof childControl === 'undefined') return console.log('No such child control.');
+            this.domElement.find('.xfslot-'+message.slot).replaceWith(childControl.domElement);
+            return null;
+        };
+        return prototype;
     }
 
-    function handle_xf_property(data) {
-        var control = controls[data.control];
-        // TODO: Fix this button-specific hack.
-        if (data.property === 'text') {
-            control.text(data.value);
-        }
+    // EventedControl: This is a control that allows the server to subscribe to
+    // events raised by its DOM element.
+    // Requires domElement property.
+    function mixinEventedControl(prototype, events) {
+        prototype['xf-subscribe'] = function(message) {
+            this.domElement.on(
+                message['event'],
+                function () {
+                    xapp.tx({
+                        'type' : 'xf-event',
+                        'control': message.control,
+                        'event' : message['event'],
+                        'object' : null });
+                }
+            );
+        };
+        prototype['xf-unsubscribe'] = function(message) {
+            this.domElement.off(message['event']);
+        };
+        return prototype;
     }
 
-    function handle_xf_subscribe(data) {
-        var control = controls[data.control];
-        control.bind(data['event'], function () { xapp.tx({ 'type': 'xf-event', 'control': data.control, 'event':data['event'], 'object': 'PLACEHOLDER'}); });
+    function applyTemplate(name, id) {
+        return $('#'+name).clone().attr('id','xf-'+id);
     }
+
+
+    // GridControl
+    // A 2 by 2 grid of controls.
+    function GridControl(id, controlManager) {
+        this.id = id;
+        this.controlManager = controlManager;
+        this.domElement = applyTemplate('xf-grid', id);
+    }
+    mixinControl(GridControl.prototype);
+    mixinSlottedContainer(GridControl.prototype);
+    controlManager.registerClass("grid", GridControl);
+
+    // ButtonControl
+    // A button with some text.
+    function ButtonControl(id, controlManager) {
+        this.id = id;
+        this.controlManager = controlManager;
+        this.domElement = applyTemplate('xf-button', id);
+    }
+    mixinControl(ButtonControl.prototype);
+    mixinEventedControl(ButtonControl.prototype);
+    ButtonControl.prototype['xf-set-property'] = function(message) {
+        if (message.property !== 'text') return;
+        this.domElement.text(message.value);
+    };
+    controlManager.registerClass("button", ButtonControl);
+
+    // RootControl
+    // Used as a parent to the top-level control.
+    function RootControl(controlManager) {
+        this.id = 0;
+        this.controlManager = controlManager;
+        this.domElement = $('body');
+    }
+    mixinControl(RootControl.prototype);
+    mixinSlottedContainer(RootControl.prototype);
+
+    controlManager.addControl(new RootControl(controlManager));
 
 
     $('body').on('xappevent', function (event, data) {
         var message = '';
+        //console.log('Received:');
+        //console.log(data);
         switch (data.type) {
-            //case 'connect':                            
-            //    message = ' connected>';                            
-            //    break;                            
-            //case 'disconnect':                            
-            //    message = ' disconnected>';                            
-            //    break;                            
-            case 'xf-control': handle_xf_control(data); break;
-            case 'xf-slot': handle_xf_slot(data); break;
-            case 'xf-property': handle_xf_property(data); break;
-            case 'xf-subscribe': handle_xf_subscribe(data); break;
+            case 'xf-create':
+                controlManager.createControl(data['class'], data.control);
+                break;
+            case 'xf-destroy':
+                controlManager.destroyControl(data.control);
+                break;
             default:
-                console.log(data);
+                if (data.type.slice(0,3) === 'xf-') {
+                    controlManager.deliverControlMessage(data.control, data);
+                } else {
+                    console.log('Received but could not understand:');
+                    console.log(data);
+                }
                 break;
         }
-
-        //if (message != '') 
-        //    $('<div/>')
-        //            .text('Tab #' + data.sender + message)
-        //            .addClass('message')
-        //            .appendTo($('#pgConversation article > .content'));
 
     });
 
 });
-
-
-function changeuser(page) {
-        xapp.tx({ 'type': 'changeuser' });
-}
-
-function goback(page) {
-    $('#chatapp').data('ohjpageslider').navigateBack();
-}
-
-function showusers(page) {
-    $('#chatapp').data('ohjpageslider').navigateNext();
-}

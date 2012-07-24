@@ -320,7 +320,9 @@ namespace OpenHome.XappForms.Forms
 
         public static ButtonControl Create(IXappFormsBrowserTab aTab, string aButtonText)
         {
-            return aTab.CreateControl(aId => new ButtonControl(aTab, aId) { Text = aButtonText });
+            var button = aTab.CreateControl(aId => new ButtonControl(aTab, aId));
+            button.Text = aButtonText;
+            return button;
         }
 
 
