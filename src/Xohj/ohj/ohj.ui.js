@@ -58,10 +58,11 @@ var ohjui = {};
             elementList.push({ pluginName: that.attr('data-ohj'), element:that, depth: that.parents().length});
         });
         
-        // Sort by DOM depth
+        // TODO check if sort is required - can we decorate by order of the css select?
+        // Sort by DOM depth 
         elementList.sort(function(a, b) {
-            if (a.depth < b.depth) return 1;
-            if (a.depth > b.depth) return -1;
+            if (a.depth < b.depth) return -1;
+            if (a.depth > b.depth) return 1;
             return 0;
         });
 
