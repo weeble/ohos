@@ -11,11 +11,11 @@ ohos() {
 }
 
 waf() {
-    ./waf $args
+    ./waf "$@"
 }
 
-ohos-install($appname) {
-    ohos --install ${ohos_buildDir}/${appname}.zip
+ohos-install() {
+    ohos --install ${ohos_buildDir}/$1.zip
 }
 
 ohos-install-all() {
