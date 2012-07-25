@@ -1,7 +1,6 @@
 
 ;(function($) {
     ohjui['ohjscrollertouch'] = function(elem, settings) {
-
         var iscroll = null;
         this.renderScroller = function() {
             elem.css({'position':'relative'});
@@ -17,8 +16,8 @@
                     if (target.tagName != 'SELECT' && target.tagName != 'INPUT' && target.tagName != 'TEXTAREA')
                         e.preventDefault();
                 },
-                 onScroll: function() {
-                    elem.trigger('scroll');
+                onScroll: function() {
+                     elem.trigger('scroll');
                 }
             });
         };

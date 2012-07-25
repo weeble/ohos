@@ -4,11 +4,10 @@
         this.renderScroller = function() {
             elem.addClass('nano');
             elem.css({'height':settings.height});
-            var innerDiv = $('<div/>').html(elem.html());
-            elem.html(innerDiv);
-            elem.children('div').addClass('content');
+            var contents = elem.children().detach();
+            elem.html('<div class="content"></div>');
+            elem.children('.content').append(contents);
             elem.nanoScroller();
-
             elem.find('.content').on('scroll',function() {
                 elem.trigger('scroll');
             });

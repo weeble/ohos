@@ -1,3 +1,7 @@
+/*
+* Example Plugin
+*/ 
+
 ;(function($) {
     ohjui['ohjplugin'] = function(element, options) {
             var elem = $(element);
@@ -14,7 +18,6 @@
             
             // Private Methods
             var render = function() {
-                elem.initPlugin('ohjplugin');
                 elem.hookPlugin(settings);
             };
             

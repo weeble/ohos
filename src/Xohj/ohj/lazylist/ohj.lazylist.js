@@ -89,7 +89,6 @@
         };
 
         var render = function() {
-            elem.initPlugin('ohjlazylist');
             elem.hookPlugin(settings);
            
             elem.css({'position':'relative','overflow' : 'hidden'});
@@ -120,7 +119,7 @@
                 },'onorientationchange' in window ? 500 : 0);
             });
 
-            list =  elem.find('.ohjlist').data('ohjlist');
+            list =  elem.find('.ohjlist').data('ohj');
         };
 
         var getData = function(startIndex, endIndex,onSuccess)
@@ -130,7 +129,7 @@
 
 
         this.getScroller = function() {
-            return elem.find('.ohjscroller').data('ohjscroller');
+            return elem.find('.ohjscroller').data('ohj');
         }
         
         this.destroy = function() {

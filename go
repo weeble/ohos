@@ -11,7 +11,13 @@ if [ -z "$OHDEVTOOLS_ROOT" ]; then
   export OHDEVTOOLS_ROOT=`readlinkf $PROJECT_ROOT/ohdevtools`
 fi
 if [ ! -e "$OHDEVTOOLS_ROOT" ]; then
+  export OHDEVTOOLS_ROOT=`readlinkf $PROJECT_ROOT/ohDevTools`
+fi
+if [ ! -e "$OHDEVTOOLS_ROOT" ]; then
   export OHDEVTOOLS_ROOT=`readlinkf $PROJECT_ROOT/../ohdevtools`
+fi
+if [ ! -e "$OHDEVTOOLS_ROOT" ]; then
+  export OHDEVTOOLS_ROOT=`readlinkf $PROJECT_ROOT/../ohDevTools`
 fi
 if [ ! -e "$OHDEVTOOLS_ROOT" ]; then
   echo OHDEVTOOLS_ROOT not set.

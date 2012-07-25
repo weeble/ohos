@@ -65,7 +65,7 @@
             });
 
             test('getScroller Method returns correct scroller', function () {
-                equal(full.getScroller(), $('#full article').data('ohjscroller'), 'getScroller return correctly');
+                equal(full.getScroller(), $('#full article').data('ohj'), 'getScroller return correctly');
             });
 
             test('resizing will refresh the inner controls', function () {
@@ -86,9 +86,9 @@
 
             test("Destroy the page", function () {
                 $('#destroy').ohjpage();
-                ok($('#destroy').data('ohjpage') != undefined, 'Destroy page created');
-                $('#destroy').data('ohjpage').destroy();
-                equal($('#destroy').data('ohjpage'), undefined, 'Destroy page destroyed');
+                ok($('#destroy').data('ohj') != undefined, 'Destroy page created');
+                $('#destroy').data('ohj').destroy();
+                equal($('#destroy').data('ohj'), undefined, 'Destroy page destroyed');
             });
         });
     </script>
@@ -108,7 +108,7 @@
         test markup, will be hidden</div>
     <h2>
         Basic</h2>
-        <div  id="basic" data-use-ohjpage="true"  style="background:whitesmoke;">
+        <div  id="basic" data-ohj="ohjpage"  style="background:whitesmoke;">
             <header>Basic Page</header>
             <article data-height='100px'>    <ul>
                                 <li>One</li><li>Two</li><li>Three</li><li>Four</li><li>Five</li><li>Six</li><li>Seven</li><li>Eight</li><li>Nine</li><li>Ten</li>
@@ -136,7 +136,7 @@
                                 <li>11</li><li>12</li><li>13</li><li>14</li><li>15</li><li>16</li><li>17</li><li>18</li><li>19</li><li>20</li>
                             </ul>
              </article>
-             <footer data-use-ohjnavbar="true">Footer
+             <footer data-ohj="ohjnavbar">Footer
              </footer>
         </div>
 

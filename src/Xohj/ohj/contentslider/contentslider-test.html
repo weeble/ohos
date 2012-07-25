@@ -1,0 +1,133 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../../lib/jquery-1.7.2.min.js"></script>
+    <link rel="stylesheet" href="../../lib/test/qunit.css" type="text/css" media="screen" />
+    <script type="text/javascript" src="../../lib/test/qunit.js"></script>
+    <link rel="stylesheet" href="../ohj.ui.css" type="text/css" media="screen" />
+ 
+    <script src="../ohj.util.js"></script>
+    <script src="../ohj.ui.js"></script>
+    <script src="ohj.contentslider.js"></script>
+
+    <style>
+      
+        
+    </style>
+    <script>  
+        var basicActivePage = '';
+        var fluidActivePage = 'fluid1';
+        function isActivePage(slider,activeId) {
+            $('#'+slider+' div').each(function () {
+                var elem = $(this);
+                if (activeId != elem.attr('id')) {
+                    equal(elem.css('display'), 'none', 'Unexpected page visible - ' + elem.attr('id') + ' should be hidden');
+                }
+                else {
+                    equal(elem.css('display'), 'block', 'Unexpected page hidden -  ' + elem.attr('id') + ' should be visible');
+                }
+            });
+        }
+
+        $(document).ready(function () {
+            module("Basic Content Slider");
+
+            asyncTest("Basic is inline decorated with Content Slider", function () {
+                ok($('#basic').hasClass('ohjui'), 'We expect the class ohjui');
+                ok($('#basic').hasClass('ohjcontentslider'), 'We expect the class ohjcontentslider');
+                equal($('#basic .ohjcontentslider-page').length, 2, 'There should be two pages');
+                equal($('#basic1').css('display'), 'block', 'Page 1 should be visible');
+
+                $('#basic').on('pageloadcomplete', function () {
+                    start();
+                    isActivePage('basic', basicActivePage);
+                    basicActivePage = 'basic1';
+                    $('#basic').data('ohj').navigateBack();
+                });
+                isActivePage('basic', 'basic1');
+                equal($('#basic').data('ohj').isLastPage(), false, 'Current page is not the last page');
+                $('#basic').data('ohj').navigateBack();
+                $('#basic').data('ohj').navigateBack();
+                $('#basic').data('ohj').navigateBack();
+                $('#basic').data('ohj').navigateBack();
+
+                isActivePage('basic', 'basic1');
+                equal($('#basic').css('display'), 'block', 'Page 1 should be visible');
+                $('#basic').data('ohj').navigateNext();
+                $('#basic').data('ohj').navigateNext();
+                $('#basic').data('ohj').navigateNext();
+                $('#basic').data('ohj').navigateNext();
+                equal($('#basic').data('ohj').isLastPage(), true, 'Current page is the last page');
+
+                basicActivePage = 'basic2';
+
+
+            });
+
+            module("Fluid navigation");
+
+
+            $('#fluid').ohjcontentslider({
+                height: '250px',
+                onpageloadcomplete: function () {
+                    isActivePage('fluid', fluidActivePage);
+                    start();
+                }
+
+            });
+
+            asyncTest("Fluid is code decorated with Content Slider", function () {
+                ok($('#fluid').hasClass('ohjui'), 'We expect the class ohjui');
+                ok($('#fluid').hasClass('ohjcontentslider'), 'We expect the class ohjcontentslider');
+                equal($('#fluid .ohjcontentslider-page').length, 4, 'There should be four pages');
+                isActivePage('fluid', 'fluid1');
+                equal($('#fluid').height(), 250, 'We expect the height to be 250');
+                isActivePage('fluid', 'fluid1');
+                fluidActivePage = 'fluid3';
+                $('#fluid').data('ohj').navigateToPage($('#fluid3'));
+            });
+
+
+            module("Destroy Content Slider");
+
+            test("Destroy the content slider", function () {
+                $('#destroy').ohjcontentslider();
+                ok($('#destroy').data('ohj') != undefined, 'Destroy content slider created');
+                $('#destroy').data('ohj').destroy();
+                equal($('#destroy').data('ohj'), undefined, 'Destroy content slider destroyed');
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1 id="qunit-header">
+        Content Slider Tests</h1>
+    <h2 id="qunit-banner">
+    </h2>
+    <div id="qunit-testrunner-toolbar">
+    </div>
+    <h2 id="qunit-userAgent">
+    </h2>
+    <ol id="qunit-tests">
+    </ol>
+    <div id="qunit-fixture">
+        test markup, will be hidden</div>
+    <h2>
+        Basic</h2>
+        <div style="width:300px;">
+        <div  id="basic" data-ohj="ohjcontentslider" data-height='200px' style="background:whitesmoke;">
+            <div id="basic1">Basic 1</div>
+            <div id="basic2">Basic 2</div>
+        </div>
+        </div>
+        <h2>
+        Fluid</h2>
+        <div id="fluid" style="background:whitesmoke;">
+            <div id="fluid1">Fluid 1</div>
+            <div id="fluid2">Fluid 2</div>
+            <div id="fluid3">Fluid 3</div>
+            <div id="fluid4">Fluid 4</div>
+        </div>
+    <div id="destroy"></div>
+</body>
+</html>

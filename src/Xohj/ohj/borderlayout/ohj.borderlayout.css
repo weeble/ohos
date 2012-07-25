@@ -1,0 +1,58 @@
+.ohjborderlayout
+{
+    position:relative;
+    height:100%;   
+}
+
+.ohjborderlayout-top
+{
+    position: absolute;
+    z-index: 2;
+    top: 0;
+    left: 0;
+    width: 100%;
+}
+
+.ohjborderlayout-bottom
+{
+    position: absolute;
+    z-index: 2;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 0;      
+}
+        
+.ohjborderlayout-main
+{
+    position: absolute;
+    z-index: 1;
+    left: 0;
+    width: 100%; 
+}
+
+.ohjborderlayout-left
+{
+    position:absolute;
+    z-index:1; 
+    top:0; 
+    left:0;
+    height:100%;
+}
+
+.ohjborderlayout-right
+{
+    position:absolute;
+    z-index:1; 
+    top:0; 
+    right:0;
+    height:100%; 
+}
+    
+.ohjborderlayout-middle
+{
+    position:absolute;
+    z-index:1; 
+    top:0; 
+    height:100%;
+}

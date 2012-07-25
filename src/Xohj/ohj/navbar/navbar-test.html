@@ -52,7 +52,7 @@
           });
 
           test("Basic method to change header", function () {
-              $('#basic').data('ohjnavbar').setTitle('Basic New Header');
+              $('#basic').data('ohj').setTitle('Basic New Header');
               equal($('#basic > h1').text(), 'Basic New Header', 'We expect the navbar to have updated it\'s header');
           });
 
@@ -104,9 +104,9 @@
 
           test("Destroy the navbar", function () {
               $('#destroy').ohjnavbar();
-              ok($('#destroy').data('ohjnavbar') != undefined, 'Destroy navbar created');
-              $('#destroy').data('ohjnavbar').destroy();
-              equal($('#destroy').data('ohjnavbar') , undefined, 'Destroy navbar destroyed');
+              ok($('#destroy').data('ohj') != undefined, 'Destroy navbar created');
+              $('#destroy').data('ohj').destroy();
+              equal($('#destroy').data('ohj') , undefined, 'Destroy navbar destroyed');
           });
       });
   </script>
@@ -121,10 +121,10 @@
     <div id="qunit-fixture">test markup, will be hidden</div>
 
         <h2>Basic</h2>
-        <div id="basic" data-height="50px" data-use-ohjnavbar="true" style="width:320px">Basic Navbar</div>
+        <div id="basic" data-height="50px" data-ohj="ohjnavbar" style="width:320px">Basic Navbar</div>
 
         <h2>Small</h2>
-        <div id="small" data-height="40px" style="width:120px" data-onleftbuttonpress="leftClick" data-leftbuttontext="Back" data-use-ohjnavbar="true">Small Navbar</div>
+        <div id="small" data-height="40px" style="width:120px" data-onleftbuttonpress="leftClick" data-leftbuttontext="Back" data-ohj="ohjnavbar">Small Navbar</div>
 
         <h2>Fluid</h2>
         <div id="fluid"><h1><b>Fluid Navbar</b></h1></div>

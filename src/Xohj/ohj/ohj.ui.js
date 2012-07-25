@@ -5,69 +5,57 @@ var ohjui = {};
                 var ret = [];
                 this.each(function() {
                     var element = $(this);
-                    var data = element.data(pluginName);
-
-                    if(data) {
-                        return data;
-                    }
-                    var settings = $.extend(element.data(), options || {});
-
-                    data = new ohjui[pluginName](this,settings);
-                    element.data(pluginName, data);
-                    ret.push(data);
+                    $.extend(element.data(), options || {});
+                    ret.push($.fn.decoratePlugin(pluginName,element));
                 });
                 return ret.length > 1 ? ret : ret[0];
             };
         
-            $().ready(function () {
-                $.fn.initPlugins(pluginName,$('body'));
-                $.fn.decoratePlugin(pluginName,$('body'));
-            });
+            //$().ready(function () {
+              //  $.fn.decoratePluginType(pluginName,$('body'));
+            //});
         }
 
-    
-    $.fn.decoratePlugin = function(pluginName, element) {
-       element.find('[data-use-'+pluginName+']').each(function () {  
-            var element = $(this);
-            if (element.data(pluginName))
-                return;
-            element.data(pluginName, new ohjui[pluginName](this, element.data()));
-        });
-    }
-
     $.fn.hookPlugin = function(settings) {
+        var _this = this;
         for(var i in settings) {
-        
             if(i.indexOf('on') == 0 && i.length > 2 && settings[i] != null)
             {
-                var onFunc = $.fn.stringToFunction(settings[i]);
-                
-                if(onFunc!=null) {
-                    this.on(i.substring(2),onFunc);
-                }
+                _this.hookEvent(i.substring(2),settings[i]);
             }   
         }
     }
 
-
-    $.fn.initPlugins = function(pluginName,element) {
-        element.find('[data-use-'+pluginName+']').each(function () {  
-            $(this).initPlugin(pluginName);
+    $.fn.hookEvent = function(event,func) {
+        var _this = this;
+        this.on(event,function() {
+            if(func!=null && typeof func == "string") {
+                if(window[func]) {
+                    window[func].apply(_this, arguments);
+                }
+                else
+                {
+                    console.log('Function '+ func + ' does not exist yet');
+                }
+            }
+            else if(func!=null && $.isFunction(func))
+            {
+                func.apply(_this, arguments);
+            }
         });
     }
 
-    $.fn.initPlugin = function(pluginName) {
-        this.addClass('ohjui '+pluginName);
-        this.attr('ohjui',pluginName);
-    }
-
-    $.fn.decoratePlugins = function(element) {
+    $.fn.decorateContainerPlugins = function(element) {
         var elementList = [];
-
-        // Get list of ohj elements
-        element.find('.ohjui').each(function() {
-            var _this = $(this);
-            elementList.push({ element: _this.attr('id'), depth: _this.parents().length});
+        var _this = $(this);
+        if(element.attr('data-ohj'))
+        {
+            elementList.push({ pluginName: _this.attr('data-ohj'), element:_this, depth: 0});
+        }
+        // Get list of child ohj elements
+        element.find('[data-ohj]').each(function() {
+            var that = $(this);
+            elementList.push({ pluginName: that.attr('data-ohj'), element:that, depth: that.parents().length});
         });
         
         // Sort by DOM depth
@@ -79,15 +67,25 @@ var ohjui = {};
 
         // Decorate in order of lowest level to the root  
         for(i in elementList) {
-            var element = elementList[i].element;
-            var plugin = element.attr('ohjui');
-            if(!element.hasClass(plugin)) {
-                if (element.data(plugin))
-                    return;
-                element.data(plugin, new ohjui[plugin](element, element.data()));
-            }
-       }
+            $.fn.decoratePlugin(elementList[i].pluginName,elementList[i].element);
+        }
     }
+
+    $.fn.decoratePluginType = function(pluginName, element) {
+       element.find('[data-ohj="'+pluginName+'"]').each(function () {  
+            $.fn.decoratePlugin(pluginName,$(this));
+        });
+    }
+
+    $.fn.decoratePlugin = function(pluginName, element) {
+        if (element.data('ohjtype'))
+            return element.data('ohj');
+        element.data('ohjtype',pluginName);
+        element.data('ohj', new ohjui[pluginName](element, element.data()));
+        element.addClass(pluginName);
+        return element.data('ohj');
+    }
+
 
     $.fn.press = function(onPress) {
         if('ontouchstart' in window && window.Zepto)

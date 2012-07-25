@@ -9,7 +9,7 @@
     $.fn.stringToFunction = function(obj) {
         if(obj == null)
             return null;
-        return typeof obj == "string" && window[obj] ? window[obj] : obj;
+        return typeof obj == "string" && window[obj] ? window[obj] : null;
     }
 
    

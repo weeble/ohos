@@ -30,19 +30,19 @@
 
             test("Setting the height on basic", function () {
                 var currentHeight = $('#basic').height();
-                $('#basic').data('ohjscroller').setOptions({ 'height': '150px' });
+                $('#basic').data('ohj').setOptions({ 'height': '150px' });
                 ok($('#basic').height() != currentHeight, 'The scroller height has been changed');
                 ok($('#basic').height() === 150, 'The scroller height has been changed to the correct value');
             });
 
             test("Basic can scroll to bottom and top", function () {
-                var top = $('#basic').data('ohjscroller').getScrollPosition();
-                $('#basic').data('ohjscroller').scrollToBottom();
-                ok($('#basic').data('ohjscroller').getScrollPosition() > top, 'The scroll to bottom scroll position should be higher than the starting scroll position');
-                ok($('#basic').data('ohjscroller').getScrollPosition() > $('#basic .content').height(), 'The scroll to bottom scroll position should be higher than the height');
-                bottom = $('#basic').data('ohjscroller').getScrollPosition();
-                $('#basic').data('ohjscroller').scrollToTop();
-                equal($('#basic').data('ohjscroller').getScrollPosition(), 0, 'The scroll to top scroll position should be zero');
+                var top = $('#basic').data('ohj').getScrollPosition();
+                $('#basic').data('ohj').scrollToBottom();
+                ok($('#basic').data('ohj').getScrollPosition() > top, 'The scroll to bottom scroll position should be higher than the starting scroll position');
+                ok($('#basic').data('ohj').getScrollPosition() > $('#basic .content').height(), 'The scroll to bottom scroll position should be higher than the height');
+                bottom = $('#basic').data('ohj').getScrollPosition();
+                $('#basic').data('ohj').scrollToTop();
+                equal($('#basic').data('ohj').getScrollPosition(), 0, 'The scroll to top scroll position should be zero');
             });
 
 
@@ -51,7 +51,7 @@
             var pg = $('#touch').ohjscroller({
                 height: '200px',
                 extend: function (elem, settings) {
-                    $.extend(this, new $.fn.ohjpageslidertouch(elem, settings));
+                    $.extend(this, new $.fn.ohjcontentslidertouch(elem, settings));
                 }
             });
 
@@ -62,21 +62,21 @@
 
             test("Setting the height on touch", function () {
                 var currentHeight = $('#touch').height();
-                $('#touch').data('ohjscroller').setOptions({ 'height': '250px' });
+                $('#touch').data('ohj').setOptions({ 'height': '250px' });
                 ok($('#touch').height() != currentHeight, 'The scroller height has been changed');
                 ok($('#touch').height() === 250, 'The scroller height has been changed to the correct value');
             });
 
             test("Touch can scroll to bottom and top", function () {
-                var top = $('#touch').data('ohjscroller').getScrollPosition();
-                $('#touch').data('ohjscroller').scrollToBottom();
+                var top = $('#touch').data('ohj').getScrollPosition();
+                $('#touch').data('ohj').scrollToBottom();
                 stop();
                 setTimeout(function () {
                     start();
-                    ok($('#touch').data('ohjscroller').getScrollPosition() > top, 'The scroll to bottom scroll position should be higher than the starting scroll position');
-                    bottom = $('#touch').data('ohjscroller').getScrollPosition();
-                    $('#touch').data('ohjscroller').scrollToTop();
-                    equal($('#touch').data('ohjscroller').getScrollPosition(), 0, 'The scroll to top scroll position should be zero');
+                    ok($('#touch').data('ohj').getScrollPosition() > top, 'The scroll to bottom scroll position should be higher than the starting scroll position');
+                    bottom = $('#touch').data('ohj').getScrollPosition();
+                    $('#touch').data('ohj').scrollToTop();
+                    equal($('#touch').data('ohj').getScrollPosition(), 0, 'The scroll to top scroll position should be zero');
                 }, 50);
             });
 
@@ -84,9 +84,9 @@
 
             test("Destroy the scroller", function () {
                 $('#destroy').ohjscroller();
-                ok($('#destroy').data('ohjscroller') != undefined, 'Destroy scroller created');
-                $('#destroy').data('ohjscroller').destroy();
-                equal($('#destroy').data('ohjscroller'), undefined, 'Destroy scroller destroyed');
+                ok($('#destroy').data('ohj') != undefined, 'Destroy scroller created');
+                $('#destroy').data('ohj').destroy();
+                equal($('#destroy').data('ohj'), undefined, 'Destroy scroller destroyed');
             });
         });
     </script>
@@ -106,7 +106,7 @@
         test markup, will be hidden</div>
     <h2>
         Basic</h2>
-        <div  id="basic" data-use-ohjscroller="true" data-height="100px" style="width: 320px; background:whitesmoke;">
+        <div  id="basic" data-ohj="ohjscroller" data-height="100px" style="width: 320px; background:whitesmoke;">
     <ul>
         <li>ListItem 1</li>
         <li>ListItem 2</li>

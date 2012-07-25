@@ -58,8 +58,8 @@
             });
 
             test("Add Items to Basic", function () {
-                $('#basic').data('ohjlist').addListItem('<li><h3>ListItem 4</h3></li>');
-                $('#basic').data('ohjlist').addListItem('<li><h3>ListItem 5</h3></li>');
+                $('#basic').data('ohj').addListItem('<li><h3>ListItem 4</h3></li>');
+                $('#basic').data('ohj').addListItem('<li><h3>ListItem 5</h3></li>');
                 equal($('#basic > li').length, 5, 'There should be 5 listitems');
                 $('#basic > li').each(function () {
                     ok($(this).hasClass('clearfix'), 'We expect the Basic list items to contain the class clearfix');
@@ -94,9 +94,9 @@
 
             test("Destroy the list", function () {
                 $('#destroy').ohjlist();
-                ok($('#destroy').data('ohjlist') != undefined, 'Destroy list created');
-                $('#destroy').data('ohjlist').destroy();
-                equal($('#destroy').data('ohjlist'), undefined, 'Destroy list destroyed');
+                ok($('#destroy').data('ohj') != undefined, 'Destroy list created');
+                $('#destroy').data('ohj').destroy();
+                equal($('#destroy').data('ohj'), undefined, 'Destroy list destroyed');
             });
         });
     </script>
@@ -116,7 +116,7 @@
         test markup, will be hidden</div>
     <h2>
         Basic</h2>
-    <ul id="basic" data-use-ohjlist="true" style="width: 320px">
+    <ul id="basic" data-ohj="ohjlist" style="width: 320px">
         <li>
             <h3>
                 ListItem 1</h3>
@@ -133,7 +133,7 @@
 
     <h2>
         Small</h2>
-    <ul id="small" data-use-ohjlist="true" style="width: 200px">
+    <ul id="small" data-ohj="ohjlist" style="width: 200px">
         <li>
             <img src="default.jpg" />
              <h3>ohjlist ListItem 1</h3>

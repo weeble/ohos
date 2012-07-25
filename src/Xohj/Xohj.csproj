@@ -6,7 +6,7 @@
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{E5044F68-C565-4EBA-9C34-57DC0B15EF0F}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Xohj</RootNamespace>
     <AssemblyName>Xohj</AssemblyName>
@@ -33,6 +33,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
   <ItemGroup>
     <Content Include="docs\css\bootstrap-responsive.css" />
     <Content Include="docs\css\bootstrap-responsive.min.css" />
@@ -54,8 +57,16 @@
     <Content Include="lib\test\qunit.css" />
     <Content Include="lib\test\qunit.js" />
     <Content Include="lib\zepto-1.0rc1.min.js" />
+    <Content Include="ohj\borderlayout\index.html" />
+    <Content Include="ohj\borderlayout\ohj.borderlayout.js" />
+    <Content Include="ohj\borderlayout\ohj.borderlayout.css" />
+    <Content Include="ohj\borderlayout\temp.html" />
     <Content Include="ohj\grid\index.html" />
     <Content Include="ohj\grid\ohj.grid.js" />
+    <Content Include="ohj\navbar\navbar-test.html" />
+    <Content Include="ohj\virtuallist\background-sm.jpg" />
+    <Content Include="ohj\virtuallist\background.jpg" />
+    <Content Include="ohj\virtuallist\virtuallist-test.html" />
     <Content Include="ohj\lazylist\default.jpg" />
     <Content Include="ohj\lazylist\index.html" />
     <Content Include="ohj\lazylist\lazylist-test.html" />
@@ -66,7 +77,6 @@
     <Content Include="ohj\list\ohj.list.css" />
     <Content Include="ohj\list\ohj.list.js" />
     <Content Include="ohj\navbar\index.html" />
-    <Content Include="ohj\navbar\navbar-test.html" />
     <Content Include="ohj\navbar\ohj.navbar.js" />
     <Content Include="ohj\ohj.plugin.js" />
     <Content Include="ohj\ohj.ui.bridge.js" />
@@ -89,12 +99,14 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="ohj\scroller\scroller-test.html" />
-    <Content Include="ohj\pageslider\index.html" />
-    <Content Include="ohj\pageslider\ohj.pageslider.js" />
-    <Content Include="ohj\pageslider\pageslider-test.html" />
+    <Content Include="ohj\contentslider\index.html" />
+    <Content Include="ohj\contentslider\ohj.contentslider.js" />
+    <Content Include="ohj\contentslider\contentslider-test.html" />
     <Content Include="ohj\page\index.html" />
     <Content Include="ohj\page\ohj.page.js" />
     <Content Include="ohj\page\page-test.html" />
+    <Content Include="ohj\virtuallist\default.jpg" />
+    <Content Include="ohj\virtuallist\index.html" />
     <Content Include="ohj\virtuallist\ohj.virtuallist.js" />
     <Content Include="theme\default\bootstrap.min.css" />
   </ItemGroup>

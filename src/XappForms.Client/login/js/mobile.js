@@ -1,16 +1,17 @@
 ﻿
 // inline callbacks
-function pageload(page) {
+function pageload(e, page) {
+    page = $(page);
     switch (page.attr('id')) {
         case 'pgChat':
             {
-                $('#pgUser').data('ohjpage').refreshPage();
-                $('#pgConversation').data('ohjpage').refreshPage();
+                $('#pgUser').data('ohj').refreshPage();
+                $('#pgConversation').data('ohj').refreshPage();
                 break;
             }
         default:
             {
-                page.data('ohjpage').refreshPage();
+                page.data('ohj').refreshPage();
             }
     }
 

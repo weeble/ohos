@@ -65,8 +65,8 @@
                 html += '<li id="li_' + i + '">  <img src="default.jpg" /><h3>' + arguments[i] + '</h3></li>'; // console.log(arguments[i]);
             }
 
-            $("#basic ul").data('ohjlist').addListItem(html);
-            $('#basic').data('ohjlazylist').getScroller().refreshScroller();
+            $("#basic ul").data('ohj').addListItem(html);
+            $('#basic').data('ohj').getScroller().refreshScroller();
         }
         
         function getData (e, startIndex, endIndex, onSuccess) {
@@ -91,13 +91,13 @@
                 test("Basic Lazy List can retreive additional blocks", function () {
 
                     var count = $('#basic li').length;
-                    $('#basic').data('ohjlazylist').getNextDataSegment();
+                    $('#basic').data('ohj').getNextDataSegment();
                     stop(2);
 
                     setTimeout(function () {
                         equal($('#basic li').length, count * 2, 'We expect the Basic list have doubled in size (oveflow of 1)');
                         start();
-                        $('#basic').data('ohjlazylist').getNextDataSegment();
+                        $('#basic').data('ohj').getNextDataSegment();
                         setTimeout(function () {
                             equal($('#basic li').length, count * 3, 'We expect the Basic list have tripled in size (oveflow of 1)');
                             start();
@@ -113,9 +113,9 @@
 
                 test("Destroy the list", function () {
                     $('#destroy').ohjlazylist();
-                    ok($('#destroy').data('ohjlazylist') != undefined, 'Destroy list created');
-                    $('#destroy').data('ohjlazylist').destroy();
-                    equal($('#destroy').data('ohjlazylist'), undefined, 'Destroy list destroyed');
+                    ok($('#destroy').data('ohj') != undefined, 'Destroy list created');
+                    $('#destroy').data('ohj').destroy();
+                    equal($('#destroy').data('ohj'), undefined, 'Destroy list destroyed');
                 });
             }, 1000);
         });
@@ -136,16 +136,16 @@
         test markup, will be hidden</div>
     <h2>
         Basic</h2>
-    <div id="basic" data-use-ohjlazylist="true" style="width:320px;" data-overflow="1" data-onrendersegment="renderBasicSegment" data-ongetdata="getData">
-        <div data-use-ohjscroller="true" data-height="200px">
-            <ul data-use-ohjlist="true">
+    <div id="basic" data-ohj="ohjlazylist" style="width:320px;" data-overflow="1" data-onrendersegment="renderBasicSegment" data-ongetdata="getData">
+        <div data-ohj="ohjscroller" data-height="200px">
+            <ul data-ohj="ohjlist">
             </ul>
         </div>
     </div>
 
-       <div id="destroy" data-use-ohjlazylist="true" style="width:320px;" >
-        <div data-use-ohjscroller="true" data-height="200px">
-            <ul data-use-ohjlist="true">
+       <div id="destroy" data-ohj="ohjlazylist" style="width:320px;" >
+        <div data-ohj="ohjscroller" data-height="200px">
+            <ul data-ohj="ohjlist">
             </ul>
         </div>
     </div>

@@ -120,7 +120,7 @@
         <![endif]-->
 </head>
 <body>
-    <div id="pg1" data-use-ohjpage="true" style="height: 100%">
+    <div id="pg1" data-ohj="ohjpage" style="height: 100%">
         <header>
             User Login
         </header>
@@ -164,7 +164,7 @@
     <script src="../../lib/jquery-1.7.2.min.js"></script>
     <script src="../../ohj/ohj.util.js"></script>
     <script src="../../ohj/ohj.ui.js"></script>
-    <script src="../../ohj/pageslider/ohj.pageslider.js"></script>
+    <script src="../../ohj/contentslider/ohj.contentslider.js"></script>
     <script src="../../ohj/scroller/ohj.scroller.js"></script>
     <script src="../../ohj/scroller/ohj.scroller.pointer.js"></script>
     <script src="../../ohj/scroller/ohj.scroller.touch.js"></script>
@@ -173,22 +173,24 @@
     <script src="../../ohj/list/ohj.list.js"></script>
     <script>
         $().ready(function () {
+            $.fn.decorateContainerPlugins($('body'));
+
             $('#btnLogin').press(function () {
-                $('#chatapp').data('ohjpageslider').navigateNext();
+                $('#chatapp').data('ohj').navigateNext();
             });
 
         });
 
         function pageload(page) {
-            page.data('ohjpage').refreshPage();
+            page.data('ohj').refreshPage();
         }
 
         function goback(page) {
-            $('#chatapp').data('ohjpageslider').navigateBack();
+            $('#chatapp').data('ohj').navigateBack();
         }
 
         function showusers(page) {
-            $('#chatapp').data('ohjpageslider').navigateNext();
+            $('#chatapp').data('ohj').navigateNext();
         }
     </script>
 </body>

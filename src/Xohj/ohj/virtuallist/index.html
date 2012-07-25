@@ -2,7 +2,7 @@
 <html lang="en">
     <head>
         <meta charset="utf-8">
-        <title>ohj UI - ohj.lazylist</title>
+        <title>ohj UI - ohj.virtuallist</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="description" content="">
         <meta name="author" content="">
@@ -17,46 +17,37 @@
             body {
                 padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
             }
-
-            .ohjnavbar {
-                background-color: #2C2C2C;
-                height: 40px;
-                color: #FFF;
-                font-weight: 700;
-            }
    
-            
-              
-             .ohjlazylist li
+            #virtuallist li
             {
                 background-color:#EEE;
                 border-bottom:1px solid #CCC;
- 
-            }
-            .ohjlazylist h3
-            {
-                margin-top:10px;
-                font-size:15px;
-                line-height:40px;
-            }
-             .ohjlazylist img
-            {
-                height:40px;        
-            }
-            
-            
-            .ohjlazylist-loader
-            {
-                opacity:0.5;
-                background-color:#000;
-                color:#FFF;
-                text-align:center;
-                position:absolute;
+                height:80px;    
                 width:100%;
-                height:20px;
-                font-size:10px;
+                position:absolute;
             }
-
+            #virtuallist h3
+            {
+                margin-top:30px;
+                font-size:15px;
+                line-height:30px;
+            }
+            #virtuallist img
+            {
+                height:80px;        
+            }
+            
+             #virtuallist 
+            {
+                overflow:hidden;
+            }
+            
+          
+            .ohjvirtuallist .ohjlist
+            {
+                background:#FFF url('background.jpg') repeat-y;
+            }
+            
         </style>
         <link href="../../docs/css/bootstrap-responsive.min.css" rel="stylesheet">
 
@@ -72,7 +63,7 @@
             <div class="navbar-inner">
                 <div class="container">
                     <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse"> <span class="icon-bar"></span> <span class="icon-bar"></span> <span class="icon-bar"></span> </a>
-                    <a class="brand " href="../../docs/index.html"><span class="ohj">ohj</span>.lazylist</a>
+                    <a class="brand " href="../../docs/index.html"><span class="ohj">ohj</span>.virtuallist</a>
                     <div class="nav-collapse">
                         <ul class="nav">
                             <li class="active">
@@ -107,9 +98,9 @@
 
         <div class="container">
 
-            <h1>ohj.lazylist UI control<small> b0.1</small></h1>
+            <h1>ohj.virtuallist UI control<small> b0.1</small></h1>
             <p class="lead">
-                  A list control where data is loaded as the user scrolls down
+                  A list control where a large finite set of list items can be scrolled on demand.
             </p>
             <br/>
             <br/>
@@ -123,29 +114,26 @@
                     <div class="span8">
                         <pre class="prettyprint linenums">
     &lt;script&gt;
-        $('#lazylist').ohjlazylist({
-            threshold: 30,
-            overflow: 1,
-            onrendersegment: function (e, data) {
-                var html = '';
-                for (var i = 1; i < arguments.length; i++) {
-                    html += '&lt;li id="li_' + i + '"&gt;' +
-                                '&lt;img src="default.jpg" /&gt;' +
-                                '&lt;h3&gt;' + arguments[i] + '&lt;/h3&gt;' +
-                            '&lt;/li&gt;';
-                }
-
-                $('#lazylist ul').data('ohj').addListItem(html);
-                $('#lazylist').data('ohj').getScroller().refreshScroller();
-            },
-            ongetdata: function (e, startIndex, endIndex, onSuccess) {
-                // Ajax call
-                onSuccess(ajaxdata);
-            }
-        });
+        var virtuallist = $("#virtuallist").ohjvirtuallist({
+                    onrenderitem: function (e, index, data) {
+                         var html = '&lt;li class=" li_' + index + '" style="top:' + $(this).data('ohj').getItemHeight() * index + 'px" &gt;&lt;img src="default.jpg" /&gt;&lt;h3&gt;' + data + '&lt;/h3&gt;&lt;/li&gt;';
+                        $('#virtuallist ul').data('ohj').addListItem(html);
+                    },
+                    onremoveitem: function (e, index) {
+                        $('#virtuallist .li_' + index).remove();
+                    },
+                    ongetdata: function (e, startIndex, endIndex, onSuccess) {
+                        // ajax call
+                        onSuccess(ajaxdata);
+                    },
+                    ongetitemcount: function () {
+                        // ajax call to get count - mocked 10000
+                        $(this).data('ohj').setItemCount(10000);
+                    }
+                });
     &lt;/script&gt;
     ...
-    &lt;div id="lazylist"&gt;
+    &lt;div id="virtuallist"&gt;
         &lt;div data-ohj="ohjscroller"&gt;
             &lt;ul data-ohj="ohjlist"&gt;
             &lt;/ul&gt;
@@ -157,8 +145,8 @@
 
                     </div><!-- /.span -->
                     <div class="span4">
-                          <div id="lazylist">
-                            <div data-ohj="ohjscroller" data-height="400px">
+                          <div id="virtuallist" style="height:500px">
+                            <div data-ohj="ohjscroller">
                                 <ul data-ohj="ohjlist">
                                 </ul>
                             </div>
@@ -196,9 +184,31 @@
                                      <tr>
                                         <td>
                                         <code>
-                                            onrendersegment
+                                            onrenderitem
                                         </code></td>
-                                        <td> Call back function whenever a data block is ready to be rendered. </td>
+                                        <td> Call back function whenever a list item is ready to be rendered. </td>
+                                        <td>
+                                        <code>
+                                            null
+                                        </code></td>
+                                    </tr>
+                                      <tr>
+                                        <td>
+                                        <code>
+                                            onrenderpendingitem
+                                        </code></td>
+                                        <td> Call back function whenever a list item is requested to be shown.  This callback is useful to render a progress indicator.</td>
+                                        <td>
+                                        <code>
+                                            null
+                                        </code></td>
+                                    </tr>
+                                       <tr>
+                                        <td>
+                                        <code>
+                                            onremoveitem
+                                        </code></td>
+                                        <td> Call back function whenever a list item is requested to be removed. </td>
                                         <td>
                                         <code>
                                             null
@@ -218,46 +228,45 @@
                                     <tr>
                                         <td>
                                         <code>
-                                            threshold
+                                            ongetitemcount
                                         </code></td>
-                                        <td> The number of items from the bottom of the list that triggers the next block of data </td>
+                                        <td> Call back function whenever the total item count is required </td>
                                         <td>
                                         <code>
-                                            5
+                                            null
                                         </code></td>
                                     </tr>
                                     <tr>
                                         <td>
                                         <code>
-                                            overflow
+                                            maxdomitems
                                         </code></td>
-                                        <td> A decimal representing the amount of additional data to retreive.  If your list could display 10 visible list items then an overflow of 0.5 would bring back 15 list items.  An overflow of 2 would bring back 20 list items. </td>
+                                        <td> The maximum dom elements to store in the list.  An array of dom element indexes is maintained whenever a dom element is appended.  Once this maximum dom elements threshold has been hit, onremoveitem will be called on a "First In, First Out" basis on the dom element index array.  This is useful if you do not want the list to be bloated with DOM list items.  To disable, set this property to 0.</td>
                                         <td>
                                         <code>
-                                            1
+                                           100
                                         </code></td>
                                     </tr>
                                      <tr>
                                         <td>
                                         <code>
-                                            loadText
+                                            maxdatacache
                                         </code></td>
-                                        <td> The text to display when retreiving the next block of data. </td>
+                                        <td>  The maximum data list items to store in the data cache.  A dictionary of data is maintained whenever list item data has been retrieved.  Once this maximum data cache threshold has been hit, it will be removed from the dictionary on a "First In, First Out" basis.  To disable, set this property to 0.</td>
                                         <td>
                                         <code>
-                                            Loading...
+                                            1000
                                         </code></td>
                                     </tr>
                                     <tr>
                                         <td>
                                         <code>
-                                            showLoadText
+                                            blocksize
                                         </code></td>
-                                        <td> 'none':  Hides the load text.<br />
-                                        'footer': Displays the load text at the bottom of the lazy item control.</td>
+                                        <td>The number of list items to request per block.  Data is requested in blocks, the current visible block, the previous block and the next block.</td>
                                         <td>
                                         <code>
-                                            footer
+                                            15
                                         </code></td>
                                     </tr>
                                 </tbody>
@@ -291,6 +300,24 @@
                                     <td>Destroys the lazy list, list and scroller.</td>
          
                                 </tr> 
+                                <tr>
+                                    <td><code>getItemHeight
+                                        </code></td>
+                                    <td>Returns the height of a list item</td>
+         
+                                </tr> 
+                                <tr>
+                                    <td><code>setItemCount(int)
+                                        </code></td>
+                                    <td>Sets the item count and refreshes the virtual list</td>
+         
+                                </tr> 
+                                <tr>
+                                    <td><code>setSegment(dictionary)
+                                        </code></td>
+                                    <td>Sets the list item data</td>
+         
+                                </tr> 
                             </tbody>
                         </table>
                     </div>
@@ -312,16 +339,30 @@
                             <tbody
                                 <tr>
                                     <td><code>
-                                        onrendersegment(event, [data,...])</code></td>
-                                    <td> Evented when a block of data has been retreived. </td>
+                                        onrenderitem(event, index, data)</code></td>
+                                    <td> Evented when data for a list item has been retreived. </td>
+                                </tr>
+                                 <tr>
+                                    <td><code>
+                                        onrenderpendingitem(event, index)</code></td>
+                                    <td> Evented when data for a list item has been requested. </td>
+                                </tr>
+                                <tr>
+                                    <td><code>
+                                        onremoveitem(event, index)</code></td>
+                                    <td> Evented when DOM caching is enabled and that a list item is to be removed from the cache. </td>
                                 </tr>
                                 <tr>
                                     <td><code>
                                         ongetdata(event, startIndex, endIndex, onSuccess)</code></td>
-                                    <td> Evented when the lazy list requires the next block of data </td>
+                                    <td> Evented when the virtual list requires a block of data</td>
                                 </tr>
-                               
-
+                                <tr>
+                                    <td><code>
+                                        ongetitemcount(event)</code></td>
+                                    <td> Evented when the virtual list requires the size of the list to calculate it's scrolling height. </td>
+                                </tr>
+                                
                             </tbody>
                         </table>
                         </div>
@@ -357,9 +398,9 @@
                                 <tr>
                                     <td>
                                     <code>
-                                        .ohjlazylist
+                                        .ohjvirtuallist
                                     </code></td>
-                                    <td> Class for the lazylist </td>
+                                    <td> Class for the virtuallist </td>
                                 </tr>
                              
                             </tbody>
@@ -370,7 +411,7 @@
 
                     <div class="span12">
                         <pre class="prettyprint linenums">
-       &lt;div id="lazylist" class="ohjlazylist"&gt;
+       &lt;div id="virtuallist" class="ohjvirtuallist"&gt;
             &lt;div class="ohjscroller"&gt;
                 &lt;div class="content" style="right: -17px; "&gt;
                     &lt;ul class="ohjlist"&gt;
@@ -460,7 +501,7 @@
                 </div>
                 <ul>
                     <li>
-                        <a href="lazylist-test.html">Run Tests</a>
+                        <a href="virtuallist-test.html">Run Tests</a>
                     </li>
                 </ul>
                 <br />
@@ -471,13 +512,13 @@
                 </div>
                 <ul>
                     <li>
-                        Make scrolling up retreive data segments too.  This will allow only a set number of list items available within the list.
+                        Add alpha table and headers.
                     </li>
                     <li>
-                        Create different load text modes.  A spinner (full page / panel).
+                        List Items need to be absolutely positioned, they are currently defined in css but need to be enforced.
                     </li>
-                    <li>
-                        Create an ondemand loader where the last row is a "Load more data" button.  Spinner will appear on the button. 
+                     <li>
+                        Ability to tile data rather than a list.  Perhaps a grid control is required rather than implement this as part of the virtual list.
                     </li>
                 </ul>
             </section>
@@ -506,36 +547,41 @@
         <script src="../scroller/ohj.scroller.touch.js"></script>
         <script src="../navbar/ohj.navbar.js"></script>
         <script src="../list/ohj.list.js"></script>
-        <script src="../lazylist/ohj.lazylist.js"></script>
+        <script src="../virtuallist/ohj.virtuallist.js"></script>
 
         <script>
             $().ready(function () {
 
                 $.fn.decorateContainerPlugins($('body'));
-                var lazylist = $("#lazylist").ohjlazylist({
-                    threshold: 30,
-                    overflow: 2,
-                    onrendersegment: function (e, data) {
-                        var html = '';
-                        for (var i = 1; i < arguments.length; i++) {
-                            html += '<li id="li_' + i + '">  <img src="default.jpg" /><h3>' + arguments[i] + '</h3></li>'; // console.log(arguments[i]);
-                        }
-
-                        $("#lazylist ul").data('ohj').addListItem(html);
-                        $('#lazylist').data('ohj').getScroller().refreshScroller();
+ 
+                var virtuallist = $("#virtuallist").ohjvirtuallist({
+                    onrenderitem: function (e, index, data) {
+                        var html = '<li class=" li_' + index + '" style="top:' + $(this).data('ohj').getItemHeight() * index + 'px" ><img src="default.jpg" /><h3>' + data + '</h3></li>'; // console.log(arguments[i]);
+                        $('#virtuallist ul').data('ohj').addListItem(html);
+                    },
+                    onremoveitem: function (e, index) {
+                        $('#virtuallist .li_' + index).remove();
                     },
                     ongetdata: function (e, startIndex, endIndex, onSuccess) {
-                        // Mock ajax call
                         if (onSuccess != null) {
                             setTimeout(function () {
-                                onSuccess(listdata.slice(startIndex, endIndex));
+                                var results = {};
+                                for (var i = startIndex; i < endIndex; i++) {
+                                    results[i] = listdata[i];
+                                }
+                                onSuccess(results);
                             }, 500);
+
                         }
+                    },
+                    ongetitemcount: function () {
+                        $(this).data('ohj').setItemCount(10000);
                     }
                 });
+
             });
 
-            // Mock data
+            // Temp
             var listdata = [];
             for (var i = 0; i < 10000; i++) {
                 listdata.push('This is listitem ' + i);
