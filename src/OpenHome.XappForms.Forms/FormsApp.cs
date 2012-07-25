@@ -108,7 +108,7 @@ namespace OpenHome.XappForms.Forms
     <script src='../ohj/contentslider/ohj.contentslider.js'></script> 
     <script src='../ohj/button/ohj.button.js'></script>
     <script src='../ohj/grid/ohj.grid.js'></script>
-    <script src='../ohj/grid/ohj.textbox.js'></script>
+    <script src='../ohj/textbox/ohj.textbox.js'></script>
     <script src='../ohj/list/ohj.list.js'></script>
     <script src='js/common.js'></script>
     <script src='js/desktop.js'></script>
