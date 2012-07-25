@@ -61,6 +61,8 @@
     <Content Include="ohj\borderlayout\ohj.borderlayout.js" />
     <Content Include="ohj\borderlayout\ohj.borderlayout.css" />
     <Content Include="ohj\borderlayout\temp.html" />
+    <Content Include="ohj\button\ohj.button.js" />
+    <Content Include="ohj\textbox\ohj.textbox.js" />
     <Content Include="ohj\grid\index.html" />
     <Content Include="ohj\grid\ohj.grid.js" />
     <Content Include="ohj\navbar\navbar-test.html" />

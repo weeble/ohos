@@ -1,12 +1,10 @@
 ;(function($) {
-    ohjui['ohjgrid'] =  function(element, options) {
+    ohjui['ohjtextbox'] =  function(element, options) {
         var elem = $(element);
         var _this = this;
         var settings = $.extend({
-            rowcount : null,
-            columncount : null,
-            items : null,
-            extend: null
+            extend: null,
+            onclick: null
         }, options || {});
             
         // Public Methods
@@ -14,6 +12,7 @@
         // Private Methods
         var render = function() {
             elem.hookPlugin(settings);
+           
         };
 
         if(settings.extend)
@@ -21,6 +20,6 @@
         render();
     };
     
-    $.fn.createPlugin('ohjgrid');
+    $.fn.createPlugin('ohjtextbox');
 
 })(window.jQuery || window.Zepto);
