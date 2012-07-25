@@ -108,6 +108,10 @@
                 slidePage(page, ignoreHistory, transition);
             };
 
+            this.getHistory = function() {
+                return history;
+            };
+
             this.destroy = function() {
                 elem.destroyPlugin();
             };
