@@ -899,7 +899,9 @@ def build(bld):
                 for (filename, mintype, inputs) in minification_files
             ])).targets_stripped(bld.bldnode.abspath()))
 
-    ohos_main_transfer = (dependencies_transfer + ohos_core_transfer + static_ohj_app_img_file_transfer)
+    xappforms_http_tree = (client_scripts_tree + xohj_tree).targets_prefixed('http')
+
+    ohos_main_transfer = (dependencies_transfer + ohos_core_transfer + static_ohj_app_img_file_transfer + xappforms_http_tree)
 
     ohos_main_transfer.targets_prefixed('${PREFIX}/lib/ohos').install_files_preserving_permissions(bld)
     all_apps_transfer.targets_prefixed('/var/ohos/installed-apps').install_files(bld)
@@ -914,10 +916,9 @@ def build(bld):
     #        'Owin.dll',
     #        'Gate.Hosts.Firefly.dll',
     #    ])
-    xappforms_http_tree = (client_scripts_tree + xohj_tree)
-    xappforms_http_tree.targets_prefixed('install/OhOs/http').create_copy_tasks(bld)
-    xappforms_http_tree.targets_prefixed('http').create_copy_tasks(bld)
-    xappforms_http_tree.targets_prefixed('${PREFIX}/lib/ohos/http').install_files(bld)
+    #xappforms_http_tree.targets_prefixed('install/OhOs/http').create_copy_tasks(bld)
+    xappforms_http_tree.create_copy_tasks(bld)
+    #xappforms_http_tree.targets_prefixed('${PREFIX}/lib/ohos/http').install_files(bld)
     #xappforms_install_tree.targets_prefixed('install/XappForms').create_copy_tasks(bld)
 
     # Commenting this out in case the debian scripts include it in the wrong package.
