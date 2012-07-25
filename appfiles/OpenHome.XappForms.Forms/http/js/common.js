@@ -117,6 +117,8 @@ $().ready(function () {
             jElement.addClass(topId+'-'+jElement.data('xfslot'));
             jElement.removeData('xfslot');
         });
+
+        $.fn.decoratePlugin(name.replace('xf-', 'ohj'), topElement);
         return topElement;
     }
 
