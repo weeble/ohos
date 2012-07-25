@@ -149,6 +149,20 @@ $().ready(function () {
     };
     controlManager.registerClass("button", ButtonControl);
 
+    // TextboxControl
+    // A text box
+    function TextboxControl(id, controlManager) {
+        this.id = id;
+        this.controlManager = controlManager;
+        this.domElement = applyTemplate('xf-textbox', id);
+    }
+    mixinControl(TextboxControl.prototype);
+    TextboxControl.prototype['xf-set-property'] = function (message) {
+        if (message.property !== 'text') return;
+        this.domElement.val(message.value);
+    };
+    controlManager.registerClass("textbox", TextboxControl);
+
     // RootControl
     // Used as a parent to the top-level control.
     function RootControl(controlManager) {

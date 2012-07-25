@@ -351,4 +351,53 @@ namespace OpenHome.XappForms.Forms
             get { return "button"; }
         }
     }
+
+
+    class TextboxControl : Control
+    {
+        JsonProperties iProperties = new JsonProperties();
+        EventCollection iEventHandlers = new EventCollection();
+        public TextboxControl(IXappFormsBrowserTab aTab, long aId)
+            : base(aTab, aId)
+        {
+        }
+
+        public override void Receive(JsonObject aObject)
+        {
+            iEventHandlers.Receive(aObject);
+        }
+
+        public static TextboxControl Create(IXappFormsBrowserTab aTab)
+        {
+            return aTab.CreateControl(aId => new TextboxControl(aTab, aId));
+        }
+
+        public static TextboxControl Create(IXappFormsBrowserTab aTab, string aText)
+        {
+            var tb = aTab.CreateControl(aId => new TextboxControl(aTab, aId));
+            tb.Text = aText;
+            return tb;
+        }
+
+
+        public static string HtmlTemplate
+        {
+            get
+            {
+                return
+                    @"<input type='textbox' id='xf-textbox' />";
+            }
+        }
+
+        public string Text
+        {
+            get { return iProperties.GetProperty("text").AsString(); }
+            set { iProperties.SetProperty(this, "text", new JsonString(value)); }
+        }
+
+        public override string Class
+        {
+            get { return "textbox"; }
+        }
+    }
 }

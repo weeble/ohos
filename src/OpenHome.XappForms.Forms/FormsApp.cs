@@ -138,7 +138,7 @@ namespace OpenHome.XappForms.Forms
 
         string GenerateHtml()
         {
-            string controlFragments = GridControl.HtmlTemplate + ButtonControl.HtmlTemplate;
+            string controlFragments = GridControl.HtmlTemplate + ButtonControl.HtmlTemplate + TextboxControl.HtmlTemplate;
             return String.Format(IndexTemplate, controlFragments);
         }
 
@@ -341,7 +341,7 @@ namespace OpenHome.XappForms.Forms
             var grid = GridControl.Create(iXFTab);
 
             grid.TopLeft = ButtonControl.Create(iXFTab, "First");
-            grid.TopRight = ButtonControl.Create(iXFTab, "Beta");
+            grid.TopRight = TextboxControl.Create(iXFTab, "Beta");
             grid.BottomLeft = ButtonControl.Create(iXFTab, "Charlie");
             iButtonFour = ButtonControl.Create(iXFTab, "FOUR");
 
