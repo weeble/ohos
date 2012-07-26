@@ -52,25 +52,30 @@ $().ready(function () {
 
     controlManager = new ControlManager();
 
-    // Event arguments to return from an event
+
+    // Event arguments typesto return from an event
     var eventArgType = {
-        'pointer': function (e) {
-            console.log(e);
+        pointer: function (e) {
             return {
                 'x': e.pageX,
                 'y': e.pageY
             };
         },
-        'inputval': function (e) {
+        inputval: function (e) {
             return {
                 'val': $(e.srcElement).val()
             };
         }
     };
 
+    // declare return arguments for each event
+    var eventArgsMapping = {
+        'click': eventArgType.pointer,
+        'mousedown': eventArgType.pointer,
+        'keypress': eventArgType.inputval
+    };
 
-
-
+   
 
 
     // Mixins: The following classes are mixins. The idea is that there's no true
@@ -113,18 +118,18 @@ $().ready(function () {
     // EventedControl: This is a control that allows the server to subscribe to
     // events raised by its DOM element.
     // Requires domElement property.
-    function mixinEventedControl(prototype, eArgType) {
-        prototype.getEventArgs = eventArgType[eArgType];
+    function mixinEventedControl(prototype) {
         prototype['xf-subscribe'] = function (message) {
             var _this = this;
             this.domElement.on(
                 message['event'],
                 function (e) {
+                    var eventFunc = eventArgsMapping[message['event']];
                     xapp.tx({
                         'type': 'xf-event',
                         'control': message.control,
                         'event': message['event'],
-                        'object': _this.getEventArgs(e)
+                        'object': eventFunc ? eventFunc.call(_this, e) : null
                     });
                 }
             );
@@ -133,6 +138,10 @@ $().ready(function () {
             this.domElement.off(message['event']);
         };
         return prototype;
+    }
+
+    function getEventArgs(eventtype, e) {
+
     }
 
     function applyTemplate(name, id) {
@@ -168,7 +177,7 @@ $().ready(function () {
         this.domElement = applyTemplate('xf-button', id);
     }
     mixinControl(ButtonControl.prototype);
-    mixinEventedControl(ButtonControl.prototype, 'pointer');
+    mixinEventedControl(ButtonControl.prototype);
     ButtonControl.prototype['xf-set-property'] = function (message) {
         if (message.property !== 'text') return;
         this.domElement.text(message.value);
@@ -183,7 +192,7 @@ $().ready(function () {
         this.domElement = applyTemplate('xf-textbox', id);
     }
     mixinControl(TextboxControl.prototype);
-    mixinEventedControl(TextboxControl.prototype, 'inputval');
+    mixinEventedControl(TextboxControl.prototype);
     TextboxControl.prototype['xf-set-property'] = function (message) {
         if (message.property !== 'text') return;
         this.domElement.val(message.value);
