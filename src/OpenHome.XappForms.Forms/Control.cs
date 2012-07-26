@@ -224,6 +224,7 @@ namespace OpenHome.XappForms.Forms
         }
         public bool Receive(JsonValue aMessage)
         {
+            Console.WriteLine(aMessage);
             if (!aMessage.IsObject) return false;
             var type = aMessage.Get("type");
             if (!type.IsString || type.AsString() != "xf-event") return false;
@@ -379,6 +380,11 @@ namespace OpenHome.XappForms.Forms
             return tb;
         }
 
+        public event EventHandler KeyPress
+        {
+            add { iEventHandlers.SubscribeEventHandler(this, "keypress", value); }
+            remove { iEventHandlers.UnsubscribeEventHandler(this, "keypress", value); }
+        }
 
         public static string HtmlTemplate
         {

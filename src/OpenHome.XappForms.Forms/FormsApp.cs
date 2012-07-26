@@ -331,7 +331,8 @@ namespace OpenHome.XappForms.Forms
         readonly IBrowserTabProxy iBrowserTabProxy;
         readonly int iId;
 
-        ButtonControl iButtonFour;
+        ButtonControl iButtonFour,iButtonThree;
+        TextboxControl iTextboxOne;
 
         public FormsAppTab(FormsApp aFormsApp, IBrowserTabProxy aBrowserTabProxy, int aId, UserList aUserList, string aUserId)
         {
@@ -341,13 +342,15 @@ namespace OpenHome.XappForms.Forms
             var grid = GridControl.Create(iXFTab);
 
             grid.TopLeft = ButtonControl.Create(iXFTab, "First");
-            grid.TopRight = TextboxControl.Create(iXFTab, "Beta");
-            grid.BottomLeft = ButtonControl.Create(iXFTab, "Charlie");
+            iTextboxOne = TextboxControl.Create(iXFTab, "Beta");
+            iButtonThree = ButtonControl.Create(iXFTab, "Charlie");
             iButtonFour = ButtonControl.Create(iXFTab, "FOUR");
 
+            grid.TopRight = iTextboxOne;
             grid.BottomRight = iButtonFour;
+            grid.BottomLeft = iButtonThree;
             iButtonFour.Clicked += OnButtonFourClicked;
-
+            iTextboxOne.KeyPress += OnTextboxOneKeyPress;
             iXFTab.Root = grid;
 
             iFormsApp = aFormsApp;
@@ -361,7 +364,11 @@ namespace OpenHome.XappForms.Forms
             iButtonFour.Text = iButtonFour.Text == "CLICKED" ? "clicked" : "CLICKED";
         }
 
-
+        void OnTextboxOneKeyPress(object sender, EventArgs e)
+        {
+            Console.WriteLine("KeyPress!");
+            iButtonThree.Text = "blah";
+        }
 
 
         public int Id
