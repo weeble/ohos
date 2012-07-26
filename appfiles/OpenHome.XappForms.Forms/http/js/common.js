@@ -32,6 +32,7 @@ $().ready(function () {
             return this.controls[id];
         },
         destroyControl: function (id) {
+            $('#xf-' + id).data('ohj').destroy();
             this.controls[id].destroy();
             delete this.controls[id];
         },
@@ -75,7 +76,7 @@ $().ready(function () {
         'keypress': eventArgType.inputval
     };
 
-   
+
 
 
     // Mixins: The following classes are mixins. The idea is that there's no true
