@@ -63,10 +63,9 @@ $().ready(function () {
         },
         'inputval': function (e) {
             return {
-                'val': $(e.srcElement).val();
-            }
+                'val': $(e.srcElement).val()
+            };
         }
-
     };
 
 
@@ -184,6 +183,7 @@ $().ready(function () {
         this.domElement = applyTemplate('xf-textbox', id);
     }
     mixinControl(TextboxControl.prototype);
+    mixinEventedControl(TextboxControl.prototype, 'inputval');
     TextboxControl.prototype['xf-set-property'] = function (message) {
         if (message.property !== 'text') return;
         this.domElement.val(message.value);
@@ -207,13 +207,22 @@ $().ready(function () {
     $('body').on('xappevent', function (event, data) {
         var message = '';
         //console.log('Received:');
-        //console.log(data);
+        console.log(data);
         switch (data.type) {
             case 'xf-create':
                 controlManager.createControl(data['class'], data.control);
                 break;
             case 'xf-destroy':
                 controlManager.destroyControl(data.control);
+                break;
+            case 'xf-method':
+                var ctrl = $('#xf-' + data.control).data('ohj');
+                var args = [];
+                for (var d in data.arguments) {
+                    if (data.arguments.hasOwnProperty(d))
+                        args.push(data.arguments[d]);
+                }
+                ctrl[data.method].apply(ctrl, args);
                 break;
             default:
                 if (data.type.slice(0, 3) === 'xf-') {
