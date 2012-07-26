@@ -22,7 +22,6 @@
                             $.fn.blockUI();
                             inProgress = true;
                             //var has3d = ('WebKitCSSMatrix' in window && 'm11' in new WebKitCSSMatrix())
-                            console.log(transition);
                             switch(transition) {
                                 case 'none':
                                 {
