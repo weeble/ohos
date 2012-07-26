@@ -140,10 +140,6 @@ $().ready(function () {
         return prototype;
     }
 
-    function getEventArgs(eventtype, e) {
-
-    }
-
     function applyTemplate(name, id) {
         var topId = 'xf-' + id;
         var topElement = $('#' + name).clone().attr('id', topId);
