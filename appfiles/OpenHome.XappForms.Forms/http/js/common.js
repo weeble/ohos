@@ -16,24 +16,26 @@ $().ready(function () {
     // Tracks the control classes available for use, and the controls
     // instantiated on this page.
     function ControlManager() {
-        this.classes = { };
-        this.controls = { };
+        this.classes = {};
+        this.controls = {};
     }
+
+
     ControlManager.prototype = {
-        addControl : function (control) {
+        addControl: function (control) {
             this.controls[control.id] = control;
         },
-        deliverControlMessage : function (id, message) {
+        deliverControlMessage: function (id, message) {
             this.controls[id].receive(message);
         },
-        getControl : function (id) {
+        getControl: function (id) {
             return this.controls[id];
         },
-        destroyControl : function (id) {
+        destroyControl: function (id) {
             this.controls[id].destroy();
             delete this.controls[id];
         },
-        registerClass : function (name, klass) {
+        registerClass: function (name, klass) {
             var thisControlManager = this;
             this.classes[name] = {
                 create: function (id) {
@@ -50,6 +52,28 @@ $().ready(function () {
 
     controlManager = new ControlManager();
 
+    // Event arguments to return from an event
+    var eventArgType = {
+        'pointer': function (e) {
+            console.log(e);
+            return {
+                'x': e.pageX,
+                'y': e.pageY
+            };
+        },
+        'inputval': function (e) {
+            return {
+                'val': $(e.srcElement).val();
+            }
+        }
+
+    };
+
+
+
+
+
+
     // Mixins: The following classes are mixins. The idea is that there's no true
     // single-inheritance relationship between "controls that contain other controls",
     // "controls with subscribable events" and so on. So you create your subclass of
@@ -63,7 +87,7 @@ $().ready(function () {
             var type = message.type;
             if (typeof type === 'undefined') return console.log('Undefined message type.');
             if (typeof type !== 'string') return console.log('Non-string message type.');
-            if (type.slice(0,3) !== 'xf-') return console.log('Non-XappForms message.');
+            if (type.slice(0, 3) !== 'xf-') return console.log('Non-XappForms message.');
             var method = this[type];
             if (typeof method === 'undefined') return console.log('Control cannot handle message.');
             return method.call(this, message);
@@ -78,8 +102,8 @@ $().ready(function () {
         prototype['xf-bind-slot'] = function (message) {
             var childControl = this.controlManager.getControl(message.child);
             if (typeof childControl === 'undefined') return console.log('No such child control.');
-            var slotId = 'xf-'+this.id+'-'+message.slot;
-            var slotElement = this.domElement.find('.'+slotId).andSelf().filter('.'+slotId);
+            var slotId = 'xf-' + this.id + '-' + message.slot;
+            var slotElement = this.domElement.find('.' + slotId).andSelf().filter('.' + slotId);
             slotElement.find('>*').detach();
             slotElement.append(childControl.domElement);
             return null;
@@ -90,20 +114,23 @@ $().ready(function () {
     // EventedControl: This is a control that allows the server to subscribe to
     // events raised by its DOM element.
     // Requires domElement property.
-    function mixinEventedControl(prototype, events) {
-        prototype['xf-subscribe'] = function(message) {
+    function mixinEventedControl(prototype, eArgType) {
+        prototype.getEventArgs = eventArgType[eArgType];
+        prototype['xf-subscribe'] = function (message) {
+            var _this = this;
             this.domElement.on(
                 message['event'],
-                function () {
+                function (e) {
                     xapp.tx({
-                        'type' : 'xf-event',
+                        'type': 'xf-event',
                         'control': message.control,
-                        'event' : message['event'],
-                        'object' : null });
+                        'event': message['event'],
+                        'object': _this.getEventArgs(e)
+                    });
                 }
             );
         };
-        prototype['xf-unsubscribe'] = function(message) {
+        prototype['xf-unsubscribe'] = function (message) {
             this.domElement.off(message['event']);
         };
         return prototype;
@@ -111,10 +138,10 @@ $().ready(function () {
 
     function applyTemplate(name, id) {
         var topId = 'xf-' + id;
-        var topElement = $('#'+name).clone().attr('id',topId);
-        topElement.find('[data-xfslot]').each(function(i,el){
+        var topElement = $('#' + name).clone().attr('id', topId);
+        topElement.find('[data-xfslot]').each(function (i, el) {
             var jElement = $(el);
-            jElement.addClass(topId+'-'+jElement.data('xfslot'));
+            jElement.addClass(topId + '-' + jElement.data('xfslot'));
             jElement.removeData('xfslot');
         });
 
@@ -142,8 +169,8 @@ $().ready(function () {
         this.domElement = applyTemplate('xf-button', id);
     }
     mixinControl(ButtonControl.prototype);
-    mixinEventedControl(ButtonControl.prototype);
-    ButtonControl.prototype['xf-set-property'] = function(message) {
+    mixinEventedControl(ButtonControl.prototype, 'pointer');
+    ButtonControl.prototype['xf-set-property'] = function (message) {
         if (message.property !== 'text') return;
         this.domElement.text(message.value);
     };
@@ -189,7 +216,7 @@ $().ready(function () {
                 controlManager.destroyControl(data.control);
                 break;
             default:
-                if (data.type.slice(0,3) === 'xf-') {
+                if (data.type.slice(0, 3) === 'xf-') {
                     controlManager.deliverControlMessage(data.control, data);
                 } else {
                     console.log('Received but could not understand:');
