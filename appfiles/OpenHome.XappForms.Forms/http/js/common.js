@@ -149,7 +149,6 @@ $().ready(function () {
             jElement.addClass(topId + '-' + jElement.data('xfslot'));
             jElement.removeData('xfslot');
         });
-
         $.fn.decoratePlugin(name.replace('xf-', 'ohj'), topElement);
         return topElement;
     }
@@ -213,7 +212,7 @@ $().ready(function () {
     $('body').on('xappevent', function (event, data) {
         var message = '';
         //console.log('Received:');
-        console.log(data);
+        //  console.log(data);
         switch (data.type) {
             case 'xf-create':
                 controlManager.createControl(data['class'], data.control);
@@ -222,13 +221,9 @@ $().ready(function () {
                 controlManager.destroyControl(data.control);
                 break;
             case 'xf-method':
-                var ctrl = $('#xf-' + data.control).data('ohj');
-                var args = [];
-                for (var d in data.arguments) {
-                    if (data.arguments.hasOwnProperty(d))
-                        args.push(data.arguments[d]);
-                }
-                ctrl[data.method].apply(ctrl, args);
+                    var ctrl = controlManager.getControl(data.control).domElement.data('ohj');
+                    // TODO : data.arguments needs to be an array.
+                    ctrl[data.method].apply(ctrl, data.arguments);
                 break;
             default:
                 if (data.type.slice(0, 3) === 'xf-') {

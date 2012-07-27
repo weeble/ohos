@@ -1,6 +1,5 @@
 ;(function($) {
-    var pluginName = 'ohjtextbox';
-    ohjui[pluginName] =  function(element, options) {
+    ohjui['ohjtextbox'] =  function(element, options) {
         var elem = $(element);
         var _this = this;
         var settings = $.extend({
@@ -21,6 +20,6 @@
         render();
     };
     
-    $.fn.createPlugin(pluginName);
+    $.fn.createPlugin('ohjtextbox');
 
 })(window.jQuery || window.Zepto);
